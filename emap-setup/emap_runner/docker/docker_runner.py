@@ -1,9 +1,10 @@
+import os
 from pathlib import Path
 from subprocess import Popen, PIPE, CalledProcessError
 from typing import List, Optional, IO
 
 from emap_runner.log import logger
-from emap_runner.files import File
+from emap_runner.files import File, EnvironmentFile
 from emap_runner.utils import EMAPRunnerException
 
 
@@ -14,7 +15,7 @@ class DockerRunnerException(EMAPRunnerException):
 class DockerRunner:
     """Orchestration for multiple services using docker"""
 
-    def __init__(self, main_dir: Path, config: dict):
+    def __init__(self, main_dir: Path, config: "GlobalConfiguration"):
         """Initialise a docker runner with docker-compose.yml files relative
         to the main directory given a specific configuration"""
 
@@ -36,14 +37,7 @@ class DockerRunner:
         :param output_lines: List to append the stdout to
         """
 
-        paths = self.docker_compose_paths
-
-        if not all(path.exists() for path in paths):
-            _paths_str = "\n".join(str(p) for p in paths)
-            raise DockerRunnerException(
-                f"Cannot run docker-compose {docker_compose_args}. "
-                f"At least one path did not exist:\n {_paths_str} "
-            )
+        self._check_paths_exist()
 
         cmd = self.base_docker_compose_command.split()
         for arg in docker_compose_args:
@@ -51,7 +45,13 @@ class DockerRunner:
 
         logger.info(f'Running:\n {" ".join(cmd)}\n')
 
-        with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
+        with Popen(
+            cmd,
+            stdout=PIPE if output_filename or output_lines else None,
+            bufsize=1,
+            universal_newlines=True,
+            env=self._all_global_environment_variables(),
+        ) as p:
 
             if output_filename is not None:
                 _write_to_file(p.stdout, output_filename)
@@ -59,13 +59,10 @@ class DockerRunner:
             elif output_lines is not None:
                 _append_to_list(p.stdout, output_lines)
 
-            else:
-                _print(p.stdout)
-
-        if p.returncode not in (0, None):
-            raise DockerRunnerException(
-                f"Process failed with error code: " f"{p.returncode}"
-            )
+            if p.returncode not in (0, None):
+                raise DockerRunnerException(
+                    f"Process failed with error code: {p.returncode}"
+                )
 
         return None
 
@@ -129,13 +126,50 @@ class DockerRunner:
 
         return None
 
+    def _check_paths_exist(self) -> None:
+        """Ensure all the docker compose files exist"""
+
+        paths = self.docker_compose_paths
+
+        if not all(path.exists() for path in paths):
+            _paths_str = "\n".join(str(p) for p in paths)
+            raise DockerRunnerException(
+                f"Cannot run docker-compose. "
+                f"At least one path did not exist:\n {_paths_str} "
+            )
+
+        return None
+
+    @staticmethod
+    def _all_global_environment_variables() -> dict:
+        """Dictionary of all global variables present in
+        config/global-config-envs added to the currently set env vars"""
+
+        config_dir_path = Path(Path.cwd(), "config")
+
+        if not config_dir_path.exists():
+            raise DockerRunnerException(
+                "Failed to locate all the env vars ./config dir did not exist"
+            )
+
+        env_vars = os.environ.copy()
+
+        for item in config_dir_path.iterdir():
+
+            # only necessary to read the global config variables; rest will be
+            # pulled through containers directly
+            if item.is_file() and str(item) == "global-config-envs":
+                env_vars.update(EnvironmentFile(item).environment_variables)
+
+        return env_vars
+
 
 def _write_to_file(stdout: IO, filename: str) -> None:
     """Write standard output to a file"""
 
     with open(filename, "w") as file:
         for line in stdout:
-            print(line, file=file)
+            print(line, end="", file=file)
 
     return None
 
@@ -145,14 +179,5 @@ def _append_to_list(stdout: IO, _list: list) -> None:
 
     for line in stdout:
         _list.append(line.decode())
-
-    return None
-
-
-def _print(stdout: IO) -> None:
-    """Print standard output"""
-
-    for line in stdout:
-        print(line, end="")
 
     return None

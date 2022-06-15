@@ -11,6 +11,7 @@
 main_git_dir:
   https://github.com/inform-health-informatics
 
+# note that the project name is used in naming docker containers, so this is how you will find them later!
 EMAP_PROJECT_NAME:
   my_project_name
 
@@ -46,8 +47,15 @@ rabbitmq:
 
 # Configuration used by global configuration
 global:
-  RABBITMQ_PORT: 5678
+  RABBITMQ_PORT: 5672
   RABBITMQ_ADMIN_PORT: 5679
+  CLARITY_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/clarity
+  CLARITY_USERNAME: clarity_user
+  CLARITY_PASSWORD: clearity_readaccess
+  CABOODLE_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/caboodle
+  CABOODLE_USERNAME: caboodle_username
+  CABOODLE_PASSWORD: caboodle_readaccess
+
 
 # Configuration for the IDS
 ids:
@@ -57,7 +65,7 @@ ids:
   IDS_PASSWORD: redactedids
 
 # These dates are used to set the start and end dates between which data
-# should be collected
+# should be collected. These are NOT used for validation runs
 dates:
   start: 2020-06-04T00:00:00.00Z
   end:
@@ -72,6 +80,7 @@ uds:
 # These are the configurations for glowroot (a Java application performance
 # management system).
 glowroot:
+  DOMAIN: glowroot_domain
   GLOWROOT_USERNAME: glowrootuser
   GLOWROOT_PASSWORD: glowrootpw
   GLOWROOT_ADMIN_PORT: 4000

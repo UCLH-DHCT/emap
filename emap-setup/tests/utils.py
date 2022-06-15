@@ -1,7 +1,8 @@
 import os
 
-from shutil import rmtree
+from shutil import rmtree, copy
 from distutils.dir_util import copy_tree
+from pathlib import Path
 from tempfile import mkdtemp
 from functools import wraps
 from typing import Optional
@@ -20,7 +21,10 @@ def work_in_tmp_directory(to_copy: Optional[list]):
             tmpdir_path = mkdtemp()
 
             for item in to_copy:
-                copy_tree(item, tmpdir_path)
+                if Path(item).is_dir():
+                    copy_tree(item, tmpdir_path)
+                else:
+                    copy(item, tmpdir_path)
 
             os.chdir(tmpdir_path)
             result = func(*args, **kwargs)

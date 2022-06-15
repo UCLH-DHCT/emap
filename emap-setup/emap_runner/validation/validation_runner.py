@@ -59,7 +59,7 @@ class ValidationRunner:
         """Set the time window in all the required files"""
 
         for item in self.env_dir_path.iterdir():
-            if str(item).startswith(".") or not str(item).endswith("config-envs"):
+            if str(item).startswith(".") or not str(item).endswith("-envs"):
                 continue
 
             self._set_time_window_in_env_file(
@@ -71,12 +71,16 @@ class ValidationRunner:
     def _set_time_window_in_env_file(self, file: EnvironmentFile) -> None:
         """Set the correct time stamps in the environment file"""
 
-        file.replace_value_of(
-            "IDS_CFG_DEFAULT_START_DATETIME", self.time_window.start_stamp
-        )
-        file.replace_value_of("IDS_CFG_END_DATETIME", self.time_window.end_stamp)
-        file.replace_value_of("HOOVER_DATE_FROM", self.time_window.start_stamp)
-        file.replace_value_of("HOOVER_DATE_UNTIL", self.time_window.end_stamp)
+        if not self.time_window.start.is_default:
+
+            file.replace_value_of(
+                "IDS_CFG_DEFAULT_START_DATETIME", self.time_window.start_stamp
+            )
+            file.replace_value_of("HOOVER_DATE_FROM", self.time_window.start_stamp)
+
+        if not self.time_window.end.is_default:
+            file.replace_value_of("IDS_CFG_END_DATETIME", self.time_window.end_stamp)
+            file.replace_value_of("HOOVER_DATE_UNTIL", self.time_window.end_stamp)
 
         file.write(directory=self.env_dir_path)
 
@@ -84,35 +88,36 @@ class ValidationRunner:
 
     def _run_emap(self) -> None:
         """Run the services that constitute EMAP"""
+        self._create_logs_directory()
 
         self.docker.inject_ports()
         self.docker.run("down")
+        self.docker.run("up --build -d cassandra rabbitmq")
         self.docker.setup_glowroot_password()
-        self.docker.run("up -d glowroot-central")
+        self.docker.run("up --build -d glowroot-central")
         self.docker.run("ps")
 
+        """
+        Running emapstar before data sources requires RabbitMQ to be up and running. A time delay was added to overcome
+        the time delay required for RabbitMQ to be there. Should this proof not to be sufficient, then the running order
+        may need to change, i.e. the data sources to be started first (as background services though!).
+        """
+        sleep(180)
+        _ = Popen(
+            self.docker.base_docker_compose_command.split()
+            + ["up", "--build", "-d", "emapstar"]
+        )
+
         self.docker.run(
-            "up --exit-code-from hl7source hl7source",
+            "up --build --exit-code-from hl7source hl7source",
             output_filename=f"{self.log_file_prefix}_hl7source.txt",
         )
         self.docker.run(
-            "up --exit-code-from hoover hoover",
+            "up --build --exit-code-from hoover hoover",
             output_filename=f"{self.log_file_prefix}_hoover.txt",
         )
 
         self.docker.run("ps")
-
-        """
-        If this is run after the data sources, it would deadlock if the 
-        hl7source generates more messages than can fit in the queue, but
-        currently emapstar doesn't like being started up unless the queues 
-        exist, or start existing very quickly. So, start it up just a little
-        after the datasources!
-        """
-        sleep(secs=180)
-        _ = Popen(
-            self.docker.base_docker_compose_command.split() + ["up", "-d", "emapstar"]
-        )
 
     def _wait_for_queue_to_empty(self) -> None:
         """
@@ -124,7 +129,7 @@ class ValidationRunner:
 
         while self._has_populated_queues:
 
-            sleep(secs=120)
+            sleep(120)
 
             if self._exceeded_timeout:
                 self._save_logs_and_stop()
@@ -134,7 +139,7 @@ class ValidationRunner:
                 )
 
         # exits too keenly from databaseExtracts queue, adding in a wait period
-        sleep(secs=600)
+        sleep(600)
 
         return None
 

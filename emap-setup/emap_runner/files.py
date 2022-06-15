@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional, List
 
+from emap_runner.log import logger
 from emap_runner.utils import EMAPRunnerException
 
 
@@ -74,13 +75,16 @@ class EnvironmentFile(File):
     def unchanged_lines(self) -> List[str]:
         """List of unchanged lines in a file"""
         return [
-            str(l)
-            for l in self.lines
-            if not (isinstance(l, NewLine) or isinstance(l, CommentLine))
+            str(line)
+            for line in self.lines
+            if not (isinstance(line, NewLine) or isinstance(line, CommentLine))
         ]
 
     def replace_value_of(self, key: str, value: str) -> None:
         """Replace a value given a string key"""
+
+        if not value.endswith("\n"):
+            value += "\n"
 
         for i, line in enumerate(self.lines):
             if line.startswith(key):
@@ -102,3 +106,32 @@ class EnvironmentFile(File):
             /some/dir/rabbitmq-config-envs -> rabbitmq
         """
         return str(self.path.name).replace("-config-envs", "")
+
+    @property
+    def environment_variables(self) -> dict:
+        """Construct a dictionary of environment variables stored in a file in
+        the format::
+
+            key0=value0
+            key1=value1
+            ...
+        """
+
+        env_vars = {}
+
+        for line in self.lines:
+
+            if line.startswith("#"):
+                continue  # skip comment lines
+
+            try:
+                key = line.split("=")[0]
+                value = "=".join(line.split("=")[1:])
+                env_vars[key] = value.strip()
+
+            except (ValueError, IndexError):
+                logger.error(
+                    f"{line} was not a valid env variable pair in: {self.path}"
+                )
+
+        return env_vars

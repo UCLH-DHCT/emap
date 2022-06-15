@@ -18,7 +18,14 @@ class TimeWindow:
         Convert a string referring to a date that may be relative to today
         into a Python datetime.date object
         """
-        today = date.today()
+        if string.endswith("_default"):
+            _date_type = DefaultDate
+            string = string.replace("_default", "")
+
+        else:
+            _date_type = Date
+
+        today = _date_type.today()
 
         if string == "today":
             return today
@@ -29,10 +36,10 @@ class TimeWindow:
             if string_n == "":
                 raise EMAPRunnerException(f"Invalid date string: {string}")
 
-            return date.fromordinal(today.toordinal() - int(string_n))
+            return _date_type.fromordinal(today.toordinal() - int(string_n))
 
         try:
-            return date.fromisoformat(string)
+            return _date_type.fromisoformat(string)
         except ValueError as e:
             raise EMAPRunnerException(f"Failed to parse {string} as a date") from e
 
@@ -43,3 +50,13 @@ class TimeWindow:
     @property
     def end_stamp(self) -> str:
         return f"{self.end}T00:00:00.00Z"
+
+
+class Date(date):
+
+    is_default = False
+
+
+class DefaultDate(Date):
+
+    is_default = True

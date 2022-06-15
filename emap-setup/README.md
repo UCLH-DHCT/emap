@@ -16,7 +16,7 @@ For example,
 ```bash
 git clone https://github.com/inform-health-informatics/emap-setup.git &&\
 cd emap-setup &&\
-pip install . -r requirements.txt  &&\
+pip install -e . -r requirements.txt  &&\
 cp global-configuration-EXAMPLE.yaml ../global-configuration.yaml
 ```
 
@@ -40,8 +40,8 @@ source ~/.local/venvs/emap/bin/activate
 
 </details>
  
-> **_NOTE:_**  Python 3 is installed as `python3` on GAE01 and the corresponding
-> pip `pip3`
+> **_NOTE:_**  Python 3 (version 3.6) is installed as `python3` on GAE01 and the corresponding
+> pip `pip3`. If a higher version is needed going forward, a Docker container would be needed.
 
 
 ***
@@ -59,10 +59,12 @@ emap setup --help
 
 ### Examples
 
-Clone all the repositories:
+Clone all the repositories for the specified branches:
 ```bash
-emap setup --init
+emap setup --init test_branch
 ```
+
+> **_NOTE:_**  If a branch has not been specified the runner defaults to the _develop_ branch.
 
 Run a docker `ps` command:
 ```bash

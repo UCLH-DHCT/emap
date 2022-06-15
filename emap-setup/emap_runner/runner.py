@@ -84,14 +84,14 @@ def create_parser() -> Parser:
         "--start_date",
         type=str,
         help="Date at which to start parsing messages. Default: 7 days ago",
-        default="7 days ago",
+        default="7 days ago_default",
     )
     validation_parser.add_argument(
         "-e",
         "--end_date",
         type=str,
         help="Date at which to start parsing messages. Default: today",
-        default="today",
+        default="today_default",
     )
 
     return parser

@@ -182,10 +182,15 @@ class GlobalConfiguration(dict):
             )
 
         if "ids" not in self:
-            logger.warning(f"Failed to find idx in {self}")
+            logger.warning(f"Failed to find ids in {self}")
             return
 
-        self["ids"]["IDS_CFG_DEFAULT_START_DATETIME"] = _date_or_empty_string("start")
-        self["ids"]["IDS_CFG_END_DATETIME"] = _date_or_empty_string("end")
+        self["ids"]["IDS_CFG_DEFAULT_START_DATETIME"] = self["global"][
+            "HOOVER_DATE_FROM"
+        ] = _date_or_empty_string("start")
+
+        self["ids"]["IDS_CFG_END_DATETIME"] = self["global"][
+            "HOOVER_DATE_UNTIL"
+        ] = _date_or_empty_string("end")
 
         return None

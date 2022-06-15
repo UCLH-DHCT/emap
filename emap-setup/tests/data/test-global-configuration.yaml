@@ -27,7 +27,7 @@ rabbitmq:
 # Configuration used by global configuration
 
 global:
-  RABBITMQ_PORT: 5678
+  RABBITMQ_PORT: 5672
   RABBITMQ_ADMIN_PORT: 5679
 
 # Configuration for the IDS
