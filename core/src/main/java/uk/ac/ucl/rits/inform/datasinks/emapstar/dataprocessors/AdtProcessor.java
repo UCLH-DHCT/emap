@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.DeletionController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientLocationController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PendingAdtController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
@@ -13,10 +14,12 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 
 import java.time.Instant;
@@ -28,24 +31,27 @@ import java.util.List;
  */
 @Component
 public class AdtProcessor {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(AdtProcessor.class);
     private final PersonController personController;
     private final VisitController visitController;
-    private final LocationController locationController;
     private final DeletionController deletionController;
+    private final PatientLocationController patientLocationController;
+    private final PendingAdtController pendingAdtController;
 
     /**
      * Implicitly wired spring beans.
-     * @param personController   person interactions.
-     * @param visitController    encounter interactions.
-     * @param locationController location interactions.
-     * @param deletionController cascading deletions.
+     * @param personController          person interactions.
+     * @param visitController           encounter interactions.
+     * @param deletionController        cascading deletions.
+     * @param patientLocationController location interactions.
+     * @param pendingAdtController      pending ADT interactions.
      */
-    public AdtProcessor(PersonController personController, VisitController visitController, LocationController locationController,
-                        DeletionController deletionController) {
+    public AdtProcessor(PersonController personController, VisitController visitController, DeletionController deletionController,
+                        PatientLocationController patientLocationController, PendingAdtController pendingAdtController) {
         this.personController = personController;
         this.visitController = visitController;
-        this.locationController = locationController;
+        this.patientLocationController = patientLocationController;
+        this.pendingAdtController = pendingAdtController;
         this.deletionController = deletionController;
     }
 
@@ -59,9 +65,13 @@ public class AdtProcessor {
     @Transactional
     public void processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
-        Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
-        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
-        locationController.processVisitLocation(visit, msg, storedFrom);
+        HospitalVisit visit = processPersonAndVisit(msg, storedFrom, messageDateTime);
+        patientLocationController.processVisitLocation(visit, msg, storedFrom);
+    }
+
+    private HospitalVisit processPersonAndVisit(AdtMessage msg, Instant storedFrom, Instant validFrom) throws RequiredDataMissingException {
+        Mrn mrn = processPersonLevel(msg, storedFrom, validFrom);
+        return visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
     }
 
     /**
@@ -113,7 +123,7 @@ public class AdtProcessor {
             logger.warn("No existing visits for DeletePersonMessage message: {}", msg);
             return;
         }
-        locationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
+        patientLocationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
         deletionController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
     }
 
@@ -167,6 +177,36 @@ public class AdtProcessor {
                 msg.getOtherVisitNumber(), mrnB, msg.getSourceSystem(), messageDateTime, storedFrom);
 
         // swap locations
-        locationController.swapLocations(visitA, visitB, msg, storedFrom);
+        patientLocationController.swapLocations(visitA, visitB, msg, storedFrom);
+    }
+
+    /**
+     * Process a pending ADT message.
+     * <p>
+     * Adds in all patient level information and a HospitalVisit so that a PlannedMovement can be created.
+     * @param msg        pending adt message
+     * @param storedFrom time that emap core started processing the message
+     * @throws RequiredDataMissingException if the visit number is missing
+     */
+    @Transactional
+    public void processPendingAdt(PendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        HospitalVisit visit = processPersonAndVisit(msg, storedFrom, validFrom);
+        pendingAdtController.processMsg(visit, msg, validFrom, storedFrom);
+    }
+
+    /**
+     * Process a cancellation of pending ADT message.
+     * <p>
+     * Adds in all patient level information and a HospitalVisit so that a PlannedMovement can be created.
+     * @param msg        pending adt message
+     * @param storedFrom time that emap core started processing the message
+     * @throws RequiredDataMissingException if the visit number is missing
+     */
+    @Transactional
+    public void processPendingAdt(CancelPendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        HospitalVisit visit = processPersonAndVisit(msg, storedFrom, validFrom);
+        pendingAdtController.processMsg(visit, msg, validFrom, storedFrom);
     }
 }
