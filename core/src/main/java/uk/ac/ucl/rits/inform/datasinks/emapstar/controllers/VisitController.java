@@ -276,19 +276,6 @@ public class VisitController {
     }
 
     /**
-     * Delete all visits that are older than the current message.
-     * @param visits     List of hopsital visits
-     * @param validFrom  Time of the delete information message
-     * @param storedFrom time that emap-core started processing the message.
-     */
-    public void deleteVisits(Iterable<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
-        for (HospitalVisit visit : visits) {
-            hospitalVisitAuditRepo.save(new HospitalVisitAudit(visit, validFrom, storedFrom));
-            hospitalVisitRepo.delete(visit);
-        }
-    }
-
-    /**
      * Move visit information from previous MRN to current MRN.
      * @param msg         MoveVisitInformation message
      * @param storedFrom  time that emap-core started processing the message.
