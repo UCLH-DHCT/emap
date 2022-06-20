@@ -76,7 +76,7 @@ public class PlannedMovement extends TemporalCore<PlannedMovement, PlannedMoveme
     /**
      * /brief Has the planned movement been cancelled (either by a user or because a different movement has occurred).
      */
-    private Boolean cancelled;
+    private Boolean cancelled = false;
 
     /**
      * /brief The date and time that the planned movement was cancelled.
