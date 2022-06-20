@@ -25,6 +25,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -187,5 +188,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         advanceDecisionProcessor.processMessage(msg, storedFrom);
+    }
+
+    @Override
+    @Transactional
+    public void processMessage(LabMetadataMsg msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        labProcessor.processMessage(msg, storedFrom);
     }
 }
