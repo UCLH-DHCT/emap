@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.DeletionController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientLocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PendingAdtController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
@@ -30,9 +32,11 @@ import java.util.List;
  */
 @Component
 public class AdtProcessor {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(AdtProcessor.class);
     private final PersonController personController;
     private final VisitController visitController;
+    private final LocationController locationController;
+    private final DeletionController deletionController;
     private final PatientLocationController patientLocationController;
     private final PendingAdtController pendingAdtController;
 
@@ -40,15 +44,20 @@ public class AdtProcessor {
      * Implicitly wired spring beans.
      * @param personController          person interactions.
      * @param visitController           encounter interactions.
+     * @param locationController        location interactions.
+     * @param deletionController        cascading deletions.
      * @param patientLocationController location interactions.
      * @param pendingAdtController      pending ADT interactions.
      */
-    public AdtProcessor(PersonController personController, VisitController visitController,
+    public AdtProcessor(PersonController personController, VisitController visitController, LocationController locationController,
+                        DeletionController deletionController,
                         PatientLocationController patientLocationController, PendingAdtController pendingAdtController) {
         this.personController = personController;
         this.visitController = visitController;
         this.patientLocationController = patientLocationController;
         this.pendingAdtController = pendingAdtController;
+        this.locationController = locationController;
+        this.deletionController = deletionController;
     }
 
 
@@ -102,6 +111,9 @@ public class AdtProcessor {
 
     /**
      * Delete all information for a person that is older than the message.
+     * <p>
+     * This is being processed <a href="https://www.hl7.org/documentcenter/public/wg/conf/Msgadt.pdf">as per page 137 </a>.
+     * Keeping the MRN as this may be used by another person.
      * @param msg        DeletePersonInformation
      * @param storedFrom time that emap-core started processing the message.
      * @throws RequiredDataMissingException If MRN and NHS number are both null
@@ -117,7 +129,7 @@ public class AdtProcessor {
             return;
         }
         patientLocationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
-        visitController.deleteVisits(olderVisits, messageDateTime, storedFrom);
+        deletionController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
     }
 
     /**
