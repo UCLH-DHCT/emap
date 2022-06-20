@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.DeletionController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientLocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PendingAdtController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
@@ -35,7 +34,6 @@ public class AdtProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AdtProcessor.class);
     private final PersonController personController;
     private final VisitController visitController;
-    private final LocationController locationController;
     private final DeletionController deletionController;
     private final PatientLocationController patientLocationController;
     private final PendingAdtController pendingAdtController;
@@ -44,19 +42,16 @@ public class AdtProcessor {
      * Implicitly wired spring beans.
      * @param personController          person interactions.
      * @param visitController           encounter interactions.
-     * @param locationController        location interactions.
      * @param deletionController        cascading deletions.
      * @param patientLocationController location interactions.
      * @param pendingAdtController      pending ADT interactions.
      */
-    public AdtProcessor(PersonController personController, VisitController visitController, LocationController locationController,
-                        DeletionController deletionController,
+    public AdtProcessor(PersonController personController, VisitController visitController, DeletionController deletionController,
                         PatientLocationController patientLocationController, PendingAdtController pendingAdtController) {
         this.personController = personController;
         this.visitController = visitController;
         this.patientLocationController = patientLocationController;
         this.pendingAdtController = pendingAdtController;
-        this.locationController = locationController;
         this.deletionController = deletionController;
     }
 
