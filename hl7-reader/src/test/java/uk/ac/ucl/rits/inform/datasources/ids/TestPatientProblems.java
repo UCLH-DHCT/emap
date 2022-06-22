@@ -1,11 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -28,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @ActiveProfiles("test")
 @SpringBootTest
-public class TestProblemLists extends TestHl7MessageStream {
+public class TestPatientProblems extends TestHl7MessageStream {
     private static final String FILE_TEMPLATE = "ProblemList/%s.txt";
     private static final String MRN = "8DcEwvqa8Q3";
     private static final String PROBLEM_CODE = "K64.9";

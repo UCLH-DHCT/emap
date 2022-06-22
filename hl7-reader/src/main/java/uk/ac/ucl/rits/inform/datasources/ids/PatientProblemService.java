@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.ConditionAction;
-import uk.ac.ucl.rits.inform.interchange.ConditionStatus;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
@@ -76,7 +75,7 @@ public class PatientProblemService {
         Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getPrb9_ActualProblemResolutionDateTime());
         patientProblem.setResolvedTime(InterchangeValue.buildFromHl7(problemResolved));
         String problemStatus = problemSegment.getPrb13_ProblemConfirmationStatus().getCwe1_Identifier().getValueOrEmpty();
-        patientProblem.setStatus(ConditionStatus.findByHl7Value(problemStatus));
+        patientProblem.setStatus(problemStatus);
         String problemId = problemSegment.getPrb4_ProblemInstanceID().getEntityIdentifier().getValueOrEmpty();
         patientProblem.setEpicConditionId(InterchangeValue.buildFromHl7(Long.valueOf(problemId)));
         DTM problemOnset = problemSegment.getPrb16_ProblemDateOfOnset();
