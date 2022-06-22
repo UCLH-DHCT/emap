@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationMetadataController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdvanceDecisionProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
@@ -20,12 +20,15 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -48,7 +51,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private ConsultationRequestProcessor consultationRequestProcessor;
     @Autowired
-    private LocationMetadataController locationMetadataController;
+    private LocationController locationController;
     @Autowired
     private AdvanceDecisionProcessor advanceDecisionProcessor;
 
@@ -129,6 +132,26 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         adtProcessor.swapLocations(msg, storedFrom);
     }
 
+    /**
+     * @param msg the PendingTransfer message to process
+     */
+    @Override
+    @Transactional
+    public void processMessage(PendingTransfer msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        adtProcessor.processPendingAdt(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the CancelPendingTransfer message to process
+     */
+    @Override
+    @Transactional
+    public void processMessage(CancelPendingTransfer msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        adtProcessor.processPendingAdt(msg, storedFrom);
+    }
+
     @Override
     @Transactional
     public void processMessage(Flowsheet msg) throws EmapOperationMessageProcessingException {
@@ -191,7 +214,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        locationMetadataController.processMessage(msg, storedFrom);
+        locationController.processMessage(msg, storedFrom);
     }
 
     @Override
@@ -199,5 +222,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         advanceDecisionProcessor.processMessage(msg, storedFrom);
+    }
+
+    @Override
+    @Transactional
+    public void processMessage(LabMetadataMsg msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        labProcessor.processMessage(msg, storedFrom);
     }
 }

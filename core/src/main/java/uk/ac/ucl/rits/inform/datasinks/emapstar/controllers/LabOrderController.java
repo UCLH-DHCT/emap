@@ -78,13 +78,6 @@ public class LabOrderController {
         labBatteryRepo.save(coPathBattery);
     }
 
-
-    LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
-        return labSampleRepo.findByExternalLabNumber(specimenBarcode)
-                .orElseThrow(() -> new IncompatibleDatabaseStateException("Lab sample doesn't exist in star"));
-    }
-
-
     /**
      * @param batteryCode  battery code
      * @param codingSystem coding system that battery is defined by
@@ -102,6 +95,21 @@ public class LabOrderController {
                     return labBatteryRepo.save(labBattery);
                 });
     }
+
+    /**
+     * For Lab metadata, should know if an entity is created or already exists.
+     * <p>
+     * Throwing exception to determine if an entity already exists.
+     * @param batteryCode  battery code
+     * @param codingSystem coding system that battery is defined by
+     * @return LabBattery from cache or database
+     * @throws java.util.NoSuchElementException if entity not in database
+     */
+    @Cacheable(value = "labBattery", key = "{ #batteryCode, #codingSystem }")
+    public LabBattery findLabBatteryOrThrow(String batteryCode, String codingSystem) {
+        return labBatteryRepo.findByBatteryCodeAndLabProvider(batteryCode, codingSystem).orElseThrow();
+    }
+
 
     /**
      * Process lab number and lab labSample information, (including questions) returning the lab number.
