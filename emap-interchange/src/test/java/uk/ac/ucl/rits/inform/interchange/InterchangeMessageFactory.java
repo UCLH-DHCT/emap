@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -148,6 +149,11 @@ public class InterchangeMessageFactory {
         String resourcePath = "/LocationMetadata/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
         return mapper.readValue(inputStream, new TypeReference<>() {});
+    }
+
+    public List<LabMetadataMsg> getLabMetadataMsgs(final String fileName) throws IOException {
+        InputStream resourceAsStream = getClass().getResourceAsStream("/LabsMetadata/" + fileName);
+        return mapper.readValue(resourceAsStream, new TypeReference<>() {});
     }
 
     /**
