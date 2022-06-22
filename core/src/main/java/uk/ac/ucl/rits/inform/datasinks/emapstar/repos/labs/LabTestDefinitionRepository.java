@@ -10,9 +10,7 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface LabTestDefinitionRepository extends CrudRepository<LabTestDefinition, Long> {
-    Optional<LabTestDefinition> findByLabProviderAndLabDepartmentAndTestLabCode(
-            String labProvider, String labDepartment, String labTestCode
-    );
+    Optional<LabTestDefinition> findByLabProviderAndTestLabCode(String labProvider, String labTestCode);
 
     /**
      * For testing.
