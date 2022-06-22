@@ -23,7 +23,6 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.ConditionAction;
-import uk.ac.ucl.rits.inform.interchange.ConditionStatus;
 
 import javax.annotation.Resource;
 import java.time.Instant;
@@ -276,7 +275,7 @@ public class PatientConditionController {
         conditionState.assignInterchangeValue(msg.getEpicConditionId(), condition.getInternalId(), condition::setInternalId);
         conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
-        conditionState.assignIfDifferent(msg.getStatusString(), condition.getStatus(), condition::setStatus);
+        conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(
                 msg.getResolvedTime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
@@ -310,7 +309,7 @@ public class PatientConditionController {
 
         PatientCondition condition = conditionState.getEntity();
 
-        if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equals(ConditionStatus.ACTIVE)) {
+        if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equalsIgnoreCase("active")) {
             conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
         }
     }

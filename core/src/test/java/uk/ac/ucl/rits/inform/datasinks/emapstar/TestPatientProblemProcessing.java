@@ -12,7 +12,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
-import uk.ac.ucl.rits.inform.interchange.ConditionStatus;
 import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -38,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author Anika Cawthorn
  * @author Tom Young
  */
-public class TestProblemListProcessing extends MessageProcessingBase {
+public class TestPatientProblemProcessing extends MessageProcessingBase {
     @Autowired
     PatientConditionRepository patientConditionRepository;
     @Autowired
@@ -324,7 +323,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     void testDeleteActionWithDeleteOrResolvedStatus(String input) throws EmapOperationMessageProcessingException {
 
         hl7MyelomaInpatient.setAction(ConditionAction.DELETE);
-        hl7MyelomaInpatient.setStatus(ConditionStatus.valueOf(input));
+        hl7MyelomaInpatient.setStatus(input);
 
         processSingleMessage(hl7MyelomaInpatient);
 
