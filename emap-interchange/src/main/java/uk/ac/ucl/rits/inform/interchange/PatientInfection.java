@@ -19,11 +19,6 @@ import java.io.Serializable;
 public class PatientInfection extends PatientConditionMessage implements Serializable {
 
     /**
-     * Status of an infection.
-     */
-    private String status;
-
-    /**
      * Comment on an infection.
      */
     private InterchangeValue<String> comment = InterchangeValue.unknown();
@@ -35,9 +30,5 @@ public class PatientInfection extends PatientConditionMessage implements Seriali
      */
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
-    }
-
-    public String getStatusString() {
-        return this.status;
     }
 }
