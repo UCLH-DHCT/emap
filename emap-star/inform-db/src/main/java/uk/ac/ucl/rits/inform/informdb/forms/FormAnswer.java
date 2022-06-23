@@ -75,6 +75,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
      * \brief Current value of the form if it's a UTC instant, else null.
      * .
      */
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant valueAsUtcDatetime;
 
     @Override
