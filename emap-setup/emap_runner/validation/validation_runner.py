@@ -106,25 +106,14 @@ class ValidationRunner:
     def _run_emap(self) -> None:
         """Run the services that constitute EMAP"""
 
-        print(self.time_window.start_stamp)
-        print(self.time_window.end_stamp)
-
-        print("hl7:")
-        print("".join(open("config/emap-hl7processor-config-envs", "r").readlines()))
-        print()
-        print("hoover")
-        print("".join(open("config/hoover-envs", "r").readlines()))
-
-        exit()
-
         _ = input(
-            f"About to run a validation run into:   "
-            f"{self.docker.config['uds']['UDS_SCHEMA']}\n"
+            f"About to run a validation run with:   "
+            f"{'Schema:':20s}{self.docker.config['uds']['UDS_SCHEMA']}\n"
+            f"{'Time window':20s}{self.time_window.start_stamp} -> {self.time_window.end_stamp}\n"
             f"Press any key to continue"
         )
 
         self._create_logs_directory()
-
         self.docker.inject_ports()
         self.docker.run("down")
 
