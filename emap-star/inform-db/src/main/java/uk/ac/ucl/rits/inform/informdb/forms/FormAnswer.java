@@ -78,9 +78,24 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant valueAsUtcDatetime;
 
+    public FormAnswer() {
+    }
+
+    private FormAnswer(FormAnswer other) {
+        super(other);
+        this.formAnswerId = other.formAnswerId;
+        this.formQuestionId = other.formQuestionId;
+        this.formId = other.formId;
+        this.formAnswerSourceId = other.formAnswerSourceId;
+        this.valueAsString = other.valueAsString;
+        this.valueAsNumber = other.valueAsNumber;
+        this.valueAsBoolean = other.valueAsBoolean;
+        this.valueAsUtcDatetime = other.valueAsUtcDatetime;
+    }
+
     @Override
     public FormAnswer copy() {
-        return null;
+        return new FormAnswer(this);
     }
 
     /**
@@ -90,6 +105,6 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
      */
     @Override
     public FormAnswerAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return null;
+        return new FormAnswerAudit(this, validUntil, storedUntil);
     }
 }
