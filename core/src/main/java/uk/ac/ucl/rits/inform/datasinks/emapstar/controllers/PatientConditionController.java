@@ -88,10 +88,12 @@ public class PatientConditionController {
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientProblem(msg, mrn,
                 conditionType.getEntity(), storedFrom);
 
+        patientCondition.assignIfDifferent(msg.getComment().toString(), patientCondition.getEntity().getComment(),
+                patientCondition.getEntity()::setComment);
+
         if (messageShouldBeUpdated(msg, patientCondition)) {
             updatePatientProblem(msg, visit, patientCondition);
         }
-
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
     }
 
@@ -276,7 +278,6 @@ public class PatientConditionController {
         conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
-        conditionState.assignIfDifferent(msg.getComment().toString(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(
                 msg.getResolvedTime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
