@@ -55,13 +55,16 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
 
     /**
      * \brief Type of answer expected (String, number, etc)
+     * Do we store this same value (an instance of ZC_DATA_TYPE) anywhere else in Star?
      * HLX 60
      */
-    private String formQuestionType;
+    private String formQuestionValueType;
 
     /**
-     * \brief Categorical string value of the "type" of SDE this is. Ie. is it related to an order, an encounter, a note, etc.
-     * Warning: Is this fixed for every instance of the same form? Or does it belong in the main SDE table?
+     * \brief Categorical string value of the "type" of SDE this is.
+     * Ie. is it related to an order, an encounter, a note, etc.
+     * Warning: Unknown if this is the same for every instance of the same form.
+     * If not, this field will have to be moved to FormAnswer.
      * (Convert to enum if we can be sure of possible values?)
      */
     private String smartDataElementContext;

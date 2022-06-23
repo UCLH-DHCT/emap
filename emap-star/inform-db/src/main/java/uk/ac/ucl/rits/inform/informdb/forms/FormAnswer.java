@@ -32,23 +32,50 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long formAnswerId;
 
+    /**
+     * \brief Metadata for this answer - ie. what was the question?
+     */
     @ManyToOne
     @JoinColumn(name = "formQuestionId")
     private FormQuestion formQuestionId;
 
+    /**
+     * \brief Which instance of a filled-in form does this question belong to?
+     */
     @ManyToOne
     @JoinColumn(name = "formId")
     private Form formId;
+
+    /**
+     * \brief A unique ID for this form answer that can be used to track back to the source system.
+     * .
+     */
+    private String formAnswerSourceId;
 
     /**
      * \brief Current value of the form - may be a multi-line string concatenated together.
      * .
      */
     @Column(columnDefinition = "text")
-    private String formAnswerValue;
+    private String valueAsString;
 
-    // "context" field is currently in the metadata table, it may have to be moved here though.
+    /**
+     * \brief Current value of the form if it's numerical, else null.
+     * .
+     */
+    private Double valueAsNumber;
 
+    /**
+     * \brief Current value of the form if it's of type boolean, else null.
+     * .
+     */
+    private Boolean valueAsBoolean;
+
+    /**
+     * \brief Current value of the form if it's a UTC instant, else null.
+     * .
+     */
+    private Instant valueAsUtcDatetime;
 
     @Override
     public FormAnswer copy() {
