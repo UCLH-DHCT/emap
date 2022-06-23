@@ -75,6 +75,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
      * \brief Current value of the SDE if it's a UTC instant, else null.
      * HLV 50, influenced by HLV 60.
      */
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant valueAsUtcDatetime;
 
     @Override
