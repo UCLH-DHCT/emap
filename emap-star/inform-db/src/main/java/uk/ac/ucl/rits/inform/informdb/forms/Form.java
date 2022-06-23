@@ -94,9 +94,23 @@ public class Form extends TemporalCore<Form, FormAudit> {
         formAnswer.setFormId(this);
     }
 
+    public Form() {}
+
+    private Form(Form other) {
+        super(other);
+        this.formId = other.formId;
+        this.formDefinitionId = other.formDefinitionId;
+        this.mrnId = other.mrnId;
+        this.hospitalVisitId = other.hospitalVisitId;
+        this.noteId = other.noteId;
+        this.labOrderId = other.labOrderId;
+        this.formFilingDatetime = other.formFilingDatetime;
+        this.formFilingUserId = other.formFilingUserId;
+    }
+
     @Override
     public Form copy() {
-        return null;
+        return new Form(this);
     }
 
     /**
@@ -106,6 +120,6 @@ public class Form extends TemporalCore<Form, FormAudit> {
      */
     @Override
     public FormAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return null;
+        return new FormAudit(this, validUntil, storedUntil);
     }
 }

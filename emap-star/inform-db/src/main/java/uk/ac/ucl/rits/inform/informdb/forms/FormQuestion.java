@@ -69,9 +69,23 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
      */
     private String smartDataElementContext;
 
+    private FormQuestion(FormQuestion other) {
+        super(other);
+        this.formQuestionId = other.formQuestionId;
+        this.formQuestionConceptName = other.formQuestionConceptName;
+        this.smartDataElementIdString = other.smartDataElementIdString;
+        this.formQuestionConceptAbbrevName = other.formQuestionConceptAbbrevName;
+        this.formQuestionDescription = other.formQuestionDescription;
+        this.formQuestionValueType = other.formQuestionValueType;
+        this.smartDataElementContext = other.smartDataElementContext;
+    }
+
+    public FormQuestion() {
+    }
+
     @Override
     public FormQuestion copy() {
-        return null;
+        return new FormQuestion(this);
     }
 
     /**
@@ -81,6 +95,6 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
      */
     @Override
     public FormQuestionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return null;
+        return new FormQuestionAudit(this, validUntil, storedUntil);
     }
 }

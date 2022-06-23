@@ -39,9 +39,19 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
      */
     private String description;
 
+    public FormDefinition() {
+    }
+
+    private FormDefinition(FormDefinition other) {
+        super(other);
+        this.formDefinitionId = other.formDefinitionId;
+        this.formName = other.formName;
+        this.description = other.description;
+    }
+
     @Override
     public FormDefinition copy() {
-        return null;
+        return new FormDefinition(this);
     }
 
     /**
@@ -51,6 +61,6 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
      */
     @Override
     public FormDefinitionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return null;
+        return new FormDefinitionAudit(this, validUntil, storedUntil);
     }
 }
