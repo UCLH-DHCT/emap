@@ -74,6 +74,7 @@ class ValidationRunner:
         """Set the correct time stamps in the environment file"""
 
         if not self.time_window.start.is_default:
+            print('replacing IDS_CFG_DEFAULT_START_DATETIME, HOOVER_DATE_FROM')
 
             file.replace_value_of(
                 "IDS_CFG_DEFAULT_START_DATETIME", self.time_window.start_stamp
@@ -81,6 +82,8 @@ class ValidationRunner:
             file.replace_value_of("HOOVER_DATE_FROM", self.time_window.start_stamp)
 
         if not self.time_window.end.is_default:
+            print('replacing IDS_CFG_END_DATETIME, HOOVER_DATE_UNTIL')
+
             file.replace_value_of("IDS_CFG_END_DATETIME", self.time_window.end_stamp)
             file.replace_value_of("HOOVER_DATE_UNTIL", self.time_window.end_stamp)
 
@@ -90,6 +93,18 @@ class ValidationRunner:
 
     def _run_emap(self) -> None:
         """Run the services that constitute EMAP"""
+
+        print(self.time_window.start_stamp)
+        print(self.time_window.end_stamp)
+
+        print("hl7:")
+        print("".join(open('config/emap-hl7processor-config-envs', 'r').readlines()))
+        print()
+        print("hoover")
+        print("".join(open('config/hoover-envs', 'r').readlines()))
+
+        exit()
+
 
         _ = input(
             f"About to run a validation run into:   "
