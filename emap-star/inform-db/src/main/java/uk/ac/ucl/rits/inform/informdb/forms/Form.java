@@ -62,6 +62,13 @@ public class Form extends TemporalCore<Form, FormAudit> {
     private HospitalVisit hospitalVisitId;
 
     /**
+     * We don't currently bring in Notes, so there is no other table to join to.
+     * If we do in future, this field would be migrated to a foreign key field.
+     * \brief NOTE ID if this Form is attached to a note, otherwise null.
+     */
+    private String noteId;
+
+    /**
      * \brief The lab order this SmartForm relates to, or null if it doesn't relate to one.
      * I'm not currently sure if SmartForms can be attached to Lab Orders.
      */
@@ -69,6 +76,10 @@ public class Form extends TemporalCore<Form, FormAudit> {
     @JoinColumn(name = "labOrderId")
     private LabOrder labOrderId;
 
+    /**
+     * \brief datetime the form was filed.
+     * This may be redundant given valid from?
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant formFilingDatetime;
 

@@ -32,23 +32,50 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long formAnswerId;
 
+    /**
+     * \brief Metadata for this answer - ie. what was the question?
+     */
     @ManyToOne
     @JoinColumn(name = "formQuestionId")
     private FormQuestion formQuestionId;
 
+    /**
+     * \brief Which instance of a filled-in form does this question belong to?
+     */
     @ManyToOne
     @JoinColumn(name = "formId")
     private Form formId;
+
+    /**
+     * \brief A unique ID for this form answer that can be used to track back to the source system.
+     * For an Epic SDE this would be the HLV ID (HLV .1)
+     */
+    private String formAnswerSourceId;
 
     /**
      * \brief Current value of the SDE - may be a multi-line string concatenated together.
      * HLV 50.
      */
     @Column(columnDefinition = "text")
-    private String formAnswerValue;
+    private String valueAsString;
 
-    // "context" field is currently in the metadata table, it may have to be moved here though.
+    /**
+     * \brief Current value of the SDE if it's numerical, else null.
+     * HLV 50, influenced by HLV 60.
+     */
+    private Double valueAsNumber;
 
+    /**
+     * \brief Current value of the SDE if it's of type boolean, else null.
+     * HLV 50, influenced by HLV 60.
+     */
+    private Boolean valueAsBoolean;
+
+    /**
+     * \brief Current value of the SDE if it's a UTC instant, else null.
+     * HLV 50, influenced by HLV 60.
+     */
+    private Instant valueAsUtcDatetime;
 
     @Override
     public FormAnswer copy() {
