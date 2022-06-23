@@ -88,9 +88,6 @@ public class PatientConditionController {
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientProblem(msg, mrn,
                 conditionType.getEntity(), storedFrom);
 
-        patientCondition.assignIfDifferent(msg.getComment().toString(), patientCondition.getEntity().getComment(),
-                patientCondition.getEntity()::setComment);
-
         if (messageShouldBeUpdated(msg, patientCondition)) {
             updatePatientProblem(msg, visit, patientCondition);
         }
@@ -313,6 +310,7 @@ public class PatientConditionController {
         if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equalsIgnoreCase("active")) {
             conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
         }
+        conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
     }
 
 }
