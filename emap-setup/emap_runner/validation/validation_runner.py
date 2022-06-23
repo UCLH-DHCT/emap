@@ -111,9 +111,9 @@ class ValidationRunner:
         may need to change, i.e. the data sources to be started first (as background services though!).
         """
         _ = Popen(
-            ["sleep", "180s"]
-            + self.docker.base_docker_compose_command.split()
-            + ["up", "-d", "emapstar"]
+            "sleep 180 && "
+            + self.docker.base_docker_compose_command + "up -d emapstar",
+            shell=True
         )
 
         self.docker.run(
