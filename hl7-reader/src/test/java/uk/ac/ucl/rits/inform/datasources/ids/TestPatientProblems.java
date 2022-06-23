@@ -35,6 +35,8 @@ public class TestPatientProblems extends TestHl7MessageStream {
     private static final LocalDate PROBLEM_ONSET = LocalDate.parse("2020-03-01");
     private static final Instant PROBLEM_UPDATE = Instant.parse("2020-03-02T21:01:22Z");
     private static final String EPIC = "EPIC";
+    private static final String COMMENT = " - Screened and started on meds and some other meds - CRP 0.6-->4.9-->4.1 " +
+            "- Blood cultures negative";
     private static final InterchangeValue<Long> EPIC_ID = InterchangeValue.buildFromHl7(1333555L);
     @Autowired
     PatientProblemService patientProblemService;
@@ -123,4 +125,16 @@ public class TestPatientProblems extends TestHl7MessageStream {
         assertEquals(PROBLEM_ONSET, problem.getOnsetTime().get());
     }
 
+    /**
+     * Given a problem with a couple of note segments in the end
+     * When it is processed
+     * Then the message should contain the set the concatenated note segments as comment
+     * @throws Exception should not happen
+     */
+    @Test
+    void testProblemNoteSegment() throws Exception{
+
+        var problem = getAllProblems("problem_list_notes").get(0);
+        assertEquals(InterchangeValue.buildFromHl7(COMMENT), problem.getComment());
+    }
 }
