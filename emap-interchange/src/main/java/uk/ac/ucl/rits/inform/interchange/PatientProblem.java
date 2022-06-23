@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,21 +23,11 @@ import java.io.Serializable;
 public class PatientProblem extends PatientConditionMessage implements Serializable {
 
     /**
-     * Status of problem.
-     */
-    private ConditionStatus status;
-
-    /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
      * @param processor the processor to call back to
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
-    }
-
-    @JsonIgnore
-    public String getStatusString() {
-        return this.status.toString();
     }
 }

@@ -3,7 +3,7 @@
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "1333555"
+    value: 1333555
   visitNumber:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"

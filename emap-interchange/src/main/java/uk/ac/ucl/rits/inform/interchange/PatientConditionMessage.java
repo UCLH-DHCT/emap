@@ -21,6 +21,11 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     private String mrn;
 
     /**
+     * Status of the condition.
+     */
+    private String status;
+
+    /**
      * Number of the hospital visit.
      */
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
@@ -69,5 +74,4 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
      * Identifier for condition as provided in HL7 messages.
      */
     private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
-    public abstract String getStatusString();
 }
