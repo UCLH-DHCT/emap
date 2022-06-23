@@ -107,7 +107,7 @@ class ValidationRunner:
         """Run the services that constitute EMAP"""
 
         _ = input(
-            f"About to run a validation run with:   "
+            f"About to run a validation run with:\n"
             f"{'Schema:':20s}{self.docker.config['uds']['UDS_SCHEMA']}\n"
             f"{'Time window':20s}{self.time_window.start_stamp} -> {self.time_window.end_stamp}\n"
             f"Press any key to continue"
