@@ -12,7 +12,7 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
-  status: "ACTIVE"
+  status: "Active"
   action: "DELETE"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
@@ -28,5 +28,5 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
-  status: "ACTIVE"
+  status: "Active"
   action: "ADD"
