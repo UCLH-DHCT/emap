@@ -4,17 +4,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
  * Test patient problem list parsing from HL7 messages (those with type PPR_PC1, PPR_PC2 and PPR_PC3.
@@ -27,8 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TestPatientProblems extends TestHl7MessageStream {
     private static final String FILE_TEMPLATE = "ProblemList/%s.txt";
     private static final String MRN = "8DcEwvqa8Q3";
+    private static final String VISIT_NUMBER = "123412341234";
     private static final String PROBLEM_CODE = "K64.9";
     private static final Instant PROBLEM_ADDED = Instant.parse("2020-03-02T00:00:00Z");
+    private static final String PROBLEM_NAME = "Haemorrhoids, unspecified";
+    private static final LocalDate PROBLEM_ONSET = LocalDate.parse("2020-03-01");
     private static final Instant PROBLEM_UPDATE = Instant.parse("2020-03-02T21:01:22Z");
     private static final String EPIC = "EPIC";
     private static final InterchangeValue<Long> EPIC_ID = InterchangeValue.buildFromHl7(1333555L);
@@ -36,14 +40,9 @@ public class TestPatientProblems extends TestHl7MessageStream {
     PatientProblemService patientProblemService;
 
     List<PatientProblem> getAllProblems(String fileName) throws Exception {
-        List<? extends EmapOperationMessage> msgs = null;
-        try {
-            msgs = processSingleMessage(String.format(FILE_TEMPLATE, fileName));
-        } catch (Exception e) {
-            throw e;
-        }
+        var msgs = processSingleMessage(String.format(FILE_TEMPLATE, fileName));
+        assertNotNull(msgs);
 
-        assert msgs != null;
         // filter out any implied ADT messages
         return msgs.stream()
                 .filter(msg -> (msg instanceof PatientProblem))
@@ -65,6 +64,7 @@ public class TestPatientProblems extends TestHl7MessageStream {
         assertEquals(MRN, problem.getMrn());
         assertEquals(EPIC, problem.getSourceSystem());
         assertEquals(PROBLEM_CODE, problem.getConditionCode());
+        assertEquals(PROBLEM_NAME, problem.getConditionName().get());
         assertEquals(PROBLEM_ADDED, problem.getAddedTime());
         assertEquals(PROBLEM_UPDATE, problem.getUpdatedDateTime());
         assertEquals(InterchangeValue.buildFromHl7(null), problem.getResolvedTime());
@@ -108,4 +108,19 @@ public class TestPatientProblems extends TestHl7MessageStream {
         List<PatientProblem> problems = getAllProblems("no_problem_lists");
         assertTrue(problems.isEmpty());
     }
+
+    /**
+     * Given a problem with an onset time and an associated PV1 visit section in the message
+     * When it is processed
+     * Then the message should contain the set onset date and the visit number
+     * @throws Exception should not happen
+     */
+    @Test
+    void testProblemOnsetDateWithVisit() throws Exception{
+
+        var problem = getAllProblems("problem_list_onset").get(0);
+        assertEquals(VISIT_NUMBER, problem.getVisitNumber().get());
+        assertEquals(PROBLEM_ONSET, problem.getOnsetTime().get());
+    }
+
 }
