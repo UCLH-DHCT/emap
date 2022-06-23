@@ -21,6 +21,10 @@ import java.io.Serializable;
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientProblem extends PatientConditionMessage implements Serializable {
+    /**
+     * Comment on an infection.
+     */
+    private InterchangeValue<String> comment = InterchangeValue.unknown();
 
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
