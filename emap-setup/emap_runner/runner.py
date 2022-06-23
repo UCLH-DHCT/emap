@@ -97,7 +97,7 @@ def create_parser() -> Parser:
         "--skip-build",
         help="Skip the building of the docker containers",
         default=False,
-        action="store_true"
+        action="store_true",
     )
 
     return parser
@@ -154,7 +154,7 @@ class EMAPRunner:
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),
-            should_build=not self.args.skip_build
+            should_build=not self.args.skip_build,
         )
 
         runner.run()

@@ -13,8 +13,12 @@ class ValidationRunnerException(EMAPRunnerException):
 
 
 class ValidationRunner:
-    def __init__(self, docker_runner: "DockerRunner", time_window: "TimeWindow",
-                 should_build: bool = True):
+    def __init__(
+        self,
+        docker_runner: "DockerRunner",
+        time_window: "TimeWindow",
+        should_build: bool = True,
+    ):
         """Validation runner that will be run over a time window"""
 
         self.should_build = should_build
@@ -70,20 +74,28 @@ class ValidationRunner:
 
         return None
 
+    def _should_set_date_at(self, string: str) -> bool:
+        """Should the date be set at either the start or the end?"""
+
+        try:
+            return (
+                self.docker.config.get("dates", string) is not None
+                and getattr(self.time_window, string).is_default
+            )
+
+        except KeyError:
+            return True
+
     def _set_time_window_in_env_file(self, file: EnvironmentFile) -> None:
         """Set the correct time stamps in the environment file"""
 
-        if not self.time_window.start.is_default:
-            print('replacing IDS_CFG_DEFAULT_START_DATETIME, HOOVER_DATE_FROM')
-
+        if self._should_set_date_at("start"):
             file.replace_value_of(
                 "IDS_CFG_DEFAULT_START_DATETIME", self.time_window.start_stamp
             )
             file.replace_value_of("HOOVER_DATE_FROM", self.time_window.start_stamp)
 
-        if not self.time_window.end.is_default:
-            print('replacing IDS_CFG_END_DATETIME, HOOVER_DATE_UNTIL')
-
+        if self._should_set_date_at("end"):
             file.replace_value_of("IDS_CFG_END_DATETIME", self.time_window.end_stamp)
             file.replace_value_of("HOOVER_DATE_UNTIL", self.time_window.end_stamp)
 
@@ -98,13 +110,12 @@ class ValidationRunner:
         print(self.time_window.end_stamp)
 
         print("hl7:")
-        print("".join(open('config/emap-hl7processor-config-envs', 'r').readlines()))
+        print("".join(open("config/emap-hl7processor-config-envs", "r").readlines()))
         print()
         print("hoover")
-        print("".join(open('config/hoover-envs', 'r').readlines()))
+        print("".join(open("config/hoover-envs", "r").readlines()))
 
         exit()
-
 
         _ = input(
             f"About to run a validation run into:   "
@@ -132,8 +143,9 @@ class ValidationRunner:
         """
         _ = Popen(
             "sleep 180 && "
-            + self.docker.base_docker_compose_command + "up -d emapstar",
-            shell=True
+            + self.docker.base_docker_compose_command
+            + "up -d emapstar",
+            shell=True,
         )
 
         self.docker.run(
