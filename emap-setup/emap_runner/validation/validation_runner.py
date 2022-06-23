@@ -92,9 +92,10 @@ class ValidationRunner:
 
         self.docker.inject_ports()
         self.docker.run("down")
-        self.docker.run("up --build -d cassandra rabbitmq")
+        self.docker.run("build")
+        self.docker.run("up -d cassandra rabbitmq")
         self.docker.setup_glowroot_password()
-        self.docker.run("up --build -d glowroot-central")
+        self.docker.run("up -d glowroot-central")
         self.docker.run("ps")
 
         """
@@ -102,18 +103,19 @@ class ValidationRunner:
         the time delay required for RabbitMQ to be there. Should this proof not to be sufficient, then the running order
         may need to change, i.e. the data sources to be started first (as background services though!).
         """
-        sleep(180)
-        _ = Popen(
-            self.docker.base_docker_compose_command.split()
-            + ["up", "--build", "-d", "emapstar"]
+       _ = Popen(
+            ["sleep", "180s"]
+            + self.docker.base_docker_compose_command.split()
+            + ["up", "-d", "emapstar"]
         )
 
+
         self.docker.run(
-            "up --build --exit-code-from hl7source hl7source",
+            "up --exit-code-from hl7source hl7source",
             output_filename=f"{self.log_file_prefix}_hl7source.txt",
         )
         self.docker.run(
-            "up --build --exit-code-from hoover hoover",
+            "up --exit-code-from hoover hoover",
             output_filename=f"{self.log_file_prefix}_hoover.txt",
         )
 
