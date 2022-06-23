@@ -88,6 +88,13 @@ class ValidationRunner:
 
     def _run_emap(self) -> None:
         """Run the services that constitute EMAP"""
+
+        _ = input(
+            f"About to run a validation run into:   "
+            f"{self.docker.config['uds']['UDS_SCHEMA']}\n"
+            f"Press any key to continue"
+        )
+
         self._create_logs_directory()
 
         self.docker.inject_ports()
@@ -103,12 +110,11 @@ class ValidationRunner:
         the time delay required for RabbitMQ to be there. Should this proof not to be sufficient, then the running order
         may need to change, i.e. the data sources to be started first (as background services though!).
         """
-       _ = Popen(
+        _ = Popen(
             ["sleep", "180s"]
             + self.docker.base_docker_compose_command.split()
             + ["up", "-d", "emapstar"]
         )
-
 
         self.docker.run(
             "up --exit-code-from hl7source hl7source",
