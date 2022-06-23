@@ -346,4 +346,24 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         assertTrue(condition.getIsDeleted());
     }
 
+    /**
+     * Given a problem list delete has occurred
+     * When an update message arrives concerning the same condition at a later time
+     * Then the problem is not added
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testOutOfOrderDeletes() throws EmapOperationMessageProcessingException{
+
+        var addMessage = hooverAddThenDeleteMessages.get(0);
+        var deleteMessage = hooverAddThenDeleteMessages.get(1);
+
+        processSingleMessage(addMessage);
+        processSingleMessage(deleteMessage);
+
+        addMessage.setUpdatedDateTime(deleteMessage.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
+        processSingleMessage(addMessage);
+
+        assertTrue(patientConditionIsDeleted());
+    }
 }
