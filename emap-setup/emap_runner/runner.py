@@ -93,6 +93,12 @@ def create_parser() -> Parser:
         help="Date at which to start parsing messages. Default: today",
         default="today_default",
     )
+    validation_parser.add_argument(
+        "--skip-build",
+        help="Skip the building of the docker containers",
+        default=False,
+        action="store_true"
+    )
 
     return parser
 
@@ -148,6 +154,7 @@ class EMAPRunner:
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),
+            should_build=not self.args.skip_build
         )
 
         runner.run()

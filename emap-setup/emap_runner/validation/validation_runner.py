@@ -13,9 +13,11 @@ class ValidationRunnerException(EMAPRunnerException):
 
 
 class ValidationRunner:
-    def __init__(self, docker_runner: "DockerRunner", time_window: "TimeWindow"):
+    def __init__(self, docker_runner: "DockerRunner", time_window: "TimeWindow",
+                 should_build: bool = True):
         """Validation runner that will be run over a time window"""
 
+        self.should_build = should_build
         self.start_time = None
         self.timeout = timedelta(hours=10)
 
@@ -99,7 +101,10 @@ class ValidationRunner:
 
         self.docker.inject_ports()
         self.docker.run("down")
-        self.docker.run("build")
+
+        if self.should_build:
+            self.docker.run("build")
+
         self.docker.run("up -d cassandra rabbitmq")
         self.docker.setup_glowroot_password()
         self.docker.run("up -d glowroot-central")
