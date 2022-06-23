@@ -43,7 +43,14 @@ public class PatientProblemService {
         int reps = msg.getPROBLEMReps();
         Collection<PatientProblem> problems = new ArrayList<>(reps);
         for (int i = 0; i < reps; i++) {
+            String comment = "";
+            for (int j = 0; j < msg.getPROBLEM(i).getNTEReps(); j++) {
+                for (int k = 0; k < msg.getPROBLEM(i).getNTE(j).getCommentReps(); k++) {
+                    comment += (" " + msg.getPROBLEM(i).getNTE(j).getComment(k).getValueOrEmpty());
+                }
+            }
             PatientProblem patientProblem = buildPatientProblem(sourceId, patientInfo, msg.getPROBLEM(i).getPRB());
+            patientProblem.setComment(InterchangeValue.buildFromHl7(comment));
             problems.add(patientProblem);
         }
         return problems;
