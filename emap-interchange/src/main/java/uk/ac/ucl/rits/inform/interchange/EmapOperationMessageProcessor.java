@@ -1,12 +1,14 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
-import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
@@ -62,6 +64,18 @@ public interface EmapOperationMessageProcessor {
     void processMessage(SwapLocations msg) throws EmapOperationMessageProcessingException;
 
     /**
+     * @param msg the PendingTransfer msg to process. May want to make this into generic PendingAdt if we implement admit and discharge.
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(PendingTransfer msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the CancelPendingTransfer msg to process. May want to make this into generic CancelPendingAdt if we implement admit and discharge.
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(CancelPendingTransfer msg) throws EmapOperationMessageProcessingException;
+
+    /**
      * @param msg the flowsheet message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
@@ -112,8 +126,8 @@ public interface EmapOperationMessageProcessor {
     void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException;
 
     /**
-     * @param msg the ClimbSequence msg to process
+     * @param msg the LabMetadataMsg to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException;
+    void processMessage(LabMetadataMsg msg) throws EmapOperationMessageProcessingException;
 }
