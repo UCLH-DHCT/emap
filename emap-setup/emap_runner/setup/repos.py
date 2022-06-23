@@ -89,13 +89,18 @@ class Repository:
 
         return None
 
-    def clean(self) -> None:
-        """Clean this repository from the directory by removing it"""
+    def clean(self, print_warnings: bool = True) -> None:
+        """
+        Clean this repository from the directory by removing it
+
+        :param print_warnings: Should warnings be printed if a folder cannot
+                               be removed
+        """
 
         if self.local_version_exists:
             shutil.rmtree(self.path)
 
-        else:
+        elif print_warnings:
             logger.warning(f"Failed to remove {self.name:30s} as it did not exist")
 
         return None
@@ -201,13 +206,13 @@ class Repositories(list):
     def clone(self) -> None:
         return self._run_for_all("clone")
 
-    def clean(self) -> None:
-        return self._run_for_all("clean")
+    def clean(self, print_warnings: bool = True) -> None:
+        return self._run_for_all("clean", print_warnings=print_warnings)
 
-    def _run_for_all(self, method_name: str) -> None:
+    def _run_for_all(self, method_name: str, **kwargs) -> None:
 
         for repo in self:
-            getattr(repo, method_name)()
+            getattr(repo, method_name)(**kwargs)
 
         return None
 

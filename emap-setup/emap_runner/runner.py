@@ -109,7 +109,7 @@ class EMAPRunner:
         repos = self.config.extract_repositories(branch_name=self.args.branch)
 
         if self.args.init:
-            repos.clean()
+            repos.clean(print_warnings=False)
             repos.clone()
 
         elif self.args.update:
