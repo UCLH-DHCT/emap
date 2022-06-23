@@ -276,6 +276,7 @@ public class PatientConditionController {
         conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
+        conditionState.assignIfDifferent(msg.getComment().toString(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(
                 msg.getResolvedTime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
@@ -308,7 +309,6 @@ public class PatientConditionController {
         updatePatientCondition(msg, visit, conditionState);
 
         PatientCondition condition = conditionState.getEntity();
-
         if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equalsIgnoreCase("active")) {
             conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
         }
