@@ -19,11 +19,6 @@ import java.io.Serializable;
 public class PatientInfection extends PatientConditionMessage implements Serializable {
 
     /**
-     * Comment on an infection.
-     */
-    private InterchangeValue<String> comment = InterchangeValue.unknown();
-
-    /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
      * @param processor the processor to call back to
      * @throws EmapOperationMessageProcessingException if message cannot be processed
