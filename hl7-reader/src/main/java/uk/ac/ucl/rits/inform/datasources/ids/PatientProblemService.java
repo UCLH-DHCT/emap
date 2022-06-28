@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.TimeZone;
 
 @Component
 @NoArgsConstructor
@@ -80,7 +81,8 @@ public class PatientProblemService {
         patientProblem.setConditionCode(conditionType.getCwe1_Identifier().getValueOrEmpty());
         patientProblem.setConditionName(InterchangeValue.buildFromHl7(conditionType.getCwe2_Text().getValueOrEmpty()));
         patientProblem.setAddedTime(HL7Utils.interpretDate(
-                problemSegment.getPrb7_ProblemEstablishedDateTime()).atStartOfDay().toInstant(ZoneOffset.ofHours(0)));
+                problemSegment.getPrb7_ProblemEstablishedDateTime()).atStartOfDay().toInstant(
+                ZoneOffset.ofHours(TimeZone.getTimeZone("Europe/London").getRawOffset())));
         Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getPrb9_ActualProblemResolutionDateTime());
         patientProblem.setResolvedTime(InterchangeValue.buildFromHl7(problemResolved));
         String problemStatus = problemSegment.getPrb13_ProblemConfirmationStatus().getCwe1_Identifier().getValueOrEmpty();
