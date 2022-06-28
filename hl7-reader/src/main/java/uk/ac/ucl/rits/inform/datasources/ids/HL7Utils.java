@@ -59,10 +59,25 @@ public final class HL7Utils {
             return null;
         }
         valueAsCal.setTimeZone(TimeZone.getTimeZone(LONDON_TIMEZONE));
-
         return valueAsCal.toInstant();
     }
 
+    /**
+     * Adding this method for the time being to address date shifts in problem lists but don't want to shift them
+     * elsewhere.
+     * @param hl7DTM the hl7 DTM object as it comes from the message
+     * @return an Instant representing this same point in time, or null if no time
+     * is specified in the DTM
+     * @throws DataTypeException if HAPI does
+     */
+    public static Instant interpretLocalTimePL(DTM hl7DTM) throws DataTypeException {
+        hl7DTM.setOffset(0); // removing any timezone offset
+        Calendar valueAsCal = hl7DTM.getValueAsCalendar();
+        if (valueAsCal == null) {
+            return null;
+        }
+        return valueAsCal.toInstant();
+    }
 
     /**
      * Process date value from HL7.
