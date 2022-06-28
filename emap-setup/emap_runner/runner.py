@@ -100,6 +100,22 @@ def create_parser() -> Parser:
         action="store_true",
     )
 
+    config_parser = subparsers.add_parser("config", help="Configuration operations")
+    config_parser.add_argument(
+        "-r",
+        "--print-rabbitmq",
+        help="Print the RabbitMQ configuration for quick login",
+        default=False,
+        action="store_true",
+    )
+    config_parser.add_argument(
+        "-g",
+        "--print-glowroot",
+        help="Print the glowroot configuration for quick login",
+        default=False,
+        action="store_true",
+    )
+
     return parser
 
 
@@ -107,12 +123,12 @@ class EMAPRunner:
     def __init__(self, args: argparse.Namespace, config: GlobalConfiguration):
 
         self.args = args
-        self.config = config
+        self.global_config = config
 
     def setup(self) -> None:
         """Run the setup"""
 
-        repos = self.config.extract_repositories(branch_name=self.args.branch)
+        repos = self.global_config.extract_repositories(branch_name=self.args.branch)
 
         if self.args.init:
             repos.clean(print_warnings=False)
@@ -130,13 +146,24 @@ class EMAPRunner:
         else:
             exit("Please run --help for options")
 
-        self.config.create_or_update_config_dir_from(repos)
+        self.global_config.create_or_update_config_dir_from(repos)
+        return None
+
+    def config(self) -> None:
+        """Operations on the configuration only"""
+
+        if self.args.print_rabbitmq:
+            print(self.global_config.rabbitmq_config_string)
+
+        if self.args.print_glowroot:
+            print(self.global_config.glowroot_config_string)
+
         return None
 
     def docker(self) -> None:
         """Run a docker instance"""
 
-        runner = DockerRunner(main_dir=Path.cwd(), config=self.config)
+        runner = DockerRunner(main_dir=Path.cwd(), config=self.global_config)
 
         if "up" in self.args.docker_compose_args:
             runner.setup_glowroot_password()
@@ -150,7 +177,7 @@ class EMAPRunner:
         """Run a validation run of EMAP"""
 
         runner = ValidationRunner(
-            docker_runner=DockerRunner(main_dir=Path.cwd(), config=self.config),
+            docker_runner=DockerRunner(main_dir=Path.cwd(), config=self.global_config),
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),
