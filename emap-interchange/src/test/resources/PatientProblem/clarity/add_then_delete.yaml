@@ -13,11 +13,11 @@
     status: "SAVE"
     value: 1
   status: "Active"
-  addedTime: "2019-06-02T10:31:05Z"
+  addedTime: "2019-06-01T10:31:05Z"
   onsetTime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "2019-03-05"
+    value: "2019-05-31"
   visitNumber:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -38,11 +38,11 @@
     status: "SAVE"
     value: 1
   status: "Active"
-  addedTime: "2019-06-02T10:31:05Z"
+  addedTime: "2019-06-01T10:31:05Z"
   onsetTime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "2019-03-05"
+    value: "2019-05-31"
   visitNumber:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"

@@ -14,6 +14,11 @@
     value: 1
   status: "Active"
   action: "DELETE"
+  addedTime: "2019-06-01T10:31:05Z"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
   sourceMessageId: "1"
@@ -30,3 +35,8 @@
     value: 1
   status: "Active"
   action: "ADD"
+  addedTime: "2019-06-01T10:31:05Z"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
