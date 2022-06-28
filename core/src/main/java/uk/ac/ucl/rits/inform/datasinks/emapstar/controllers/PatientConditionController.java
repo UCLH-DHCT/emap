@@ -26,6 +26,7 @@ import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 
 import javax.annotation.Resource;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -194,7 +195,7 @@ public class PatientConditionController {
             case "EPIC":
                 epicInfectionId = null;
                 patientCondition = patientConditionRepo
-                        .findByMrnIdAndConditionTypeIdAndAddedDatetime(mrn, conditionType, msg.getAddedTime());
+                        .findByMrnIdAndConditionTypeIdAndOnsetDate(mrn, conditionType, msg.getOnsetTime().get());
                 break;
             case "clarity":
                 if (msg.getEpicConditionId().isUnknown()) {
@@ -225,10 +226,11 @@ public class PatientConditionController {
             PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
 
         Instant addedTime = msg.getAddedTime();
+        LocalDate onsetDate = msg.getOnsetTime().get();
         Instant updatedTime = msg.getUpdatedDateTime();
 
-        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDatetime(
-                mrn, conditionType, addedTime);
+        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndOnsetDate(
+                mrn, conditionType, onsetDate);
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))

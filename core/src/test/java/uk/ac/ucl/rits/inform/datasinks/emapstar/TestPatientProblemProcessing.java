@@ -60,9 +60,9 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
 
     private static final String MYELOMA_PROBLEM_NAME = "Multiple Myeloma";
     private static final String MYELOMA_PROBLEM_CODE = "C90.0";
-    private static final String MYELOMA_ADDED_TIME = "2019-06-02T10:31:05Z";
+    private static final String MYELOMA_ADDED_TIME = "2019-06-01T10:31:05Z";
     private static final String PATIENT_MRN = "8DcEwvqa8Q3";
-    private static final String MYELOMA_ONSET_DATE = "2019-03-05";
+    private static final String MYELOMA_ONSET_DATE = "2019-05-31";
 
     @BeforeEach
     private void setUp() throws IOException {

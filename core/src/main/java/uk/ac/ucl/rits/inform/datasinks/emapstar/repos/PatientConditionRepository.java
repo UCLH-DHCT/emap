@@ -6,6 +6,7 @@ import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +24,17 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
      */
     Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndAddedDatetime(
             Mrn mrn, ConditionType conditionType, Instant addedDatetime
+    );
+
+    /**
+     * Get patient condition, should be unique.
+     * @param mrn           MRN entity
+     * @param conditionType type of condition
+     * @param onsetDate     onset date of condition
+     * @return possible patient condition
+     */
+    Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndOnsetDate(
+            Mrn mrn, ConditionType conditionType, LocalDate onsetDate
     );
 
     /**
@@ -44,6 +56,17 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
      */
     Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(
             String mrn, String internalCode, Instant addedDatetime
+    );
+
+    /**
+     * For testing, shortcut without requiring entities to be passed.
+     * @param mrn           mrn sting
+     * @param internalCode  EPIC code of the condition
+     * @param onsetDate     onset date of condition
+     * @return possible patient condition
+     */
+    Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdInternalCodeAndOnsetDate(
+            String mrn, String internalCode, LocalDate onsetDate
     );
 
     Optional<PatientCondition> findByMrnIdMrn(String mrn);
