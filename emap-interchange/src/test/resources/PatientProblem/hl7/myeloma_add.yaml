@@ -15,10 +15,10 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Multiple Myeloma"
-  addedTime: "2019-06-02T10:31:05Z"
+  addedTime: "2019-06-01T10:31:05Z"
   action: "ADD"
   status: "ACTIVE"
   onsetTime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "2019-03-05"
+    value: "2019-05-31"

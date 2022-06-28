@@ -16,5 +16,9 @@
     status: "SAVE"
     value: "Multiple Myeloma"
   addedTime: "2019-06-01T23:00:00Z"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
   action: "ADD"
   status: "ACTIVE"

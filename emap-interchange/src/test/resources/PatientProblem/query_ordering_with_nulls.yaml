@@ -17,12 +17,12 @@
     status: "SAVE"
     value: "1234"
   status: "Resolved"
-  addedTime: "2019-06-02T10:31:05Z"
+  addedTime: "2019-06-01T10:31:05Z"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
   resolvedTime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-06-08T14:22:01Z"
-  onsetTime:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-03-05"
