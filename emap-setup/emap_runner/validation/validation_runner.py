@@ -110,6 +110,7 @@ class ValidationRunner:
             f"About to run a validation run with:\n"
             f"{'Schema:':20s}{self.docker.config['uds']['UDS_SCHEMA']}\n"
             f"{'Time window':20s}{self.time_window.start_stamp} -> {self.time_window.end_stamp}\n"
+            f"{'On domain':20s}{self.docker.config['glowroot']['DOMAIN']}"
             f"Press any key to continue"
         )
 
