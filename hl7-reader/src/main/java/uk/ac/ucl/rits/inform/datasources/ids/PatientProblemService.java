@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -78,9 +79,9 @@ public class PatientProblemService {
         CWE conditionType = problemSegment.getPrb3_ProblemID();
         patientProblem.setConditionCode(conditionType.getCwe1_Identifier().getValueOrEmpty());
         patientProblem.setConditionName(InterchangeValue.buildFromHl7(conditionType.getCwe2_Text().getValueOrEmpty()));
-        patientProblem.setAddedTime(HL7Utils.interpretLocalTime(problemSegment.getPrb7_ProblemEstablishedDateTime()));
-        Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getPrb9_ActualProblemResolutionDateTime());
-        patientProblem.setResolvedTime(InterchangeValue.buildFromHl7(problemResolved));
+        patientProblem.setAddedDate(HL7Utils.interpretDate(problemSegment.getPrb7_ProblemEstablishedDateTime()));
+        LocalDate problemResolved = HL7Utils.interpretDate(problemSegment.getPrb9_ActualProblemResolutionDateTime());
+        patientProblem.setResolvedDate(InterchangeValue.buildFromHl7(problemResolved));
         String problemStatus = problemSegment.getPrb13_ProblemConfirmationStatus().getCwe1_Identifier().getValueOrEmpty();
         patientProblem.setStatus(problemStatus);
         String problemId = problemSegment.getPrb4_ProblemInstanceID().getEntityIdentifier().getValueOrEmpty();
