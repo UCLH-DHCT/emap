@@ -91,7 +91,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * condition, i.e. whether it is a problem list, allergy or infection.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant addedDate;
+    private LocalDate addedDate;
     /**
      * \brief Date and time at which this patientCondition was resolved.
      * <p>
@@ -108,7 +108,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * condition, i.e. whether it is a problem list, allergy or infection.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant resolutionDate;
+    private LocalDate resolutionDate;
 
     /**
      * \brief Date at which the patientCondition started (if known).
@@ -168,7 +168,9 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
             hospitalVisitId = other.hospitalVisitId;
         }
         internalId = other.internalId;
+        addedDate = other.addedDate;
         addedDatetime = other.addedDatetime;
+        resolutionDate = other.resolutionDate;
         resolutionDatetime = other.resolutionDatetime;
         onsetDate = other.onsetDate;
         classification = other.classification;
