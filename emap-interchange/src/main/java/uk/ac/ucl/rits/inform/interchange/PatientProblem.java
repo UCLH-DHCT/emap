@@ -31,7 +31,7 @@ public class PatientProblem extends PatientConditionMessage implements Serializa
     /**
      * Time and date condition was added at.
      */
-    private InterchangeValue<LocalDate> resolvedDate;
+    private InterchangeValue<LocalDate> resolvedDate = InterchangeValue.unknown();
 
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
