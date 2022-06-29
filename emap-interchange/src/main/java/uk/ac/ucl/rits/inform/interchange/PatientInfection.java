@@ -28,7 +28,7 @@ public class PatientInfection extends PatientConditionMessage implements Seriali
     /**
      * Time and date condition was added at.
      */
-    private Instant resolvedDatetime;
+    private InterchangeValue<Instant> resolvedDatetime = InterchangeValue.unknown();
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
