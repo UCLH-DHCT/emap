@@ -2,6 +2,10 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.query.NativeQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -13,8 +17,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.handler.annotation.Header;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
@@ -23,7 +29,10 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
+import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -116,18 +125,28 @@ public class App {
         }
     }
 
-
     /**
-     * Don't want to do any normal HL7 message processing if running test profile.
-     * @param dbOps Database operations functions.
-     * @return The CommandLineRunner
+     * Write the test data to the actively configured database, then exit.
+     * Intended for the use case of demonstrating a new DB schema feature to an alpha user.
+     * @param entityManagerFactory entity manager factory
+     * @param ctx app context
+     * @return a runner
      */
     @Bean
-    @Profile("test")
-    public CommandLineRunner mainLoopTest(InformDbOperations dbOps) {
+    @Profile("writetestdataonly")
+    public CommandLineRunner writeTestDataToDatabase(EntityManagerFactory entityManagerFactory, ApplicationContext ctx) {
         return (args) -> {
-//            dbOps.ensureVocabLoaded();
-            logger.info("Running test CommandLineRunner, to ensure the vocab is loaded.");
+            logger.info("Inserting test data into production config");
+            InputStream sqlFile = new ClassPathResource("populate_db.sql").getInputStream();
+            String query = new String(sqlFile.readAllBytes(), StandardCharsets.UTF_8);
+            SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+            try (Session session = sessionFactory.openSession()) {
+                Transaction transaction = session.beginTransaction();
+                NativeQuery nativeQuery = session.createNativeQuery(query);
+                nativeQuery.executeUpdate();
+                transaction.commit();
+            }
+            SpringApplication.exit(ctx, () -> 0);
         };
     }
 
