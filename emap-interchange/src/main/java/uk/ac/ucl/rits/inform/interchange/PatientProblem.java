@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Interchange format of a PatientProblem message. In hospital terminology they are referred to as problem lists.
@@ -26,12 +26,13 @@ public class PatientProblem extends PatientConditionMessage implements Serializa
     /**
      * Time and date condition was added at.
      */
-    private Instant addedDate;
+    private LocalDate addedDate;
 
     /**
      * Time and date condition was added at.
      */
-    private Instant resolvedDate;
+    private InterchangeValue<LocalDate> resolvedDate;
+
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
      * @param processor the processor to call back to
