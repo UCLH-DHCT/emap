@@ -51,16 +51,6 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     private InterchangeValue<Long> conditionId = InterchangeValue.unknown();
 
     /**
-     * Condition added at...
-     */
-    private Instant addedTime;
-
-    /**
-     * Condition resolved at...
-     */
-    private InterchangeValue<Instant> resolvedTime = InterchangeValue.unknown();
-
-    /**
      * Onset of condition known at...
      */
     private InterchangeValue<LocalDate> onsetTime = InterchangeValue.unknown();
