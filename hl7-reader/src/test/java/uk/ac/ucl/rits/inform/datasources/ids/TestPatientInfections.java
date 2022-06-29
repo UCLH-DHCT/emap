@@ -69,7 +69,7 @@ class TestPatientInfections extends TestHl7MessageStream {
         assertEquals(MRN, mumps.getMrn());
         assertEquals(EPIC, mumps.getSourceSystem());
         assertEquals(MUMPS_INFECTION, mumps.getConditionCode());
-        assertEquals(MUMPS_ADD, mumps.getAddedTime());
+        assertEquals(MUMPS_ADD, mumps.getAddedDatetime());
         assertEquals(MUMPS_UPDATE, mumps.getUpdatedDateTime());
     }
 
@@ -82,7 +82,7 @@ class TestPatientInfections extends TestHl7MessageStream {
         List<PatientInfection> infections = getAllInfections("mumps_resolved");
         assertEquals(1, infections.size());
         PatientInfection mumps = infections.get(0);
-        assertEquals(InterchangeValue.buildFromHl7(MUMPS_UPDATE), mumps.getResolvedTime());
+        assertEquals(InterchangeValue.buildFromHl7(MUMPS_UPDATE), mumps.getResolvedDatetime());
     }
 
     /**
