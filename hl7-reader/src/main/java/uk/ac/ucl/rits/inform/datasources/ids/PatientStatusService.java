@@ -40,7 +40,7 @@ public class PatientStatusService {
      * @param sourceId message sourceId
      * @param msg      hl7 message
      * @return list of patient infections
-     * @throws HL7Exception
+     * @throws HL7Exception if patient infection cannot be parsed.
      */
     Collection<PatientInfection> buildPatientInfections(String sourceId, ADT_A05 msg) throws HL7Exception {
         MSH msh = msg.getMSH();
@@ -68,19 +68,19 @@ public class PatientStatusService {
         patientInfection.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
         // patient infection information
         patientInfection.setConditionCode(infectionSegment.getInfection1Name().getValueOrEmpty());
-        patientInfection.setAddedTime(HL7Utils.interpretLocalTime(infectionSegment.getInfection2AddedDateTime()));
+        patientInfection.setAddedDatetime(HL7Utils.interpretLocalTime(infectionSegment.getInfection2AddedDateTime()));
         Instant infectionResolved = HL7Utils.interpretLocalTime(infectionSegment.getInfection3ResolvedDateTime());
-        patientInfection.setResolvedTime(InterchangeValue.buildFromHl7(infectionResolved));
+        patientInfection.setResolvedDatetime(InterchangeValue.buildFromHl7(infectionResolved));
         return patientInfection;
     }
 
     private void addNewInfectionAndUpdateProgress(PatientInfection patientInfection, Collection<PatientInfection> infections) {
-        Instant infectionAdded = patientInfection.getAddedTime();
+        Instant infectionAdded = patientInfection.getAddedDatetime();
         if (infectionAdded == null || infectionAdded.isBefore(infectionProgress)) {
             logger.debug("Infection processing skipped as current infection added is {} and progress is {}", infectionAdded, infectionProgress);
             return;
         }
         infections.add(patientInfection);
-        infectionProgress = patientInfection.getAddedTime();
+        infectionProgress = patientInfection.getAddedDatetime();
     }
 }
