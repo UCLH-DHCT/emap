@@ -77,15 +77,38 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Date and time at which this patientCondition was added to the record.
+     * <p>
+     * It will only ever addedDatetime OR addedDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant addedDatetime;
 
     /**
+     * \brief Date at which this patientCondition was added to the record.
+     * <p>
+     * It will only ever addedDatetime OR addedDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
+     */
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant addedDate;
+    /**
      * \brief Date and time at which this patientCondition was resolved.
+     * <p>
+     * It will only ever resolutionDatetime OR resolutionDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resolutionDatetime;
+
+    /**
+     * \brief Date at which this patientCondition was resolved.
+     * <p>
+     * It will only ever resolutionDatetime OR resolutionDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
+     */
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant resolutionDate;
 
     /**
      * \brief Date at which the patientCondition started (if known).
