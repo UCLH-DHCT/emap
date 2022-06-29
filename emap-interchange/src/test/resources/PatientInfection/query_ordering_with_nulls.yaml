@@ -13,8 +13,8 @@
     status: "SAVE"
     value: 3
   status: "Resolved"
-  addedTime: null
-  resolvedTime:
+  addedDatetime: null
+  resolvedDatetime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-05-07T09:40:25Z"
@@ -41,7 +41,7 @@
     status: "SAVE"
     value: 4
   status: "Active"
-  addedTime: "2019-05-14T08:19:11Z"
+  addedDatetime: "2019-05-14T08:19:11Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "clarity"
   sourceMessageId: "1"
@@ -57,8 +57,8 @@
     status: "SAVE"
     value: 1
   status: "Active"
-  addedTime: "2019-06-02T10:31:05Z"
-  resolvedTime:
+  addedDatetime: "2019-06-02T10:31:05Z"
+  resolvedDatetime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-06-08T14:22:01Z"
@@ -85,8 +85,8 @@
     status: "SAVE"
     value: 2
   status: "Deleted"
-  addedTime: "2019-06-08T02:05:49Z"
-  resolvedTime:
+  addedDatetime: "2019-06-08T02:05:49Z"
+  resolvedDatetime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "IGNORE"
     value: null
