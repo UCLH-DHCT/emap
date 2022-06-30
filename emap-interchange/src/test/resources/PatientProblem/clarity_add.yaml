@@ -13,7 +13,7 @@
     status: "SAVE"
     value: 1
   status: "Active"
-  addedTime: "2019-06-01T10:31:05Z"
+  addedDate: "2019-06-01"
   onsetTime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
