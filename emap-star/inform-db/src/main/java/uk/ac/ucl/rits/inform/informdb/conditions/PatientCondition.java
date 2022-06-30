@@ -147,12 +147,12 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * Minimal information constructor.
      * @param conditionTypeId ID for patient state type
      * @param mrn             patient ID
-     * @param addedDatetime   when patient state has been added
+     * @param conditionId     identifier used for condition in the hospital
      */
-    public PatientCondition(ConditionType conditionTypeId, Mrn mrn, Instant addedDatetime) {
+    public PatientCondition(ConditionType conditionTypeId, Mrn mrn, Long conditionId) {
         this.conditionTypeId = conditionTypeId;
         this.mrnId = mrn;
-        this.addedDatetime = addedDatetime;
+        this.internalId = conditionId;
     }
 
     /**
