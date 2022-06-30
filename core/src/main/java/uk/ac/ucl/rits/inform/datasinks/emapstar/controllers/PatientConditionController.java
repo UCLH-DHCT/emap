@@ -210,7 +210,7 @@ public class PatientConditionController {
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getEpicConditionId().get(),
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, epicInfectionId,
                         msg.getUpdatedDateTime(), storedFrom));
     }
 
