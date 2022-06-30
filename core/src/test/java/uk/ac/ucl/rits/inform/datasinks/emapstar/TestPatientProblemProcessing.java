@@ -60,7 +60,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
 
     private static final String MYELOMA_PROBLEM_NAME = "Multiple Myeloma";
     private static final String MYELOMA_PROBLEM_CODE = "C90.0";
-    private static final String MYELOMA_ADDED_TIME = "2019-06-01T10:31:05Z";
+    private static final String MYELOMA_ADDED_TIME = "2019-06-01";
     private static final String PATIENT_MRN = "8DcEwvqa8Q3";
     private static final String MYELOMA_ONSET_DATE = "2019-05-31";
 
@@ -111,7 +111,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         assertEquals(PATIENT_MRN, condition.getMrnId().getMrn());
         assertEquals(MYELOMA_PROBLEM_CODE, condition.getConditionTypeId().getInternalCode());
         assertEquals(MYELOMA_PROBLEM_NAME, condition.getConditionTypeId().getName());
-        assertEquals(Instant.parse(MYELOMA_ADDED_TIME), condition.getAddedDatetime());
+        assertEquals(LocalDate.parse(MYELOMA_ADDED_TIME), condition.getAddedDate());
         assertEquals(LocalDate.parse(MYELOMA_ONSET_DATE), condition.getOnsetDate());
     }
 
@@ -192,11 +192,11 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         assertEquals(0, getAllEntities(patientConditionAuditRepository).size());
 
         hl7MyelomaInpatient.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
-        hl7MyelomaInpatient.setResolvedTime(InterchangeValue.buildFromHl7(Instant.now()));
+        hl7MyelomaInpatient.setResolvedDate(InterchangeValue.buildFromHl7(LocalDate.now()));
         processSingleMessage(hl7MyelomaInpatient);
 
         PatientCondition resolvedCondition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
-        assertNotNull(resolvedCondition.getResolutionDatetime());
+        assertNotNull(resolvedCondition.getResolutionDate());
         assertEquals(1, getAllEntities(patientConditionAuditRepository).size());
     }
 
@@ -220,7 +220,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
 
         // should have an audit log of the condition that was deleted
         PatientConditionAudit audit = getAllEntities(patientConditionAuditRepository).get(0);
-        assertEquals(hooverAddThenDeleteMessages.get(0).getAddedTime(), audit.getAddedDatetime());
+        assertEquals(hooverAddThenDeleteMessages.get(0).getAddedDate(), audit.getAddedDate());
     }
 
     PatientProblem messageWithNewNameAndUpdatedTimeChanged(Instant time) throws IOException {

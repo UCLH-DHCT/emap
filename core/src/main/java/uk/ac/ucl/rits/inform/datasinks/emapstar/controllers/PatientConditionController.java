@@ -187,7 +187,7 @@ public class PatientConditionController {
      * @throws RequiredDataMissingException if no patient infection Id in hoover data or unrecognised source system
      */
     private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientInfection(
-            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
+            PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
             throws RequiredDataMissingException {
         Optional<PatientCondition> patientCondition;
         final Long epicInfectionId;
@@ -195,7 +195,7 @@ public class PatientConditionController {
             case "EPIC":
                 epicInfectionId = null;
                 patientCondition = patientConditionRepo
-                        .findByMrnIdAndConditionTypeIdAndOnsetDate(mrn, conditionType, msg.getOnsetTime().get());
+                        .findByMrnIdAndConditionTypeIdAndAddedDatetime(mrn, conditionType, msg.getAddedDatetime());
                 break;
             case "clarity":
                 if (msg.getEpicConditionId().isUnknown()) {
@@ -210,7 +210,7 @@ public class PatientConditionController {
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getAddedTime(),
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getEpicConditionId().get(),
                         msg.getUpdatedDateTime(), storedFrom));
     }
 
@@ -224,32 +224,29 @@ public class PatientConditionController {
      */
     private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientProblem(
             PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
-
-        Instant addedTime = msg.getAddedTime();
-        LocalDate onsetDate = msg.getOnsetTime().get();
         Instant updatedTime = msg.getUpdatedDateTime();
 
-        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndOnsetDate(
-                mrn, conditionType, onsetDate);
+        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndInternalId(
+                mrn, conditionType, msg.getEpicConditionId().get());
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, addedTime, updatedTime, storedFrom));
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getEpicConditionId().get(), updatedTime, storedFrom));
     }
 
     /**
      * Create minimal patient condition wrapped in RowState.
      * @param mrn            patient identifier
      * @param conditionType  condition type
-     * @param conditionAdded condition added at
+     * @param conditionId    identifier for condition as used in EPIC
      * @param validFrom      hospital time that the data is true from
      * @param storedFrom     time that emap-core started processing the message
      * @return minimal patient condition wrapped in RowState
      */
     private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
-            Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
+            Mrn mrn, ConditionType conditionType, Long conditionId, Instant validFrom, Instant storedFrom) {
 
-        PatientCondition patientCondition = new PatientCondition(conditionType, mrn, conditionAdded);
+        PatientCondition patientCondition = new PatientCondition(conditionType, mrn, conditionId);
         return new RowState<>(patientCondition, validFrom, storedFrom, true);
     }
 
@@ -278,8 +275,6 @@ public class PatientConditionController {
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
-        conditionState.assignInterchangeValue(
-                msg.getResolvedTime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
     }
 
@@ -291,7 +286,10 @@ public class PatientConditionController {
      */
     private void updatePatientInfection(PatientInfection msg, HospitalVisit visit, RowState<PatientCondition,
             PatientConditionAudit> conditionState) {
-
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignInterchangeValue(
+                msg.getResolvedDatetime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
+        conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
         updatePatientCondition(msg, visit, conditionState);
     }
 
@@ -303,10 +301,11 @@ public class PatientConditionController {
      */
     private void updatePatientProblem(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition,
             PatientConditionAudit> conditionState) {
-
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignInterchangeValue(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
+        conditionState.assignIfDifferent(msg.getAddedDate(), condition.getAddedDate(), condition::setAddedDate);
         updatePatientCondition(msg, visit, conditionState);
 
-        PatientCondition condition = conditionState.getEntity();
         if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equalsIgnoreCase("active")) {
             conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
         }

@@ -12,14 +12,28 @@ import java.util.Optional;
 
 /**
  * PatientCondition repository.
+ *
  * @author Stef Piatek
  */
 public interface PatientConditionRepository extends CrudRepository<PatientCondition, Long> {
     /**
      * Get patient condition, should be unique.
+     *
      * @param mrn           MRN entity
      * @param conditionType type of condition
-     * @param addedDatetime added date time
+     * @param internalId    identifier used for condition in the hospital
+     * @return possible patient condition
+     */
+    Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndInternalId(
+            Mrn mrn, ConditionType conditionType, Long internalId
+    );
+
+    /**
+     * Get patient condition, should be unique.
+     *
+     * @param mrn           MRN entity
+     * @param conditionType type of condition
+     * @param addedDatetime date and time when patient condition was added
      * @return possible patient condition
      */
     Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndAddedDatetime(
@@ -28,17 +42,19 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
 
     /**
      * Get patient condition, should be unique.
+     *
      * @param mrn           MRN entity
      * @param conditionType type of condition
-     * @param onsetDate     onset date of condition
+     * @param addedDate     date and time when patient condition was added
      * @return possible patient condition
      */
-    Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndOnsetDate(
-            Mrn mrn, ConditionType conditionType, LocalDate onsetDate
+    Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndAddedDate(
+            Mrn mrn, ConditionType conditionType, LocalDate addedDate
     );
 
     /**
      * Delete all that is valid before an instant for types.
+     *
      * @param untilDateTime instant to delete all messages before
      * @param conditionType data types to delete
      * @return List of patient conditions
@@ -49,6 +65,7 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
 
     /**
      * For testing, shortcut without requiring entities to be passed.
+     *
      * @param mrn           mrn sting
      * @param internalCode  internal code of the condition
      * @param addedDatetime added date time
@@ -60,9 +77,10 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
 
     /**
      * For testing, shortcut without requiring entities to be passed.
-     * @param mrn           mrn sting
-     * @param internalCode  internal code of the condition
-     * @param onsetDate     onset date of condition
+     *
+     * @param mrn          mrn sting
+     * @param internalCode internal code of the condition
+     * @param onsetDate    onset date of condition
      * @return possible patient condition
      */
     Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdInternalCodeAndOnsetDate(
