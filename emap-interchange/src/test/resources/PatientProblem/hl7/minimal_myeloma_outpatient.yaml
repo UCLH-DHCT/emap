@@ -1,5 +1,6 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "EPIC"
+  sourceMessageId: "0000000042"
   updatedDateTime: "2019-06-02T09:31:05Z"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
