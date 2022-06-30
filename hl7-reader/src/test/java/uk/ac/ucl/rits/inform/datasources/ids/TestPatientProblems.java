@@ -30,10 +30,11 @@ public class TestPatientProblems extends TestHl7MessageStream {
     private static final String MRN = "8DcEwvqa8Q3";
     private static final String VISIT_NUMBER = "123412341234";
     private static final String PROBLEM_CODE = "K64.9";
-    private static final Instant PROBLEM_ADDED = Instant.parse("2019-06-01T00:00:00Z");
+    private static final LocalDate PROBLEM_ADDED = LocalDate.parse("2019-06-01");
     private static final String PROBLEM_NAME = "Haemorrhoids, unspecified";
     private static final LocalDate PROBLEM_ONSET = LocalDate.parse("2019-05-31");
     private static final Instant PROBLEM_UPDATE = Instant.parse("2020-03-02T21:01:22Z");
+    private static final LocalDate PROBLEM_RESOLVED = LocalDate.parse("2020-03-02");
     private static final String EPIC = "EPIC";
     private static final String COMMENT = " - Screened and started on meds and some other meds - CRP 0.6-->4.9-->4.1 " +
             "- Blood cultures negative";
@@ -67,9 +68,8 @@ public class TestPatientProblems extends TestHl7MessageStream {
         assertEquals(EPIC, problem.getSourceSystem());
         assertEquals(PROBLEM_CODE, problem.getConditionCode());
         assertEquals(PROBLEM_NAME, problem.getConditionName().get());
-        assertEquals(PROBLEM_ADDED, problem.getAddedTime());
+        assertEquals(PROBLEM_ADDED, problem.getAddedDate());
         assertEquals(PROBLEM_UPDATE, problem.getUpdatedDateTime());
-        assertEquals(InterchangeValue.buildFromHl7(null), problem.getResolvedTime());
         assertEquals(EPIC_ID, problem.getEpicConditionId());
     }
 
@@ -84,7 +84,7 @@ public class TestPatientProblems extends TestHl7MessageStream {
         List<PatientProblem> problems = getAllProblems("problem_list_resolved");
         assertEquals(1, problems.size());
         PatientProblem problem = problems.get(0);
-        assertEquals(InterchangeValue.buildFromHl7(PROBLEM_UPDATE), problem.getResolvedTime());
+        assertEquals(InterchangeValue.buildFromHl7(PROBLEM_RESOLVED), problem.getResolvedDate());
     }
 
     /**
