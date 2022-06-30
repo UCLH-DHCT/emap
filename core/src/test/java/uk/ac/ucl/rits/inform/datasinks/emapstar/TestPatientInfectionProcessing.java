@@ -72,14 +72,14 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         LocalDate olderOnsetDate = LocalDate.parse("2019-01-01");
 
         PatientInfection olderMessage = new PatientInfection();
-        olderMessage.setAddedTime(hooverMumps.getAddedTime());
+        olderMessage.setAddedDatetime(hooverMumps.getAddedDatetime());
         olderMessage.setEpicConditionId(InterchangeValue.buildFromHl7(1L));
         olderMessage.setSourceSystem(hooverMumps.getSourceSystem());
         olderMessage.setMrn(MUMPS_MRN);
         olderMessage.setConditionCode(MUMPS_INFECTION);
         olderMessage.setConditionName(InterchangeValue.buildFromHl7(MUMPS_INFECTION));
         olderMessage.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
-        olderMessage.setResolvedTime(InterchangeValue.buildFromHl7(olderResolvedTime));
+        olderMessage.setResolvedDatetime(InterchangeValue.buildFromHl7(olderResolvedTime));
         olderMessage.setOnsetTime(InterchangeValue.buildFromHl7(olderOnsetDate));
         processSingleMessage(olderMessage);
     }
@@ -169,7 +169,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Test
     void testPatientInfectionWithResolveTime() throws EmapOperationMessageProcessingException {
         Instant resolveTime = MUMPS_ADD_TIME.plus(21, ChronoUnit.DAYS);
-        hl7Mumps.setResolvedTime(InterchangeValue.buildFromHl7(resolveTime));
+        hl7Mumps.setResolvedDatetime(InterchangeValue.buildFromHl7(resolveTime));
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
@@ -353,7 +353,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
      */
     @Test
     void testInfectionWithNoAddedDateTimeIsParsed() throws EmapOperationMessageProcessingException {
-        hl7Mumps.setAddedTime(null);
+        hl7Mumps.setAddedDatetime(null);
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
