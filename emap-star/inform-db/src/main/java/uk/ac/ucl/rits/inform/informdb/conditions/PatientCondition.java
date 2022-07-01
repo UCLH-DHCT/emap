@@ -90,7 +90,6 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * It will only ever addedDatetime OR addedDate depending on the granularity available for the kind of
      * condition, i.e. whether it is a problem list, allergy or infection.
      */
-    @Column(columnDefinition = "timestamp with time zone")
     private LocalDate addedDate;
     /**
      * \brief Date and time at which this patientCondition was resolved.
@@ -107,7 +106,6 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * It will only ever resolutionDatetime OR resolutionDate depending on the granularity available for the kind of
      * condition, i.e. whether it is a problem list, allergy or infection.
      */
-    @Column(columnDefinition = "timestamp with time zone")
     private LocalDate resolutionDate;
 
     /**
