@@ -194,3 +194,42 @@ class GlobalConfiguration(dict):
         ] = _date_or_empty_string("end")
 
         return None
+
+    @property
+    def rabbitmq_config_string(self) -> str:
+        """String outlining the rabbitmq admin configuration"""
+
+        try:
+            # Note: the domain is the same as the glowroot one
+            return _domain_port_username_and_password_to_string(
+                self.get("glowroot", "DOMAIN"),
+                self.get("global", "RABBITMQ_ADMIN_PORT"),
+                self.get("rabbitmq", "RABBITMQ_DEFAULT_USER"),
+                self.get("rabbitmq", "RABBITMQ_DEFAULT_PASS"),
+            )
+
+        except KeyError:
+            return "Unknown"
+
+    @property
+    def glowroot_config_string(self) -> str:
+        """String outlining the glowroot admin configuration"""
+
+        try:
+            return _domain_port_username_and_password_to_string(
+                self.get("glowroot", "DOMAIN"),
+                self.get("glowroot", "GLOWROOT_ADMIN_PORT"),
+                self.get("glowroot", "GLOWROOT_USERNAME"),
+                self.get("glowroot", "GLOWROOT_PASSWORD"),
+            )
+
+        except KeyError:
+            return "Unknown"
+
+
+def _domain_port_username_and_password_to_string(*args: str) -> str:
+    return (
+        f"Domain:    http://{args[0]}:{args[1]}\n"
+        f"Username:  {args[2]}\n"
+        f"Password:  {args[3]}"
+    )

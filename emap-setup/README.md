@@ -11,6 +11,9 @@ Code to initialise, update and run EMAP. Includes ability to:
 2. Clone emap-setup into that directory
 3. Copy global-configuration-EXAMPLE.yaml as global-configuration.yaml and adjust for your own requirements
 
+> **Note**
+> On the GAEs, first download and install [miniconda](https://docs.conda.io/en/latest/miniconda.html)
+
 For example,
 
 ```bash
@@ -39,9 +42,6 @@ source ~/.local/venvs/emap/bin/activate
 ```
 
 </details>
- 
-> **_NOTE:_**  Python 3 (version 3.6) is installed as `python3` on GAE01 and the corresponding
-> pip `pip3`. If a higher version is needed going forward, a Docker container would be needed.
 
 
 ***

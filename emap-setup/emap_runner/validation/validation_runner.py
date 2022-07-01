@@ -13,9 +13,15 @@ class ValidationRunnerException(EMAPRunnerException):
 
 
 class ValidationRunner:
-    def __init__(self, docker_runner: "DockerRunner", time_window: "TimeWindow"):
+    def __init__(
+        self,
+        docker_runner: "DockerRunner",
+        time_window: "TimeWindow",
+        should_build: bool = True,
+    ):
         """Validation runner that will be run over a time window"""
 
+        self.should_build = should_build
         self.start_time = None
         self.timeout = timedelta(hours=10)
 
@@ -68,17 +74,28 @@ class ValidationRunner:
 
         return None
 
+    def _should_set_date_at(self, string: str) -> bool:
+        """Should the date be set at either the start or the end?"""
+
+        try:
+            return (
+                self.docker.config.get("dates", string) is not None
+                and getattr(self.time_window, string).is_default
+            )
+
+        except KeyError:
+            return True
+
     def _set_time_window_in_env_file(self, file: EnvironmentFile) -> None:
         """Set the correct time stamps in the environment file"""
 
-        if not self.time_window.start.is_default:
-
+        if self._should_set_date_at("start"):
             file.replace_value_of(
                 "IDS_CFG_DEFAULT_START_DATETIME", self.time_window.start_stamp
             )
             file.replace_value_of("HOOVER_DATE_FROM", self.time_window.start_stamp)
 
-        if not self.time_window.end.is_default:
+        if self._should_set_date_at("end"):
             file.replace_value_of("IDS_CFG_END_DATETIME", self.time_window.end_stamp)
             file.replace_value_of("HOOVER_DATE_UNTIL", self.time_window.end_stamp)
 
@@ -88,13 +105,25 @@ class ValidationRunner:
 
     def _run_emap(self) -> None:
         """Run the services that constitute EMAP"""
-        self._create_logs_directory()
 
+        _ = input(
+            f"About to run a validation run with:\n"
+            f"{'Schema:':20s}{self.docker.config['uds']['UDS_SCHEMA']}\n"
+            f"{'Time window':20s}{self.time_window.start_stamp} -> {self.time_window.end_stamp}\n"
+            f"{'On domain':20s}{self.docker.config['glowroot']['DOMAIN']}"
+            f"Press any key to continue"
+        )
+
+        self._create_logs_directory()
         self.docker.inject_ports()
         self.docker.run("down")
-        self.docker.run("up --build -d cassandra rabbitmq")
+
+        if self.should_build:
+            self.docker.run("build")
+
+        self.docker.run("up -d cassandra rabbitmq")
         self.docker.setup_glowroot_password()
-        self.docker.run("up --build -d glowroot-central")
+        self.docker.run("up -d glowroot-central")
         self.docker.run("ps")
 
         """
@@ -102,18 +131,19 @@ class ValidationRunner:
         the time delay required for RabbitMQ to be there. Should this proof not to be sufficient, then the running order
         may need to change, i.e. the data sources to be started first (as background services though!).
         """
-        sleep(180)
         _ = Popen(
-            self.docker.base_docker_compose_command.split()
-            + ["up", "--build", "-d", "emapstar"]
+            "sleep 180 && "
+            + self.docker.base_docker_compose_command
+            + "up -d emapstar",
+            shell=True,
         )
 
         self.docker.run(
-            "up --build --exit-code-from hl7source hl7source",
+            "up --exit-code-from hl7source hl7source",
             output_filename=f"{self.log_file_prefix}_hl7source.txt",
         )
         self.docker.run(
-            "up --build --exit-code-from hoover hoover",
+            "up --exit-code-from hoover hoover",
             output_filename=f"{self.log_file_prefix}_hoover.txt",
         )
 

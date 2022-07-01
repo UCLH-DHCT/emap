@@ -47,17 +47,18 @@ class DockerRunner:
 
         with Popen(
             cmd,
-            stdout=PIPE if output_filename or output_lines else None,
+            stdout=PIPE if (output_filename or output_lines) else None,
             bufsize=1,
             universal_newlines=True,
             env=self._all_global_environment_variables(),
         ) as p:
 
-            if output_filename is not None:
+            if output_filename is not None and p.stdout is not None:
                 _write_to_file(p.stdout, output_filename)
 
-            elif output_lines is not None:
-                _append_to_list(p.stdout, output_lines)
+            elif output_lines is not None and p.stdout is not None:
+                for line in p.stdout:
+                    output_lines.append(line)
 
             if p.returncode not in (0, None):
                 raise DockerRunnerException(
@@ -170,14 +171,5 @@ def _write_to_file(stdout: IO, filename: str) -> None:
     with open(filename, "w") as file:
         for line in stdout:
             print(line, end="", file=file)
-
-    return None
-
-
-def _append_to_list(stdout: IO, _list: list) -> None:
-    """Append standard output to a list"""
-
-    for line in stdout:
-        _list.append(line.decode())
 
     return None
