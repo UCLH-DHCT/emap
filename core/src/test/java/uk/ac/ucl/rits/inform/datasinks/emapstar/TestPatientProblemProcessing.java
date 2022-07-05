@@ -192,7 +192,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         assertEquals(0, getAllEntities(patientConditionAuditRepository).size());
 
         hl7MyelomaInpatient.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
-        hl7MyelomaInpatient.setResolvedDate(InterchangeValue.buildFromHl7(LocalDate.now()));
+        hl7MyelomaInpatient.setResolvedDate(LocalDate.now());
         processSingleMessage(hl7MyelomaInpatient);
 
         PatientCondition resolvedCondition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
