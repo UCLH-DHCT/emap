@@ -18,10 +18,7 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-05-31"
-  resolvedDate:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-06-08"
+  resolvedDate: "2019-06-08"
   visitNumber:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
