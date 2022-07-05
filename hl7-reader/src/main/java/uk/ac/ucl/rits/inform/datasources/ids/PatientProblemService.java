@@ -80,7 +80,7 @@ public class PatientProblemService {
         patientProblem.setConditionName(InterchangeValue.buildFromHl7(conditionType.getCwe2_Text().getValueOrEmpty()));
         patientProblem.setAddedDate(HL7Utils.interpretDate(problemSegment.getPrb7_ProblemEstablishedDateTime()));
         LocalDate problemResolved = HL7Utils.interpretDate(problemSegment.getPrb9_ActualProblemResolutionDateTime());
-        patientProblem.setResolvedDate(InterchangeValue.buildFromHl7(problemResolved));
+        patientProblem.setResolvedDate(problemResolved);
         String problemStatus = problemSegment.getPrb13_ProblemConfirmationStatus().getCwe1_Identifier().getValueOrEmpty();
         patientProblem.setStatus(problemStatus);
         String problemId = problemSegment.getPrb4_ProblemInstanceID().getEntityIdentifier().getValueOrEmpty();

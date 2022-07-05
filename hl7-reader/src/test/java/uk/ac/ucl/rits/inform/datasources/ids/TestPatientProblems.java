@@ -84,7 +84,7 @@ public class TestPatientProblems extends TestHl7MessageStream {
         List<PatientProblem> problems = getAllProblems("problem_list_resolved");
         assertEquals(1, problems.size());
         PatientProblem problem = problems.get(0);
-        assertEquals(InterchangeValue.buildFromHl7(PROBLEM_RESOLVED), problem.getResolvedDate());
+        assertEquals(PROBLEM_RESOLVED, problem.getResolvedDate());
     }
 
     /**
