@@ -301,7 +301,7 @@ public class PatientConditionController {
     private void updatePatientProblem(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition,
             PatientConditionAudit> conditionState) {
         PatientCondition condition = conditionState.getEntity();
-        conditionState.assignInterchangeValue(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
+        conditionState.assignIfDifferent(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
         conditionState.assignIfDifferent(msg.getAddedDate(), condition.getAddedDate(), condition::setAddedDate);
         updatePatientCondition(msg, visit, conditionState);
 
