@@ -5,7 +5,6 @@ from typing import Optional, Sequence
 
 
 class Namespace(argparse.Namespace):
-
     @property
     def is_up_or_down_a_single_docker_service(self):
         """
@@ -39,8 +38,7 @@ class Parser(argparse.ArgumentParser):
 
         idx = next(i + 1 for i, arg in enumerate(args) if arg == "docker")
 
-        namespace = super().parse_args(args[:idx] + ["X"],
-                                       namespace=Namespace())
+        namespace = super().parse_args(args[:idx] + ["X"], namespace=Namespace())
         namespace.docker_compose_args = args[idx:]
 
         return namespace

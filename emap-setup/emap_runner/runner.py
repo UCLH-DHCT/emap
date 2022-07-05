@@ -102,14 +102,14 @@ def create_parser() -> Parser:
 
     validation_source_group = validation_parser.add_mutually_exclusive_group()
     validation_source_group.add_argument(
-        '--only-hl7',
+        "--only-hl7",
         dest="use_only_hl7source",
         help="Use only the hl7source service (no hoover)",
         default=False,
         action="store_true",
     )
     validation_source_group.add_argument(
-        '--only-hoover',
+        "--only-hoover",
         dest="use_only_hoover",
         help="Use only the hoover service (no hl7source)",
         default=False,
@@ -181,8 +181,10 @@ class EMAPRunner:
 
         runner = DockerRunner(main_dir=Path.cwd(), config=self.global_config)
 
-        if ("up" in self.args.docker_compose_args
-                and not self.args.is_up_or_down_a_single_docker_service):
+        if (
+            "up" in self.args.docker_compose_args
+            and not self.args.is_up_or_down_a_single_docker_service
+        ):
             runner.setup_glowroot_password()
 
         runner.inject_ports()
@@ -200,7 +202,7 @@ class EMAPRunner:
             ),
             should_build=not self.args.skip_build,
             use_hl7source=not self.args.use_only_hoover,
-            use_hoover=not self.args.use_only_hl7source
+            use_hoover=not self.args.use_only_hl7source,
         )
 
         runner.run()
