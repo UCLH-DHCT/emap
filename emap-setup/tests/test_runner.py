@@ -1,8 +1,9 @@
+import pytest
+
 from os import mkdir
 from os.path import dirname, abspath, exists
 from pathlib import Path
 from datetime import date
-
 
 from emap_runner.runner import create_parser, EMAPRunner
 from emap_runner.validation.validation_runner import (
@@ -73,6 +74,10 @@ def test_time_window_is_set():
 
 
 def test_args_is_on_a_single_docker_service():
+    """
+    Test that the is_up_or_down_a_single_docker_service is correctly
+    set given specific arguments
+    """
 
     parser = create_parser()
     args = parser.parse_args(['docker', 'up', 'hoover'])
@@ -80,3 +85,28 @@ def test_args_is_on_a_single_docker_service():
 
     args = parser.parse_args(['docker', 'down'])
     assert not args.is_up_or_down_a_single_docker_service
+
+
+def test_validation_source_arguments():
+    """
+    Test that both hl7 and hoover can't be used as only-X arguments
+    and that, when set correctly then the ValidationRunner attributes are
+    set correctly
+    """
+
+    parser = create_parser()
+
+    with pytest.raises(SystemExit):
+        _ = parser.parse_args(['validation', '--only-hl7', '--only-hoover'])
+
+    args = parser.parse_args(['validation', '--only-hl7'])
+    global_config = GlobalConfiguration(config_path)
+
+    runner = ValidationRunner(
+        docker_runner=DockerRunner(main_dir=Path.cwd(), config=global_config),
+        time_window=TimeWindow(args.start_date, args.end_date),
+        use_hl7source=not args.use_only_hoover,
+        use_hoover=not args.use_only_hl7source
+    )
+
+    assert runner.use_hl7source and not runner.use_hoover

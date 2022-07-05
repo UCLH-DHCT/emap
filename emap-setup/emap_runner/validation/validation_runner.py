@@ -18,10 +18,15 @@ class ValidationRunner:
         docker_runner: "DockerRunner",
         time_window: "TimeWindow",
         should_build: bool = True,
+        use_hl7source: bool = True,
+        use_hoover: bool = True,
     ):
         """Validation runner that will be run over a time window"""
 
         self.should_build = should_build
+        self.use_hl7source = use_hl7source
+        self.use_hoover = use_hoover
+
         self.start_time = None
         self.timeout = timedelta(hours=10)
 
@@ -138,14 +143,17 @@ class ValidationRunner:
             shell=True,
         )
 
-        self.docker.run(
-            "up --exit-code-from hl7source hl7source",
-            output_filename=f"{self.log_file_prefix}_hl7source.txt",
-        )
-        self.docker.run(
-            "up --exit-code-from hoover hoover",
-            output_filename=f"{self.log_file_prefix}_hoover.txt",
-        )
+        if self.use_hl7source:
+            self.docker.run(
+                "up --exit-code-from hl7source hl7source",
+                output_filename=f"{self.log_file_prefix}_hl7source.txt",
+            )
+
+        if self.use_hoover:
+            self.docker.run(
+                "up --exit-code-from hoover hoover",
+                output_filename=f"{self.log_file_prefix}_hoover.txt",
+            )
 
         self.docker.run("ps")
 
