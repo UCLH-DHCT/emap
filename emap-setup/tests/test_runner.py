@@ -70,3 +70,13 @@ def test_time_window_is_set():
             for line in file:
                 if line.startswith("HOOVER_DATE_"):
                     assert line.strip().endswith("T00:00:00.00Z")
+
+
+def test_args_is_on_a_single_docker_service():
+
+    parser = create_parser()
+    args = parser.parse_args(['docker', 'up', 'hoover'])
+    assert args.is_up_or_down_a_single_docker_service
+
+    args = parser.parse_args(['docker', 'down'])
+    assert not args.is_up_or_down_a_single_docker_service

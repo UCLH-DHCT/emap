@@ -165,7 +165,9 @@ class EMAPRunner:
 
         runner = DockerRunner(main_dir=Path.cwd(), config=self.global_config)
 
-        if "up" in self.args.docker_compose_args:
+        # TODO: only setup glowroot if it's not already up
+        if ("up" in self.args.docker_compose_args
+                and not self.args.is_up_or_down_a_single_docker_service):
             runner.setup_glowroot_password()
 
         runner.inject_ports()
