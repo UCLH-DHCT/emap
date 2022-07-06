@@ -73,31 +73,19 @@ def test_time_window_is_set():
                     assert line.strip().endswith("T00:00:00.00Z")
 
 
-def test_args_is_on_a_single_docker_service():
-    """
-    Test that the is_up_or_down_a_single_docker_service is correctly
-    set given specific arguments
-    """
-
-    parser = create_parser()
-    args = parser.parse_args(["docker", "up", "hoover"])
-    assert args.is_up_or_down_a_single_docker_service
-
-    args = parser.parse_args(["docker", "down"])
-    assert not args.is_up_or_down_a_single_docker_service
-
-
-def test_validation_source_arguments():
-    """
-    Test that both hl7 and hoover can't be used as only-X arguments
-    and that, when set correctly then the ValidationRunner attributes are
-    set correctly
-    """
+def test_validation_source_arguments_cannot_be_both_only_hl7_and_hoover():
+    """Test that both hl7 and hoover can't be used as only-X arguments"""
 
     parser = create_parser()
 
     with pytest.raises(SystemExit):
         _ = parser.parse_args(["validation", "--only-hl7", "--only-hoover"])
+
+
+def test_validation_source_arguments_set_correct_runner_attributes():
+    """Test source parser arguments translate to correct runner attributes"""
+
+    parser = create_parser()
 
     args = parser.parse_args(["validation", "--only-hl7"])
     global_config = GlobalConfiguration(config_path)
@@ -112,17 +100,16 @@ def test_validation_source_arguments():
     assert runner.use_hl7source and not runner.use_hoover
 
 
-def test_zero_length_queues():
+@pytest.mark.parametrize("queue_length,expected", [(0, True), (1, False)])
+def test_zero_length_queues(queue_length, expected):
+    """Test that stdout from a rabbitmq list queues call is parsed correctly"""
 
     lines = [
         "\n",
         "name    messages\n",
-        "databaseExtracts        0\n",
+        f"databaseExtracts        {queue_length}\n",
         "hl7Queue        0\n",
     ]
 
     method = ValidationRunner._stdout_rabbitmq_lines_have_zero_length_queues
-    assert method(lines)
-
-    lines[1] = "databaseExtracts        2\n"
-    assert not method(lines)
+    assert method(lines) == expected
