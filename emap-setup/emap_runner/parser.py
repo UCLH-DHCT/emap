@@ -4,20 +4,8 @@ import argparse
 from typing import Optional, Sequence
 
 
-class Namespace(argparse.Namespace):
-    @property
-    def is_up_or_down_a_single_docker_service(self):
-        """
-        Do the docker_compose_args imply that an operation is operating on a
-        single service? i.e. ["up" "hoover"] would be but ["down"] is not.
-        """
-
-        args = self.docker_compose_args
-        return len(args) > 1 and any(args[-2] == c for c in ("up", "down"))
-
-
 class Parser(argparse.ArgumentParser):
-    def parse_args(self, args: Optional[Sequence[str]] = None) -> Namespace:
+    def parse_args(self, args: Optional[Sequence[str]] = None) -> argparse.Namespace:
         """
         Parse the arguments.
 
@@ -38,7 +26,7 @@ class Parser(argparse.ArgumentParser):
 
         idx = next(i + 1 for i, arg in enumerate(args) if arg == "docker")
 
-        namespace = super().parse_args(args[:idx] + ["X"], namespace=Namespace())
+        namespace = super().parse_args(args[:idx] + ["X"])
         namespace.docker_compose_args = args[idx:]
 
         return namespace
