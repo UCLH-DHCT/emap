@@ -1,7 +1,7 @@
 from subprocess import Popen
 from datetime import date, timedelta
 from time import time, sleep
-from typing import Union
+from typing import Union, List
 from pathlib import Path
 
 from emap_runner.files import EnvironmentFile
@@ -207,10 +207,28 @@ class ValidationRunner:
             "exec rabbitmq rabbitmqctl -q list_queues", output_lines=output_lines
         )
 
-        def n_messages(_line):
-            return int(_line.split()[1])
+        return self._stdout_rabbitmq_lines_have_zero_length_queues(output_lines)
 
-        return all(n_messages(line) == 0 for line in output_lines[1:])
+    @staticmethod
+    def _stdout_rabbitmq_lines_have_zero_length_queues(lines: List[str]) -> bool:
+        """
+        Do a set of output lines generated from querying the rabbitmq
+        queues indicate that all queues are empty?
+        """
+
+        for line in lines:
+
+            line_items = line.split()
+            if len(line_items) == 0:
+                continue
+
+            if line_items[-1].isnumeric():
+                number = int(line_items[-1])
+
+                if number > 0:
+                    return False
+
+        return True
 
     def _save_logs_and_stop(self) -> None:
         """Save the logs of the required docker containers"""

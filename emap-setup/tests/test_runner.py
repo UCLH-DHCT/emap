@@ -110,3 +110,17 @@ def test_validation_source_arguments():
     )
 
     assert runner.use_hl7source and not runner.use_hoover
+
+
+def test_zero_length_queues():
+
+    lines = ["\n",
+             "name    messages\n",
+             "databaseExtracts        0\n",
+             "hl7Queue        0\n"]
+
+    method = ValidationRunner._stdout_rabbitmq_lines_have_zero_length_queues
+    assert method(lines)
+
+    lines[1] = "databaseExtracts        2\n"
+    assert not method(lines)
