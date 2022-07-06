@@ -1,10 +1,11 @@
 import sys
-from argparse import ArgumentParser, Namespace
+import argparse
+
 from typing import Optional, Sequence
 
 
-class Parser(ArgumentParser):
-    def parse_args(self, args: Optional[Sequence[str]] = None) -> Namespace:
+class Parser(argparse.ArgumentParser):
+    def parse_args(self, args: Optional[Sequence[str]] = None) -> argparse.Namespace:
         """
         Parse the arguments.
 

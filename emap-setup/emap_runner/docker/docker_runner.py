@@ -47,7 +47,7 @@ class DockerRunner:
 
         with Popen(
             cmd,
-            stdout=PIPE if (output_filename or output_lines) else None,
+            stdout=PIPE if (output_filename or output_lines is not None) else None,
             bufsize=1,
             universal_newlines=True,
             env=self._all_global_environment_variables(),
@@ -163,6 +163,15 @@ class DockerRunner:
                 env_vars.update(EnvironmentFile(item).environment_variables)
 
         return env_vars
+
+    @property
+    def glowroot_is_up(self) -> bool:
+        """Is glowroot up?"""
+
+        output_lines = []
+        self.run("ps glowroot-central", output_lines=output_lines)
+
+        return sum(" Up " in line for line in output_lines) == 1
 
 
 def _write_to_file(stdout: IO, filename: str) -> None:

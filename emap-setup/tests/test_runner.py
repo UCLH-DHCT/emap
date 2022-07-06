@@ -1,8 +1,9 @@
+import pytest
+
 from os import mkdir
 from os.path import dirname, abspath, exists
 from pathlib import Path
 from datetime import date
-
 
 from emap_runner.runner import create_parser, EMAPRunner
 from emap_runner.validation.validation_runner import (
@@ -70,3 +71,45 @@ def test_time_window_is_set():
             for line in file:
                 if line.startswith("HOOVER_DATE_"):
                     assert line.strip().endswith("T00:00:00.00Z")
+
+
+def test_validation_source_arguments_cannot_be_both_only_hl7_and_hoover():
+    """Test that both hl7 and hoover can't be used as only-X arguments"""
+
+    parser = create_parser()
+
+    with pytest.raises(SystemExit):
+        _ = parser.parse_args(["validation", "--only-hl7", "--only-hoover"])
+
+
+def test_validation_source_arguments_set_correct_runner_attributes():
+    """Test source parser arguments translate to correct runner attributes"""
+
+    parser = create_parser()
+
+    args = parser.parse_args(["validation", "--only-hl7"])
+    global_config = GlobalConfiguration(config_path)
+
+    runner = ValidationRunner(
+        docker_runner=DockerRunner(main_dir=Path.cwd(), config=global_config),
+        time_window=TimeWindow(args.start_date, args.end_date),
+        use_hl7source=not args.use_only_hoover,
+        use_hoover=not args.use_only_hl7source,
+    )
+
+    assert runner.use_hl7source and not runner.use_hoover
+
+
+@pytest.mark.parametrize("queue_length,expected", [(0, True), (1, False)])
+def test_zero_length_queues(queue_length, expected):
+    """Test that stdout from a rabbitmq list queues call is parsed correctly"""
+
+    lines = [
+        "\n",
+        "name    messages\n",
+        f"databaseExtracts        {queue_length}\n",
+        "hl7Queue        0\n",
+    ]
+
+    method = ValidationRunner._stdout_rabbitmq_lines_have_zero_length_queues
+    assert method(lines) == expected

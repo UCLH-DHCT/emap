@@ -1,7 +1,7 @@
 from subprocess import Popen
 from datetime import date, timedelta
 from time import time, sleep
-from typing import Union
+from typing import Union, List
 from pathlib import Path
 
 from emap_runner.files import EnvironmentFile
@@ -18,10 +18,15 @@ class ValidationRunner:
         docker_runner: "DockerRunner",
         time_window: "TimeWindow",
         should_build: bool = True,
+        use_hl7source: bool = True,
+        use_hoover: bool = True,
     ):
         """Validation runner that will be run over a time window"""
 
         self.should_build = should_build
+        self.use_hl7source = use_hl7source
+        self.use_hoover = use_hoover
+
         self.start_time = None
         self.timeout = timedelta(hours=10)
 
@@ -79,8 +84,8 @@ class ValidationRunner:
 
         try:
             return (
-                self.docker.config.get("dates", string) is not None
-                and getattr(self.time_window, string).is_default
+                not getattr(self.time_window, string).is_default
+                or self.docker.config.get("dates", string) is not None
             )
 
         except KeyError:
@@ -110,7 +115,7 @@ class ValidationRunner:
             f"About to run a validation run with:\n"
             f"{'Schema:':20s}{self.docker.config['uds']['UDS_SCHEMA']}\n"
             f"{'Time window':20s}{self.time_window.start_stamp} -> {self.time_window.end_stamp}\n"
-            f"{'On domain':20s}{self.docker.config['glowroot']['DOMAIN']}"
+            f"{'On domain':20s}{self.docker.config['glowroot']['DOMAIN']}\n"
             f"Press any key to continue"
         )
 
@@ -138,14 +143,17 @@ class ValidationRunner:
             shell=True,
         )
 
-        self.docker.run(
-            "up --exit-code-from hl7source hl7source",
-            output_filename=f"{self.log_file_prefix}_hl7source.txt",
-        )
-        self.docker.run(
-            "up --exit-code-from hoover hoover",
-            output_filename=f"{self.log_file_prefix}_hoover.txt",
-        )
+        if self.use_hl7source:
+            self.docker.run(
+                "up --exit-code-from hl7source hl7source",
+                output_filename=f"{self.log_file_prefix}_hl7source.txt",
+            )
+
+        if self.use_hoover:
+            self.docker.run(
+                "up --exit-code-from hoover hoover",
+                output_filename=f"{self.log_file_prefix}_hoover.txt",
+            )
 
         self.docker.run("ps")
 
@@ -199,10 +207,28 @@ class ValidationRunner:
             "exec rabbitmq rabbitmqctl -q list_queues", output_lines=output_lines
         )
 
-        def n_messages(_line):
-            return int(_line.split()[1])
+        return self._stdout_rabbitmq_lines_have_zero_length_queues(output_lines)
 
-        return all(n_messages(line) == 0 for line in output_lines[1:])
+    @staticmethod
+    def _stdout_rabbitmq_lines_have_zero_length_queues(lines: List[str]) -> bool:
+        """
+        Do a set of output lines generated from querying the rabbitmq
+        queues indicate that all queues are empty?
+        """
+
+        for line in lines:
+
+            line_items = line.split()
+            if len(line_items) == 0:
+                continue
+
+            if line_items[-1].isnumeric():
+                number = int(line_items[-1])
+
+                if number > 0:
+                    return False
+
+        return True
 
     def _save_logs_and_stop(self) -> None:
         """Save the logs of the required docker containers"""
