@@ -47,7 +47,7 @@ class DockerRunner:
 
         with Popen(
             cmd,
-            stdout=PIPE if (output_filename or output_lines) else None,
+            stdout=PIPE if (output_filename or output_lines is not None) else None,
             bufsize=1,
             universal_newlines=True,
             env=self._all_global_environment_variables(),
