@@ -43,15 +43,17 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     private final HL7Utils.FileStoreWithMonitoredAccess messageFileStore;
 
     static private final String[] EXCLUDED_MESSAGE_FILES = new String[]{
+        "AdvanceDecision/multiple_requests.txt",        // no yaml
         "Adt/TestForJunit.txt",
-        "Adt/birth_datetime_gmt.txt",                   // TODO: No births?
+        "Adt/birth_datetime_gmt.txt",                   // No births?
         "Adt/birth_datetime_midnight_bst.txt",
         "Adt/birth_datetime_bst.txt",
         "Adt/birth_date_gmt.txt",
         "Adt/birth_date_bst.txt",
-        "BloodProducts/bts_o31.txt",                    // TODO: No bloods?
+        "BloodProducts/bts_o31.txt",                    // No bloods?
         "BloodProducts/oru_r01.txt",
-        "NotesParser/oru_r01_sub_comments.txt",         // TODO: No notes?
+        "ConsultRequest/multiple_requests.txt",         // no yaml
+        "NotesParser/oru_r01_sub_comments.txt",         // No notes?
         "NotesParser/empty_question.txt",
         "NotesParser/oru_r01_multiline_comment.txt",
         "NotesParser/comment_and_questions.txt",
@@ -60,7 +62,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "NotesParser/repeat_question.txt",
         "NotesParser/oru_r01_comment.txt",
         "AdvanceDecision/minimal_w_questions.txt",       // No yaml
-        "VitalSigns/MixedHL7Message.txt",                // TODO: No vital signs?
+        "VitalSigns/MixedHL7Message.txt",                // No vital signs?
         "VitalSigns/MultiOBR.txt",
         "VitalSigns/datetime_parsing.txt",
         "PatientInfection/mumps_no_add_time.txt",        // Message discarded
@@ -72,7 +74,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "LabOrders/winpath/oru_ro1_numeric.txt",         // No yaml...
         "LabOrders/winpath/isolate_no_growth.txt",
         "LabOrders/winpath/not_allowed_order_control_id.txt",
-        "LabOrders/winpath/incremental_orders/05_oru_r01.txt",   // TODO: Probably, incremental_order_defaults.yaml
+        "LabOrders/winpath/incremental_orders/05_oru_r01.txt",
         "LabOrders/winpath/isolate_quantity.txt",
         "LabOrders/winpath/mistmatch_epic_order_id.txt",
         "LabOrders/winpath/orm_o01_sc.txt",
@@ -121,7 +123,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "LabOrders/abl90_flex/no_collection_time.txt",
         "LabOrders/abl90_flex/unit.txt",
         "LabOrders/abl90_flex/ignored.txt",               //  ..
-        "LabOrders/bank_manager/oru_r01_bmcomment.txt",   // TODO: No bank manager?
+        "LabOrders/bank_manager/oru_r01_bmcomment.txt",   // No bank manager?
         "LabOrders/bank_manager/oru_r01_result_comment.txt",
         "LabOrders/bank_manager/oru_r01_result.txt",
         "LabOrders/bank_manager/oru_r01_cancel.txt",
@@ -278,6 +280,13 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         testAdtMessage("DoubleA01WithA13/SecondA01");
     }
 
+    @Test
+    public void testAdtPendingLocations() throws Exception {
+        testAdtMessage("pending/A15");
+        testAdtMessage("pending/A15_null_pending_location");
+        testAdtMessage("pending/A26");
+    }
+
     void checkConsultMatchesInterchange(String fileName) throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
                 messageFileStore.incrementCount("ConsultRequest/"+fileName+".txt"));
@@ -304,19 +313,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     void testNotesConsult() throws Exception {
         checkConsultMatchesInterchange("notes");
-    }
-
-    @Test
-    void testMultipleConsult() throws Exception{
-
-        // TODO
-        /*
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
-                messageFileStore.incrementCount("ConsultRequest/multiple_requests.txt"));
-        ConsultRequest expected = interchangeFactory.getConsult("multiple_requests.yaml");
-        assertEquals(1, messagesFromHl7Message.size());
-        assertEquals(expected, messagesFromHl7Message.get(0));
-         */
     }
 
     void checkAdvanceDecisionMatchesInterchange(String fileName) throws Exception {
@@ -356,12 +352,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     void testMinimalWithMultipleQuestionsAdvanceDecision() throws Exception {
         checkAdvanceDecisionMatchesInterchange("minimal_w_questions");
-    }
-
-    @Test
-    void testMultipleAdvanceDecision() throws Exception {
-
-        // processSingleMessage("AdvanceDecision/multiple_requests.txt");
     }
 
     @Test
@@ -617,14 +607,15 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @AfterAll
     void checkAllFilesHaveBeenAccessed() throws Exception{
 
-        if (messageFileStore.stream()
-                .filter(f -> (f.fileNameEndsWith(".txt")))
-                .filter(f -> Arrays.stream(EXCLUDED_MESSAGE_FILES).noneMatch(f::fileNameEndsWith))
-                .allMatch(HL7Utils.MonitoredFile::hasBeenAccessed)) {
-            return;
+        for (var f: messageFileStore){
+
+            if (!f.fileNameEndsWith(".txt")
+                    || Arrays.stream(EXCLUDED_MESSAGE_FILES).anyMatch(f::fileNameEndsWith)
+                    || f.hasBeenAccessed()){
+                continue;
+            }
+
+            throw new Exception("Not all the files have been accessed. Missed "+f.getFilePath());
         }
-
-        throw new Exception("Not all the files have been accessed");
     }
-
 }
