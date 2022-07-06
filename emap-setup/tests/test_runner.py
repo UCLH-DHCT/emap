@@ -114,10 +114,12 @@ def test_validation_source_arguments():
 
 def test_zero_length_queues():
 
-    lines = ["\n",
-             "name    messages\n",
-             "databaseExtracts        0\n",
-             "hl7Queue        0\n"]
+    lines = [
+        "\n",
+        "name    messages\n",
+        "databaseExtracts        0\n",
+        "hl7Queue        0\n",
+    ]
 
     method = ValidationRunner._stdout_rabbitmq_lines_have_zero_length_queues
     assert method(lines)

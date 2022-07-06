@@ -164,6 +164,15 @@ class DockerRunner:
 
         return env_vars
 
+    @property
+    def glowroot_is_up(self) -> bool:
+        """Is glowroot up?"""
+
+        output_lines = []
+        self.run("ps glowroot-central", output_lines=output_lines)
+
+        return sum(" Up " in line for line in output_lines) == 1
+
 
 def _write_to_file(stdout: IO, filename: str) -> None:
     """Write standard output to a file"""
