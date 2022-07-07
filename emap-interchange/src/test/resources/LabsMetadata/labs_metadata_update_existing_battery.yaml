@@ -1,8 +1,0 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg"
-  shortCode: "BON"
-  codingSystem: "WIN_PATH"
-  name: "Bone Profile"
-  labsMetadataType: "LABS_METADATA_BATTERY"
-  validFrom: "2019-04-05T09:23:16Z"
-  sourceMessageId: "111858"
-  sourceSystem: "clarity"
