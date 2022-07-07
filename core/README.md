@@ -33,6 +33,9 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
     git clone https://github.com/inform-health-informatics/emap-hl7-processor.git
     git clone https://github.com/inform-health-informatics/hoover.git
     ```
+   
+   This could also be achieved with [emap-setup](https://github.com/inform-health-informatics/emap-setup) by, once installed, running `emap setup --init`
+
 </details>
 
 3. <details>
