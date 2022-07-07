@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +41,7 @@ import java.util.stream.Stream;
  * Utilities for interpreting HL7 messages.
  * @author Jeremy Stein
  * @author Stef Piatek
+ * @author Tom Young
  */
 public final class HL7Utils {
 
@@ -158,8 +160,8 @@ public final class HL7Utils {
         return hl7iter;
     }
 
-    public FileStoreWithMonitoredAccess createMonitoredFileStore(String folderPath) throws IOException {
-        return new FileStoreWithMonitoredAccess(folderPath);
+    public FileStoreWithMonitoredAccess createMonitoredFileStore(String[] folderPaths) throws IOException {
+        return new FileStoreWithMonitoredAccess(folderPaths);
     }
 
     public static class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile> {
@@ -168,14 +170,18 @@ public final class HL7Utils {
 
         /**
          * A repository of file paths that have a particular extension, each of which has an access-count.
-         * @param folderPath Path of the folder below which files are searched for. e.g. src/test/resources/
+         * @param folderPaths Paths of the folders below which files are searched for. e.g. src/test/resources/
          * @throws IOException If the folder path does not exist in the file system
          */
-        FileStoreWithMonitoredAccess(String folderPath) throws IOException {
+        FileStoreWithMonitoredAccess(String[] folderPaths) throws IOException {
 
-            this.files = listFiles(Paths.get(folderPath)).stream()
-                    .map(MonitoredFile::new)
-                    .collect(Collectors.toList());
+            this.files = new ArrayList<>();
+
+            for (var folderPath : folderPaths) {
+                for (var file : listFiles(Paths.get(folderPath))) {
+                    this.files.add(new MonitoredFile(file));
+                }
+            }
         }
 
         /**
@@ -201,7 +207,7 @@ public final class HL7Utils {
          * @return fileName
          * @throws IOException If the file is not in the store
          */
-        public String incrementCount(String fileName) throws IOException {
+        public String get(String fileName) throws IOException {
 
             for (MonitoredFile file : files) {
                 if (file.fileNameInPath(fileName)) {
