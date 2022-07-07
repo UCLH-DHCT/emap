@@ -184,12 +184,12 @@ manages the multiple repositories and configuration files.
     <summary>Modify configuration</summary>
    
     Modify `global-configuration.yaml` with any passwords, usernames and URLs that need to be changed for a live version.
-    these will propagate into the individual `xxx-congic-envs` configuration files, which in turn are used 
+    these will propagate into the individual `xxx-config-envs` configuration files, which in turn are used 
     by the`application.properties`.
     
     - For example, make sure `UDS_SCHEMA` is set to what it needs to be, in this example `live` is used. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
     - If you're running locally, you can set `EMAP_PROJECT_NAME` to whatever you like. If running on the GAE it should be the same as the current directory (i.e. `emap-test` if in `/gae/emap-test`)
-    - If you're on the GAE the RabbitMQ password should be strong to help prevent a user/malware outside the GAE from accessing the queue.
+    - All passwords should be strong to help prevent a user/malware outside the GAE from accessing the queue.
     
 </details>
 
