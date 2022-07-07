@@ -169,7 +169,7 @@ manages the multiple repositories and configuration files.
     ```
 
     **Note**: this will allow storage of the connection information in plain text in your home directory. We use https 
-    because outgoing ssh is blocked from the GAE.
+    as a default but SSH is also possible.
 </details>
 
 3. <details>
@@ -187,7 +187,7 @@ manages the multiple repositories and configuration files.
     these will propagate into the individual `xxx-config-envs` configuration files, which in turn are used 
     by the`application.properties`.
     
-    - For example, make sure `UDS_SCHEMA` is set to what it needs to be, in this example `live` is used. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
+    - For example, make sure `UDS_SCHEMA` is set to what it needs to be, in this example `live` is used. If you're writing to the UDS, use the `emap_core` user (password in lastpass).
     - If you're running locally, you can set `EMAP_PROJECT_NAME` to whatever you like. If running on the GAE it should be the same as the current directory (i.e. `emap-test` if in `/gae/emap-test`)
     - All passwords should be strong to help prevent a user/malware outside the GAE from accessing the queue.
     
