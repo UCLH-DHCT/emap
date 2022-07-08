@@ -262,13 +262,19 @@ public final class HL7Utils {
             return filePath.toString().endsWith(ext);
         }
 
+        /**
+         * Determine the "source system" of this file. If it's an interchange yaml file then there should be a
+         * line with "sourceSystem:" in it. Extract and return the value from this key.
+         * @return Source system string
+         * @throws IOException If the file does not exist
+         */
         public Optional<String> sourceSystem() throws IOException {
 
             try (BufferedReader br = new BufferedReader(new FileReader(String.valueOf(filePath)))) {
                 String line;
                 while ((line = br.readLine()) != null) {
 
-                    if (line.contains("sourceSystem: ")){
+                    if (line.contains("sourceSystem: ")) {
                         return Optional.of(line.split(": ")[1]);
                     }
                 }
