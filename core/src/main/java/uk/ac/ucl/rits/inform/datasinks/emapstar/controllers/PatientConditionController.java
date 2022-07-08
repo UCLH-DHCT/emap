@@ -7,14 +7,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
-import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
-import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
+import uk.ac.ucl.rits.inform.informdb.conditions.*;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -43,6 +37,7 @@ public class PatientConditionController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PatientConditionRepository patientConditionRepo;
     private final PatientConditionAuditRepository patientConditionAuditRepo;
+    private final ConditionVisitLinkRepository conditionVisitLinkRepository;
 
     @Resource
     private PatientConditionCache cache;
@@ -62,9 +57,11 @@ public class PatientConditionController {
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
      */
     public PatientConditionController(
-            PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo) {
+            PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo,
+            ConditionVisitLinkRepository conditionVisitLinkRepository) {
         this.patientConditionRepo = patientConditionRepo;
         this.patientConditionAuditRepo = patientConditionAuditRepo;
+        this.conditionVisitLinkRepository = conditionVisitLinkRepository;
     }
 
     /**
@@ -92,6 +89,20 @@ public class PatientConditionController {
             updatePatientProblem(msg, visit, patientCondition);
         }
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+        savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
+    }
+
+    /**
+     * Saves a link between the patient condition record and the hospital visit record
+     * @param condition Patient condition record
+     * @param visit Hospital visit record
+     */
+    private void savePatientConditionHospitalVisitLink(PatientCondition condition, HospitalVisit visit) {
+
+        if (conditionVisitLinkRepository.findByPatientConditionIdAndHospitalVisitId(condition, visit).isEmpty()){
+            var link = new PatientConditionVisitLink(condition, visit);
+            conditionVisitLinkRepository.save(link);
+        }
     }
 
     /**
@@ -157,7 +168,6 @@ public class PatientConditionController {
             cache.clearCacheOfInfectionTypes();
         }
     }
-
 
     /**
      * Audit and delete all patient conditions that are of the condition types and are valid until the delete until date.
