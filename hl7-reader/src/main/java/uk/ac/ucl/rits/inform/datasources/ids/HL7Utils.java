@@ -43,6 +43,11 @@ public final class HL7Utils {
     private static final String LONDON_TIMEZONE = "Europe/London";
 
     /**
+     * Can't instantiate a util class.
+     */
+    private HL7Utils() {}
+
+    /**
      * Our messages don't specify time zone, we are assuming all datetimes are in are local time.
      * Here local means for the hospital, NOT local time for the computer this code is running on.
      * @param hl7DTM the hl7 DTM object as it comes from the message
