@@ -16,7 +16,9 @@ import lombok.Getter;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.CustomModelWithDefaultVersion;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,6 +32,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.Iterator;
@@ -257,6 +260,20 @@ public final class HL7Utils {
 
         public boolean fileNameEndsWith(String ext) {
             return filePath.toString().endsWith(ext);
+        }
+
+        public Optional<String> sourceSystem() throws IOException {
+
+            try (BufferedReader br = new BufferedReader(new FileReader(String.valueOf(filePath)))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+
+                    if (line.contains("sourceSystem: ")){
+                        return Optional.of(line.split(": ")[1]);
+                    }
+                }
+            }
+            return Optional.empty();
         }
     }
 }
