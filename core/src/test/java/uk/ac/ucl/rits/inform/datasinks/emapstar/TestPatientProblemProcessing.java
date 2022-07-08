@@ -286,13 +286,14 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
     PatientCondition conditionMyelomaInpatientWithAction(ConditionAction action) throws EmapOperationMessageProcessingException {
 
         hl7MyelomaInpatient.setAction(action);
+
+        // The action is only used for processing so set the comment so this condition can be found from the repo
+        String comment = action.toString();
+        hl7MyelomaInpatient.setComment(InterchangeValue.buildFromHl7(comment));
+
         processSingleMessage(hl7MyelomaInpatient);
 
-        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
-        conditionVisitLinkRepository.deleteAll();
-        patientConditionRepository.deleteAll();
-        conditionTypeRepository.deleteAll();
-        return condition;
+        return patientConditionRepository.findByMrnIdMrnAndComment(PATIENT_MRN, comment).orElseThrow();
     }
 
     /**
@@ -310,7 +311,6 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         assertEquals(conditionFromAd.getAddedDatetime(), conditionFromUp.getAddedDatetime());
         assertEquals(conditionFromAd.getResolutionDatetime(), conditionFromUp.getResolutionDatetime());
         assertEquals(conditionFromAd.getStatus(), conditionFromUp.getStatus());
-        assertEquals(conditionFromAd.getComment(), conditionFromUp.getComment());
         assertEquals(conditionFromAd.getPriority(), conditionFromUp.getPriority());
     }
 

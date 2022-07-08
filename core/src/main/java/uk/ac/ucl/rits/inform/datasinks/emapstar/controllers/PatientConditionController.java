@@ -99,18 +99,22 @@ public class PatientConditionController {
         }
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
         savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
-
     }
 
     /**
      * Saves a link between the patient condition record and the hospital visit record.
      * @param condition Patient condition record
      * @param visit Hospital visit record
+     * @throws RequiredDataMissingException if the condition is null
      */
-    private void savePatientConditionHospitalVisitLink(PatientCondition condition, HospitalVisit visit) {
+    private void savePatientConditionHospitalVisitLink(PatientCondition condition, HospitalVisit visit)
+            throws RequiredDataMissingException {
 
-        if (condition != null
-                && visit != null
+        if (condition == null) {
+            throw new RequiredDataMissingException("Failed to link null condition to visit");
+        }
+
+        if (visit != null
                 && conditionVisitLinkRepository.findByPatientConditionIdAndHospitalVisitId(condition, visit).isEmpty()) {
             conditionVisitLinkRepository.save(new ConditionVisits(condition, visit));
         }
