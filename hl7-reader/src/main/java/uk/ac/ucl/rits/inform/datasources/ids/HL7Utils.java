@@ -12,13 +12,10 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
-import lombok.Getter;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.CustomModelWithDefaultVersion;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,18 +24,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Optional;
 import java.util.Objects;
 import java.util.TimeZone;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 /**
  * Utilities for interpreting HL7 messages.
@@ -163,123 +155,4 @@ public final class HL7Utils {
         return hl7iter;
     }
 
-    public FileStoreWithMonitoredAccess createMonitoredFileStore(String[] folderPaths) throws IOException {
-        return new FileStoreWithMonitoredAccess(folderPaths);
-    }
-
-    public static class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile> {
-
-        private final List<MonitoredFile> files;
-
-        /**
-         * A repository of file paths that have a particular extension, each of which has an access-count.
-         * @param folderPaths Paths of the folders below which files are searched for. e.g. src/test/resources/
-         * @throws IOException If the folder path does not exist in the file system
-         */
-        FileStoreWithMonitoredAccess(String[] folderPaths) throws IOException {
-
-            this.files = new ArrayList<>();
-
-            for (var folderPath : folderPaths) {
-                for (var file : listFiles(Paths.get(folderPath))) {
-                    this.files.add(new MonitoredFile(file));
-                }
-            }
-        }
-
-        /**
-         * List all the files in the current and child directories.
-         * @param path  Directory to search from
-         * @return List of paths
-         * @throws IOException If the walk fails
-         */
-        private List<Path> listFiles(Path path) throws IOException {
-
-            List<Path> result;
-            try (Stream<Path> walk = Files.walk(path)) {
-                result = walk
-                        .filter(Files::isRegularFile)
-                        .collect(Collectors.toList());
-            }
-            return result;
-        }
-
-        /**
-         * Access a filename within the store and increment the access count.
-         * @param fileName Name of the file
-         * @return fileName
-         * @throws IOException If the file is not in the store
-         */
-        public String get(String fileName) throws IOException {
-
-            for (MonitoredFile file : files) {
-                if (file.fileNameInPath(fileName)) {
-                    file.incrementAccessCount();
-                    return fileName;
-                }
-            }
-
-            throw new IOException("Failed to find " + fileName + " in the list of message files");
-        }
-
-        @Override
-        public Iterator<MonitoredFile> iterator() {
-            return files.iterator();
-        }
-
-        public Stream<MonitoredFile> stream() {
-            return files.stream();
-        }
-    }
-
-    /**
-     * A file for which the access count is monitored.
-     */
-    @Getter
-    public static class MonitoredFile {
-
-        private Integer accessCount;
-        private final Path filePath;
-
-        MonitoredFile(Path filePath) {
-            this.filePath = filePath;
-            this.accessCount = 0;
-        }
-
-        public boolean hasBeenAccessed() {
-            return this.accessCount > 0;
-        }
-
-        public void incrementAccessCount() {
-            this.accessCount += 1;
-        }
-
-        public boolean fileNameInPath(String filename) {
-            return this.filePath.endsWith(filename);
-        }
-
-        public boolean fileNameEndsWith(String ext) {
-            return filePath.toString().endsWith(ext);
-        }
-
-        /**
-         * Determine the "source system" of this file. If it's an interchange yaml file then there should be a
-         * line with "sourceSystem:" in it. Extract and return the value from this key.
-         * @return Source system string
-         * @throws IOException If the file does not exist
-         */
-        public Optional<String> sourceSystem() throws IOException {
-
-            try (BufferedReader br = new BufferedReader(new FileReader(String.valueOf(filePath)))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-
-                    if (line.contains("sourceSystem: ")) {
-                        return Optional.of(line.split(": ")[1]);
-                    }
-                }
-            }
-            return Optional.empty();
-        }
-    }
 }
