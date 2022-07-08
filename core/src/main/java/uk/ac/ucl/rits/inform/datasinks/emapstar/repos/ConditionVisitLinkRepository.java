@@ -28,7 +28,7 @@ public interface ConditionVisitLinkRepository extends CrudRepository<PatientCond
 
 
     /**
-     * For testing only
+     * For testing only.
      * @return All the records
      */
     List<PatientConditionVisitLink> findAll();
