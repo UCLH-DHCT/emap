@@ -16,7 +16,7 @@ import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
-import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionVisitLink;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionVisits;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -112,7 +112,7 @@ public class PatientConditionController {
         if (condition != null
                 && visit != null
                 && conditionVisitLinkRepository.findByPatientConditionIdAndHospitalVisitId(condition, visit).isEmpty()) {
-            conditionVisitLinkRepository.save(new PatientConditionVisitLink(condition, visit));
+            conditionVisitLinkRepository.save(new ConditionVisits(condition, visit));
         }
     }
 
