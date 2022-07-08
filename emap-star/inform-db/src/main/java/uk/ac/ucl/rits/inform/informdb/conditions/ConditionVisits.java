@@ -12,6 +12,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 
 /**
@@ -25,7 +27,9 @@ import javax.persistence.ManyToOne;
 @EqualsAndHashCode
 @NoArgsConstructor
 @ToString(callSuper = true)
-public class PatientConditionVisitLink {
+@Table(indexes = {@Index(name = "vo_hospital_visit_id", columnList = "hospitalVisitId"),
+        @Index(name = "vo_condition_visit_id", columnList = "conditionVisitId")})
+public class ConditionVisits {
 
     /**
      * \brief Unique identifier in EMAP for this link record.
@@ -34,7 +38,7 @@ public class PatientConditionVisitLink {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long patientConditionVisitLinkId;
+    private Long conditionVisitId;
 
     /**
      * \brief Identifier for the HospitalVisit associated with this record.
@@ -60,7 +64,7 @@ public class PatientConditionVisitLink {
      * @param condition ID for patient condition
      * @param visit ID for hospital visit
      */
-    public PatientConditionVisitLink(PatientCondition condition, HospitalVisit visit) {
+    public ConditionVisits(PatientCondition condition, HospitalVisit visit) {
         this.patientConditionId = condition;
         this.hospitalVisitId = visit;
     }
