@@ -21,7 +21,6 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,65 +40,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
     private final HL7Utils.FileStoreWithMonitoredAccess messageFileStore;
-
-    static private final String[] EXCLUDED_MESSAGE_FILES = new String[]{
-            "caboodle_flowsheets_for_metadata_testing.yaml",
-            "epic_flowsheets_for_metadata_testing.yaml",
-            "dental_department_only.yaml",
-            "medsurg_active_pool_bed.yaml",
-            "acun_census_bed.yaml",
-            "flowsheet_mpi_metadata.yaml",
-            "flowsheet_metadata.yaml",
-            "07_A06.yaml",
-            "04_A02.yaml",
-            "05_A02.yaml",
-            "03_A02.yaml",
-            "08_A03.yaml",
-            "06_A02.yaml",
-            "02_A01.yaml",
-            "01_A01.yaml",
-            "05_A02.yaml",
-            "03_A02.yaml",
-            "02_A02.yaml",
-            "04_A12.yaml",
-            "06_A03.yaml",
-            "05_A03.yaml",
-            "01_A01.yaml",
-            "02_A02.yaml",
-            "04_A13.yaml",
-            "03_A03.yaml",
-            "05_A03.yaml",
-            "01_A01.yaml",
-            "04_A02.yaml",
-            "03_A01.yaml",
-            "02_A11.yaml",
-            "04_A03.yaml",
-            "03_A02.yaml",
-            "02_A01.yaml",
-            "01_A04.yaml",
-            "minimal.yaml",
-            "closed_at_discharge.yaml",
-            "cancelled.yaml",
-            "con2.yaml",
-            "con255.yaml",
-            "updated_only.yaml",
-            "02_orm_o01_sc_mg.yaml",
-            "01_orm_o01_nw.yaml",
-            "03_orm_o01_sn_telh.yaml",
-            "04_orr_o02_telh.yaml",
-            "05_orr_o02_na_fbcc.yaml",
-            "04_orr_o02_cr_fbc.yaml",
-            "01_orm_o01_nw_fbc_mg.yaml",
-            "03_orm_o01_sn_fbcc.yaml",
-            "02_orm_o01_ca_fbc.yaml",
-            "01_orm_o01_nw.yaml",
-            "04_orm_o01_sc.yaml",
-            "02_orm_o01_ca.yaml",
-            "03_orr_o02_cr.yaml",
-            "03_orr_o02_na.yaml",
-            "01_orm_o01_sn.yaml",
-            "02_orm_o01_nw.yaml",
-    };
 
     /**
      * Constructor for the test class. Populates all the message files
@@ -603,9 +543,10 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         for (var f: messageFileStore){
 
             if (!f.fileNameEndsWith(".yaml")
-                    || f.fileNameEndsWith("_defaults.yaml") // Implicitly considered as the non-prefixed version inherits
-                    || Arrays.stream(EXCLUDED_MESSAGE_FILES).anyMatch(f::fileNameEndsWith)
-                    || f.hasBeenAccessed()){
+                    || f.fileNameEndsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
+                    || f.hasBeenAccessed()
+                    || f.sourceSystem().isEmpty()
+                    || (f.sourceSystem().isPresent() && !f.sourceSystem().get().equals("EPIC"))){
                 continue;
             }
 
