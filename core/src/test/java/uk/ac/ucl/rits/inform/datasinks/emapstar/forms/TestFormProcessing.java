@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Jeremy Stein
  * Test SmartForm and Smart Data Element processing.
  */
-public class TestFormAnswerMsgMsgProcessing extends MessageProcessingBase {
+public class TestFormProcessing extends MessageProcessingBase {
     @Autowired
     private FormAnswerRepository formAnswerRepository;
     @Autowired
