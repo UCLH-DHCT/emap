@@ -12,7 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import java.util.List;
+
 
 /**
  * Linker table between the PatientCondition and HospitalVisit tables to efficiently model the many-many relationship
