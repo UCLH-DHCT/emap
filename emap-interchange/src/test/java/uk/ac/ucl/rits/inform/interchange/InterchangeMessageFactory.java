@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.Getter;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
@@ -13,11 +14,21 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Builds interchange messages from yaml files.
@@ -25,8 +36,9 @@ import java.util.List;
  */
 public class InterchangeMessageFactory {
     private final ObjectMapper mapper;
+    public final FileStoreWithMonitoredAccess fileStore = new FileStoreWithMonitoredAccess();
 
-    public InterchangeMessageFactory() {
+    public InterchangeMessageFactory() throws IOException, URISyntaxException {
         mapper = new ObjectMapper(new YAMLFactory());
         // Finds modules so instants can be parsed correctly
         mapper.findAndRegisterModules();
@@ -40,7 +52,7 @@ public class InterchangeMessageFactory {
      */
     public <T extends AdtMessage> T getAdtMessage(final String fileName) throws IOException {
         String resourcePath = "/AdtMessages/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
 
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
@@ -52,7 +64,7 @@ public class InterchangeMessageFactory {
      * @throws IOException if the file doesn't exist
      */
     public ConsultRequest getConsult(final String fileName) throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultRequest/%s", fileName));
+        InputStream inputStream = getInputStream(String.format("/ConsultRequest/%s", fileName));
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
@@ -62,7 +74,7 @@ public class InterchangeMessageFactory {
      * @throws IOException if the file doesn't exist
      */
     public ConsultMetadata getConsultMetadata(final String fileName) throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultMetadata/%s", fileName));
+        InputStream inputStream = getInputStream(String.format("/ConsultMetadata/%s", fileName));
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
@@ -72,7 +84,7 @@ public class InterchangeMessageFactory {
      * @throws IOException if the file doesn't exist
      */
     public AdvanceDecisionMessage getAdvanceDecision(final String fileName) throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream(String.format("/AdvanceDecision/%s", fileName));
+        InputStream inputStream = getInputStream(String.format("/AdvanceDecision/%s", fileName));
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
@@ -88,7 +100,7 @@ public class InterchangeMessageFactory {
      */
     public List<LabOrderMsg> getLabOrders(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/LabOrders/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
         List<LabOrderMsg> labOrderMsgs = mapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (LabOrderMsg order : labOrderMsgs) {
@@ -109,13 +121,13 @@ public class InterchangeMessageFactory {
      */
     public LabOrderMsg getLabOrder(final String filePath) throws IOException {
         String resourcePath = String.format("/LabOrders/%s", filePath);
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     public List<PatientInfection> getPatientInfections(final String fileName) throws IOException {
         String resourcePath = "/PatientInfection/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
@@ -128,7 +140,7 @@ public class InterchangeMessageFactory {
     public List<FlowsheetMetadata> getFlowsheetMetadata(final String fileName) throws IOException {
         List<FlowsheetMetadata> flowsheetMetadata = new ArrayList<>();
         String resourcePath = "/FlowsheetMetadata/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
         flowsheetMetadata = mapper.readValue(inputStream, new TypeReference<>() {});
         return flowsheetMetadata;
     }
@@ -141,12 +153,12 @@ public class InterchangeMessageFactory {
      */
     public LocationMetadata getLocationMetadata(final String fileName) throws IOException {
         String resourcePath = "/LocationMetadata/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     public List<LabMetadataMsg> getLabMetadataMsgs(final String fileName) throws IOException {
-        InputStream resourceAsStream = getClass().getResourceAsStream("/LabsMetadata/" + fileName);
+        InputStream resourceAsStream = getInputStream("/LabsMetadata/" + fileName);
         return mapper.readValue(resourceAsStream, new TypeReference<>() {});
     }
 
@@ -159,7 +171,7 @@ public class InterchangeMessageFactory {
      */
     public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/Flowsheets/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
         List<Flowsheet> flowsheets = mapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (Flowsheet flowsheet : flowsheets) {
@@ -169,7 +181,7 @@ public class InterchangeMessageFactory {
             // update order with yaml data
             ObjectReader orderReader = mapper.readerForUpdating(flowsheet);
             String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
-            orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+            orderReader.readValue(getInputStream(orderDefaultPath));
 
             count++;
         }
@@ -207,7 +219,7 @@ public class InterchangeMessageFactory {
 
             // update result with yaml data
             ObjectReader resultReader = mapper.readerForUpdating(result);
-            resultReader.readValue(getClass().getResourceAsStream(resultDefaultPath));
+            resultReader.readValue(getInputStream(resultDefaultPath));
         }
     }
 
@@ -223,7 +235,7 @@ public class InterchangeMessageFactory {
         // update order with yaml data
         ObjectReader orderReader = mapper.readerForUpdating(order);
         String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
-        order = orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+        order = orderReader.readValue(getInputStream(orderDefaultPath));
         String epicOrderNumber = order.getEpicCareOrderNumber().isSave() ? order.getEpicCareOrderNumber().get() : null;
         updateLabResults(order.getLabResultMsgs(), resourcePathPrefix, order.getStatusChangeTime(), epicOrderNumber);
 
@@ -254,18 +266,157 @@ public class InterchangeMessageFactory {
         // update order with yaml data
         ObjectReader orderReader = mapper.readerForUpdating(isolateMsg);
         String isolateDefaultPath = resourcePathPrefix + "_isolate_defaults.yaml";
-        isolateMsg = orderReader.readValue(getClass().getResourceAsStream(isolateDefaultPath));
+        isolateMsg = orderReader.readValue(getInputStream(isolateDefaultPath));
         updateLabResults(isolateMsg.getSensitivities(), resourcePathPrefix);
     }
 
     public LabOrderMsg buildLabOrderOverridingDefaults(String defaultsFile, String overridingFile) throws IOException {
         String defaultsPath = String.format("/LabOrders/%s", defaultsFile);
         String overridingPath = String.format("/LabOrders/%s", overridingFile);
-        InputStream inputStream = getClass().getResourceAsStream(defaultsPath);
+        InputStream inputStream = getInputStream(defaultsPath);
         LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<>() {});
         ObjectReader orderReader = mapper.readerForUpdating(defaults);
 
-        return orderReader.readValue(getClass().getResourceAsStream(overridingPath));
+        return orderReader.readValue(getInputStream(overridingPath));
+    }
+
+
+    /**
+     * Get the input stream for a path while monitoring the access
+     * @param path path as a string
+     * @return Input stream
+     * @throws IOException if the file does not exist in the resource file store
+     */
+    InputStream getInputStream(String path) throws IOException {
+        return getClass().getResourceAsStream(fileStore.get(path));
+    }
+
+    /**
+     * Get the paths to all resources for this class
+     */
+    public static Set<Path> getResourcePaths(Class rootClass) throws URISyntaxException {
+
+        var pathsSet = new HashSet<Path>();
+        var src = rootClass.getProtectionDomain().getCodeSource();
+        var path = new File(src.getLocation().toURI());
+
+        if (path.isDirectory()){
+            addPathToPathSet(path, pathsSet);
+        }
+
+        return pathsSet;
+    }
+
+    /**
+     * Recursively add all the file paths down from a particular path
+     */
+    private static void addPathToPathSet(File path, Set<Path> pathsSet){
+        File[] items = path.listFiles();
+
+        if (items == null){ return; }
+
+        for (var item: items) {
+            if (item.isDirectory()) {
+                addPathToPathSet(item, pathsSet);
+            } else if (item.isFile()) {
+                pathsSet.add(item.toPath());
+            }
+        }
+    }
+
+    public static class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile> {
+
+        private final List<MonitoredFile> files;
+
+        /**
+         * A repository of file paths that have a particular extension, each of which has an access-count.
+         * @throws URISyntaxException If the folder path does not exist in the file system
+         */
+        FileStoreWithMonitoredAccess() throws URISyntaxException {
+            files = new ArrayList<>();
+            updateResourceFileFromClass(getClass());
+        }
+
+        /**
+         * Update the resource file paths from a class
+         * @param rootClass Class
+         * @throws URISyntaxException if the resource path cannot be found
+         */
+        public void updateResourceFileFromClass(Class rootClass) throws URISyntaxException {
+
+            InterchangeMessageFactory.getResourcePaths(rootClass)
+                    .forEach(p -> this.files.add(new MonitoredFile(p)));
+        }
+
+        /**
+         * Access a filename within the store and increment the access count.
+         * @param fileName Name of the file
+         * @return fileName
+         * @throws IOException If the file is not in the store
+         */
+        public String get(String fileName) throws IOException {
+
+            for (MonitoredFile file : files) {
+                if (file.filePath.toString().contains(fileName)) {
+                    file.incrementAccessCount();
+                    return fileName;
+                }
+            }
+
+            throw new IOException("Failed to find " + fileName + " in the list of message files");
+        }
+
+        @Override
+        public Iterator<MonitoredFile> iterator() {
+            return files.iterator();
+        }
+
+        public Stream<MonitoredFile> stream() {
+            return files.stream();
+        }
+    }
+
+    /**
+     * A file for which the access count is monitored.
+     */
+    @Getter
+    public static class MonitoredFile {
+
+        private Integer accessCount;
+        private final Path filePath;
+
+        MonitoredFile(Path filePath) {
+            this.filePath = filePath;
+            this.accessCount = 0;
+        }
+
+        public boolean hasBeenAccessed() {
+            return this.accessCount > 0;
+        }
+
+        public void incrementAccessCount() {
+            this.accessCount += 1;
+        }
+
+        /**
+         * Determine the "source system" of this file. If it's an interchange yaml file then there should be a
+         * line with "sourceSystem:" in it. Extract and return the value from this key.
+         * @return Source system string
+         * @throws IOException If the file does not exist
+         */
+        public Optional<String> sourceSystem() throws IOException {
+
+            try (BufferedReader br = new BufferedReader(new FileReader(String.valueOf(filePath)))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+
+                    if (line.contains("sourceSystem: ")) {
+                        return Optional.of(line.split(": ")[1]);
+                    }
+                }
+            }
+            return Optional.empty();
+        }
     }
 
 }
