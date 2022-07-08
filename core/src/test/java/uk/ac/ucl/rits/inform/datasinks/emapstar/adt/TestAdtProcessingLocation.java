@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
@@ -62,6 +66,14 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     private LabResultRepository labResultRepo;
     @Autowired
     private LabResultAuditRepository labResultAuditRepo;
+    @Autowired
+    private FormRepository formRepository;
+    @Autowired
+    private FormAnswerRepository formAnswerRepository;
+    @Autowired
+    private FormAuditRepository formAuditRepository;
+    @Autowired
+    private FormAnswerAuditRepository formAnswerAuditRepository;
 
     private final String originalLocation = "T42E^T42E BY03^BY03-17";
     private final long defaultHospitalVisitId = 4001;
@@ -221,6 +233,15 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         assertNotNull(audit);
 
         // also check core demographics? visit observations? MRN itself?
+
+        // Forms have been deleted and moved to audit table
+        assertEquals(0, formAnswerRepository.count());
+        assertEquals(0, formRepository.count());
+
+        assertEquals(214, formAnswerAuditRepository.count());
+        assertTrue(formAnswerAuditRepository.existsByFormAnswerId(230001L));
+        assertEquals(11, formAuditRepository.count());
+        assertTrue(formAuditRepository.existsByFormId(210001L));
 
         // Do rows exist in audit table and not exist in live table?
         List<LabOrderAudit> labOrderAudits = labOrderAuditRepository.findAllByHospitalVisitIdIn(List.of(defaultHospitalVisitId));

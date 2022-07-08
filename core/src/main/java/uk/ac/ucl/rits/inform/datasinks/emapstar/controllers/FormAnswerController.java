@@ -48,7 +48,6 @@ public class FormAnswerController {
         this.formQuestionRepository = formQuestionRepository;
     }
 
-
     /**
      * A new (instance of a) form has been completed.
      * @param formMsg the form message, containing all answers
@@ -73,10 +72,6 @@ public class FormAnswerController {
         form.setStoredFrom(storedFrom);
         form.setValidFrom(formMsg.getFormFilingDatetime());
         form.setHospitalVisitId(hospitalVisit);
-
-        // this one causes an unsaved transient instance exception
-        // so why doesn't the SDE equivalent also do that?
-//        smartForm.setSmartFormDefinitionId(smartFormDefinition);
 
         form.setFormFilingDatetime(formMsg.getFormFilingDatetime());
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
