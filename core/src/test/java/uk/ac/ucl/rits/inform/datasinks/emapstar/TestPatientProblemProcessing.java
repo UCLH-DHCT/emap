@@ -290,6 +290,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
+        conditionVisitLinkRepository.deleteAll();
         patientConditionRepository.deleteAll();
         conditionTypeRepository.deleteAll();
         return condition;

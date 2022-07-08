@@ -7,8 +7,16 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
-import uk.ac.ucl.rits.inform.informdb.conditions.*;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionVisitLinkRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeAuditRepository;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionVisitLink;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -55,6 +63,7 @@ public class PatientConditionController {
     /**
      * @param patientConditionRepo      autowired PatientConditionRepository
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
+     * @param conditionVisitLinkRepository autowired ConditionVisitLinkRepository
      */
     public PatientConditionController(
             PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo,
@@ -65,8 +74,8 @@ public class PatientConditionController {
     }
 
     /**
-     * Process patient problem message, which includes a single problem (subtype of condition) and an associated.
-     * status and optional severity
+     * Process patient problem message, which includes a single problem (subtype of condition) and an associated
+     * status and optional severity.
      * @param msg        message
      * @param mrn        patient id
      * @param visit      hospital visit can be null
@@ -90,18 +99,20 @@ public class PatientConditionController {
         }
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
         savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
+
     }
 
     /**
-     * Saves a link between the patient condition record and the hospital visit record
+     * Saves a link between the patient condition record and the hospital visit record.
      * @param condition Patient condition record
      * @param visit Hospital visit record
      */
     private void savePatientConditionHospitalVisitLink(PatientCondition condition, HospitalVisit visit) {
 
-        if (conditionVisitLinkRepository.findByPatientConditionIdAndHospitalVisitId(condition, visit).isEmpty()){
-            var link = new PatientConditionVisitLink(condition, visit);
-            conditionVisitLinkRepository.save(link);
+        if (condition != null
+                && visit != null
+                && conditionVisitLinkRepository.findByPatientConditionIdAndHospitalVisitId(condition, visit).isEmpty()) {
+            conditionVisitLinkRepository.save(new PatientConditionVisitLink(condition, visit));
         }
     }
 
