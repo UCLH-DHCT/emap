@@ -5,10 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
@@ -46,6 +43,8 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
     ConditionTypeRepository conditionTypeRepository;
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
+    @Autowired
+    ConditionVisitLinkRepository conditionVisitLinkRepository;
 
     private List<PatientProblem> hooverDeleteMessages;
     private List<PatientProblem> hooverAddThenDeleteMessages;
@@ -63,6 +62,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
     private static final String MYELOMA_ADDED_TIME = "2019-06-01";
     private static final String PATIENT_MRN = "8DcEwvqa8Q3";
     private static final String MYELOMA_ONSET_DATE = "2019-05-31";
+    private static final String VISIT_NUMBER = "123412341234";
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -286,12 +286,14 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
     PatientCondition conditionMyelomaInpatientWithAction(ConditionAction action) throws EmapOperationMessageProcessingException {
 
         hl7MyelomaInpatient.setAction(action);
+
+        // The action is only used for processing so set the comment so this condition can be found from the repo
+        String comment = action.toString();
+        hl7MyelomaInpatient.setComment(InterchangeValue.buildFromHl7(comment));
+
         processSingleMessage(hl7MyelomaInpatient);
 
-        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
-        patientConditionRepository.deleteAll();
-        conditionTypeRepository.deleteAll();
-        return condition;
+        return patientConditionRepository.findByMrnIdMrnAndComment(PATIENT_MRN, comment).orElseThrow();
     }
 
     /**
@@ -309,7 +311,6 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         assertEquals(conditionFromAd.getAddedDatetime(), conditionFromUp.getAddedDatetime());
         assertEquals(conditionFromAd.getResolutionDatetime(), conditionFromUp.getResolutionDatetime());
         assertEquals(conditionFromAd.getStatus(), conditionFromUp.getStatus());
-        assertEquals(conditionFromAd.getComment(), conditionFromUp.getComment());
         assertEquals(conditionFromAd.getPriority(), conditionFromUp.getPriority());
     }
 
@@ -366,4 +367,50 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
 
         assertTrue(patientConditionIsDeleted());
     }
+
+    /**
+     * Given a problem list message
+     * When it is processed
+     * Then a single entry in the patient condition <-> hospital visit linker table should exist
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testLinkerTablePopulateWithSingleMessage() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(hl7MyelomaOutpatient);
+        var condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
+        var visit = hospitalVisitRepository.findByEncounter(VISIT_NUMBER).orElseThrow();
+        var link = conditionVisitLinkRepository.findByPatientConditionIdAndHospitalVisitId(condition, visit);
+
+        assertTrue(link.isPresent());
+    }
+
+    /**
+     * Given two almost identical problem list messages with different hospital visit numbers (CSNs)
+     * When they are processed
+     * Then the most recent CSN should be associated with the condition but the linker table contain two entries
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testLinkerTablePopulateWithMultipleVisits() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(hl7MyelomaOutpatient);
+
+        var oldVisitNumber = hl7MyelomaOutpatient.getVisitNumber().get();
+        var newVisitNumber = "987654321";
+        assertNotEquals(oldVisitNumber, newVisitNumber);
+
+        hl7MyelomaOutpatient.setVisitNumber(InterchangeValue.buildFromHl7(newVisitNumber));
+
+        processSingleMessage(hl7MyelomaOutpatient);
+
+        var condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
+        var visit = hospitalVisitRepository.findByEncounter(newVisitNumber).orElseThrow();
+
+        assertEquals(condition.getHospitalVisitId().getEncounter(), visit.getEncounter());
+
+        var links = conditionVisitLinkRepository.findAll();
+        assertEquals(2, links.size());
+    }
+
 }

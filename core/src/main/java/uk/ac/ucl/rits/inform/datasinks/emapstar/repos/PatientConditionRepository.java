@@ -90,4 +90,13 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
     Optional<PatientCondition> findByMrnIdMrn(String mrn);
 
     Optional<PatientCondition> findByConditionTypeIdAndInternalId(ConditionType conditionType, Long internalId);
+
+
+    /**
+     * For testing only.
+     * @param mrn mrn string
+     * @param comment comment string
+     * @return possible patient condition
+     */
+    Optional<PatientCondition> findByMrnIdMrnAndComment(String mrn, String comment);
 }
