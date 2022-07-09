@@ -7,14 +7,16 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionVisitLinkRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeAuditRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionVisits;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -43,6 +45,7 @@ public class PatientConditionController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PatientConditionRepository patientConditionRepo;
     private final PatientConditionAuditRepository patientConditionAuditRepo;
+    private final ConditionVisitLinkRepository conditionVisitLinkRepository;
 
     @Resource
     private PatientConditionCache cache;
@@ -60,16 +63,19 @@ public class PatientConditionController {
     /**
      * @param patientConditionRepo      autowired PatientConditionRepository
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
+     * @param conditionVisitLinkRepository autowired ConditionVisitLinkRepository
      */
     public PatientConditionController(
-            PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo) {
+            PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo,
+            ConditionVisitLinkRepository conditionVisitLinkRepository) {
         this.patientConditionRepo = patientConditionRepo;
         this.patientConditionAuditRepo = patientConditionAuditRepo;
+        this.conditionVisitLinkRepository = conditionVisitLinkRepository;
     }
 
     /**
-     * Process patient problem message, which includes a single problem (subtype of condition) and an associated.
-     * status and optional severity
+     * Process patient problem message, which includes a single problem (subtype of condition) and an associated
+     * status and optional severity.
      * @param msg        message
      * @param mrn        patient id
      * @param visit      hospital visit can be null
@@ -92,6 +98,26 @@ public class PatientConditionController {
             updatePatientProblem(msg, visit, patientCondition);
         }
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+        savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
+    }
+
+    /**
+     * Saves a link between the patient condition record and the hospital visit record.
+     * @param condition Patient condition record
+     * @param visit Hospital visit record
+     * @throws RequiredDataMissingException if the condition is null
+     */
+    private void savePatientConditionHospitalVisitLink(PatientCondition condition, HospitalVisit visit)
+            throws RequiredDataMissingException {
+
+        if (condition == null) {
+            throw new RequiredDataMissingException("Failed to link null condition to visit");
+        }
+
+        if (visit != null
+                && conditionVisitLinkRepository.findByPatientConditionIdAndHospitalVisitId(condition, visit).isEmpty()) {
+            conditionVisitLinkRepository.save(new ConditionVisits(condition, visit));
+        }
     }
 
     /**
@@ -157,7 +183,6 @@ public class PatientConditionController {
             cache.clearCacheOfInfectionTypes();
         }
     }
-
 
     /**
      * Audit and delete all patient conditions that are of the condition types and are valid until the delete until date.
