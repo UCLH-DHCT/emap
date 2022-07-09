@@ -20,11 +20,14 @@ import java.io.File;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
@@ -280,7 +283,6 @@ public class InterchangeMessageFactory {
         return orderReader.readValue(getInputStream(overridingPath));
     }
 
-
     /**
      * Get the input stream for a path while monitoring the access
      * @param path path as a string
@@ -294,30 +296,47 @@ public class InterchangeMessageFactory {
     /**
      * Get the paths to all resources for this class
      */
-    public static Set<Path> getResourcePaths(Class rootClass) throws URISyntaxException {
+    public static Set<Path> getResourcePaths(Class rootClass) throws URISyntaxException, IOException {
 
         var pathsSet = new HashSet<Path>();
         var src = rootClass.getProtectionDomain().getCodeSource();
         var path = new File(src.getLocation().toURI());
 
         if (path.isDirectory()){
-            addPathToPathSet(path, pathsSet);
+            addPathsFromDirectory(path, pathsSet);
+        }
+        else if (path.isFile() && path.getName().toLowerCase().endsWith(".jar")) {
+            addPathsFromJar(path, pathsSet) ;
         }
 
         return pathsSet;
     }
 
     /**
+     * Get the paths to resources contained within a jar file
+     */
+    private static void addPathsFromJar(File file, Set<Path> paths) throws IOException {
+
+        var jarFile = new JarFile(file);
+        for(var entry = jarFile.entries(); entry.hasMoreElements();) {
+            JarEntry j = entry.nextElement();
+            if (!j.isDirectory()) {
+                paths.add(Path.of(new URL("jar", "", file.toURI() + "!/" + j.getName()).getPath()));
+            }
+        }
+    }
+
+    /**
      * Recursively add all the file paths down from a particular path
      */
-    private static void addPathToPathSet(File path, Set<Path> pathsSet){
+    private static void addPathsFromDirectory(File path, Set<Path> pathsSet){
         File[] items = path.listFiles();
 
         if (items == null){ return; }
 
         for (var item: items) {
             if (item.isDirectory()) {
-                addPathToPathSet(item, pathsSet);
+                addPathsFromDirectory(item, pathsSet);
             } else if (item.isFile()) {
                 pathsSet.add(item.toPath());
             }
@@ -332,7 +351,7 @@ public class InterchangeMessageFactory {
          * A repository of file paths that have a particular extension, each of which has an access-count.
          * @throws URISyntaxException If the folder path does not exist in the file system
          */
-        FileStoreWithMonitoredAccess() throws URISyntaxException {
+        FileStoreWithMonitoredAccess() throws URISyntaxException, IOException {
             files = new ArrayList<>();
             updateResourceFileFromClass(getClass());
         }
@@ -342,7 +361,7 @@ public class InterchangeMessageFactory {
          * @param rootClass Class
          * @throws URISyntaxException if the resource path cannot be found
          */
-        public void updateResourceFileFromClass(Class rootClass) throws URISyntaxException {
+        public void updateResourceFileFromClass(Class rootClass) throws URISyntaxException, IOException {
 
             InterchangeMessageFactory.getResourcePaths(rootClass)
                     .forEach(p -> this.files.add(new MonitoredFile(p)));
