@@ -45,7 +45,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         interchangeFactory.fileStore.updateResourceFileFromClass(getClass());
     }
 
-
     private void testAdtMessage(String adtFileStem) throws Exception {
         log.info("Testing ADT message with stem '{}'", adtFileStem);
         System.out.println(adtFileStem);
@@ -235,15 +234,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
-    public void testLabIncrementalDuplicateResultSegment() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs(
-                "LabOrders/winpath/LabDuplicateResultSegment.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders(
-                "winpath/incremental_duplicate_result_segment.yaml");
-        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
-    }
-
-    @Test
     public void testLabOrderMsg() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
                 "LabOrders/winpath/ORU_R01.txt");
@@ -398,22 +388,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                 String.format(interchangePathTemplate, orderFile));
 
         assertLabOrdersWithValueAsBytesEqual(List.of(builtMessage), List.of(expectedMessage));
-    }
-
-    @Test
-    public void testPOCLabABL() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
-                "LabOrders/abl90_flex/venous.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("abl90_flex/venous.yaml");
-        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
-    }
-
-    @Test
-    public void testPOCLabBioConnect() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
-                "LabOrders/bio_connect/glucose.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("bio_connect/glucose.yaml");
-        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
