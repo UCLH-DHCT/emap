@@ -92,8 +92,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testGenericAdtA01() throws Exception {
         testAdtMessage("generic/A01");
-        testAdtMessage("generic/A01_b");
-
     }
 
     @Test
@@ -104,10 +102,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testGenericAdtA03() throws Exception {
         testAdtMessage("generic/A03");
-        testAdtMessage("generic/A03_death");
-        testAdtMessage("generic/A03_death_2");
-        testAdtMessage("generic/A03_death_3");
-
     }
 
     @Test
@@ -123,7 +117,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testGenericAdtA08() throws Exception {
         testAdtMessage("generic/A08_v1");
-        testAdtMessage("generic/A08_v2");
     }
 
     @Test
@@ -179,11 +172,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testDoubleA01WithA13() throws Exception {
         testAdtMessage("DoubleA01WithA13/A03");
-        testAdtMessage("DoubleA01WithA13/A03_2");
         testAdtMessage("DoubleA01WithA13/A08");
         testAdtMessage("DoubleA01WithA13/A13");
-        testAdtMessage("DoubleA01WithA13/FirstA01");
-        testAdtMessage("DoubleA01WithA13/SecondA01");
     }
 
     @Test
@@ -254,11 +244,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
-    void testMinimalWithMultipleQuestionsAdvanceDecision() throws Exception {
-        checkAdvanceDecisionMatchesInterchange("minimal_w_questions");
-    }
-
-    @Test
     public void testLabIncrementalLoad() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs(
                 "LabOrders/winpath/Incremental.txt");
@@ -281,15 +266,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                 "LabOrders/winpath/ORU_R01.txt");
         List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/ORU_R01.yaml");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
-    }
-
-    @Test
-    public void testLabOrderMsgProducesAdtFirst() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage(
-                "LabOrders/winpath/ORU_R01.txt").get(0);
-        AdtMessage expectedAdt = interchangeFactory.getAdtMessage(
-                "FromNonAdt/lab_oru_r01.yaml");
-        Assertions.assertEquals(expectedAdt, messageFromHl7);
     }
 
     @Test
@@ -464,22 +440,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
-    @Test
-    public void testVitalSignsProducesAdtFirst() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("VitalSigns/MixedHL7Message.txt").get(0);
-        AdtMessage expectedAdt = interchangeFactory.getAdtMessage(
-                "FromNonAdt/flowsheet_oru_r01.yaml");
-        Assertions.assertEquals(expectedAdt, messageFromHl7);
-    }
-
-    @Test
-    public void testPatientInfectionCreatesAdt() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt").get(0);
-        AdtMessage expectedAdt = interchangeFactory.getAdtMessage(
-                "FromNonAdt/patient_infection_a05.yaml");
-        Assertions.assertEquals(expectedAdt, messageFromHl7);
-    }
-
     public void checkPatientInfectionMatchesInterchange(String txtFileName, String yamlFileName) throws Exception {
         List<EmapOperationMessage> messagesFromHl7 = processSingleMessage(txtFileName)
                 .stream()
@@ -497,17 +457,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testMinimalPatientInfection() throws Exception {
         checkPatientInfectionMatchesInterchange("PatientInfection/a05.txt", "hl7/minimal_mumps.yaml");
-    }
-
-    @Test
-    public void testResolvedPatientInfection() throws Exception {
-        checkPatientInfectionMatchesInterchange("PatientInfection/mumps_resolved.txt", "mumps_resolved.yaml");
-    }
-
-    @Test
-    public void testMultiplePatientInfection() throws Exception {
-        checkPatientInfectionMatchesInterchange("PatientInfection/multiple_infections.txt",
-                "multiple_infections.yaml");
     }
 
     /**
