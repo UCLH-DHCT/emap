@@ -41,7 +41,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
      * @throws IOException If a path cannot be accessed
      */
     TestHL7ParsingMatchesInterchangeFactoryOutput() throws IOException, URISyntaxException {
-        interchangeFactory = new InterchangeMessageFactory();
+        interchangeFactory = InterchangeMessageFactory.withMonitoredFiles();
         interchangeFactory.fileStore.updateResourceFileFromClass(getClass());
     }
 
@@ -135,18 +135,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
-    void testPendingTransferAdtA15() throws Exception {
-        testAdtMessage("pending/A15");
-    }
-
-    @Test
     public void testGenericAdtA17() throws Exception {
         testAdtMessage("generic/A17");
-    }
-
-    @Test
-    void testCancelPendingTransferA26() throws Exception {
-        testAdtMessage("pending/A26");
     }
 
     @Test
@@ -174,13 +164,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         testAdtMessage("DoubleA01WithA13/A03");
         testAdtMessage("DoubleA01WithA13/A08");
         testAdtMessage("DoubleA01WithA13/A13");
-    }
-
-    @Test
-    public void testAdtPendingLocations() throws Exception {
-        testAdtMessage("pending/A15");
-        testAdtMessage("pending/A15_null_pending_location");
-        testAdtMessage("pending/A26");
     }
 
     void checkConsultMatchesInterchange(String fileName) throws Exception {
