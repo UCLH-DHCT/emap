@@ -518,17 +518,27 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @AfterAll
     void checkAllFilesHaveBeenAccessed() throws Exception{
 
-        for (var f: interchangeFactory.fileStore){
+        var excludedSourceSystems = new String[]{"clarity", "caboodle"};
+        var missedFilePaths = new ArrayList<String>();
 
-            if (!f.getFilePath().endsWith(".yaml")
-                    || f.getFilePath().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
-                    || f.hasBeenAccessed()
-                    || f.sourceSystem().isEmpty()
-                    || (f.sourceSystem().isPresent() && !f.sourceSystem().get().equals("EPIC"))){
+        for (var file: interchangeFactory.fileStore){
+
+            if (file.sourceSystem().isPresent() && Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())){
+                continue;  // Source system is excluded
+            }
+
+            if (!file.getFilePath().endsWith(".yaml")
+                    || file.getFilePath().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
+                    || file.hasBeenAccessed()
+                    || file.sourceSystem().isEmpty()){
                 continue;
             }
 
-            throw new Exception("Not all the files have been accessed. Missed "+f.getFilePath());
+            missedFilePaths.add(file.getFilePath().toString());
+        }
+
+        if (missedFilePaths.size() > 0){
+            throw new Exception("Not all the files have been accessed. Missed: "+missedFilePaths);
         }
     }
 }
