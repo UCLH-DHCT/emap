@@ -41,6 +41,8 @@ public class InterchangeMessageFactory {
     private final ObjectMapper mapper;
     public final FileStoreWithMonitoredAccess fileStore = new FileStoreWithMonitoredAccess();
 
+    public static final String sourceId = "0000000042";
+
     public InterchangeMessageFactory() throws IOException, URISyntaxException {
         mapper = new ObjectMapper(new YAMLFactory());
         // Finds modules so instants can be parsed correctly
@@ -91,7 +93,6 @@ public class InterchangeMessageFactory {
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
-
     /**
      * Builds lab orders from yaml file given, overriding default values for lab orders and lab results
      * @param fileName            filename in test resources/LabOrders,
@@ -114,6 +115,14 @@ public class InterchangeMessageFactory {
         }
 
         return labOrderMsgs;
+    }
+
+
+    /**
+     * Overloaded getLabOrders method with the a default message prefix
+     */
+    public List<LabOrderMsg> getLabOrders(final String fileName) throws IOException {
+        return getLabOrders(fileName, sourceId);
     }
 
     /**
@@ -189,6 +198,13 @@ public class InterchangeMessageFactory {
             count++;
         }
         return flowsheets;
+    }
+
+    /**
+     * Overloaded getFlowsheets method with the a default message prefix
+     */
+    public List<Flowsheet> getFlowsheets(final String fileName) throws IOException {
+        return getFlowsheets(fileName, sourceId);
     }
 
     /**
