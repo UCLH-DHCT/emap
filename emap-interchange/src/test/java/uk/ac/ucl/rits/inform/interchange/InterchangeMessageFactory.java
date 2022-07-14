@@ -39,14 +39,28 @@ import java.util.stream.Stream;
  */
 public class InterchangeMessageFactory {
     private final ObjectMapper mapper;
-    public final FileStoreWithMonitoredAccess fileStore = new FileStoreWithMonitoredAccess();
+    public FileStoreWithMonitoredAccess fileStore = null;
 
     public static final String sourceId = "0000000042";
 
-    public InterchangeMessageFactory() throws IOException, URISyntaxException {
+    public InterchangeMessageFactory(){
         mapper = new ObjectMapper(new YAMLFactory());
         // Finds modules so instants can be parsed correctly
         mapper.findAndRegisterModules();
+    }
+
+    /**
+     * Create a message factory with monitored files, enabling the resources accessable to this class to be
+     * queried for if they have, or not, been accessed
+     * @return Interchange message factory
+     * @throws URISyntaxException If the file store cannot be created
+     * @throws IOException If the file store cannot be created
+     */
+    public static InterchangeMessageFactory withMonitoredFiles() throws URISyntaxException, IOException {
+        var factory = new InterchangeMessageFactory();
+        factory.fileStore = new FileStoreWithMonitoredAccess();
+
+        return factory;
     }
 
     /**
@@ -300,12 +314,17 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Get the input stream for a path while monitoring the access
+     * Get the input stream for a path while monitoring the access if required
      * @param path path as a string
      * @return Input stream
      * @throws IOException if the file does not exist in the resource file store
      */
     InputStream getInputStream(String path) throws IOException {
+
+        if (fileStore == null){
+            return getClass().getResourceAsStream(path);
+        }
+
         return getClass().getResourceAsStream(fileStore.get(path));
     }
 
@@ -367,7 +386,7 @@ public class InterchangeMessageFactory {
          * A repository of file paths that have a particular extension, each of which has an access-count.
          * @throws URISyntaxException If the folder path does not exist in the file system
          */
-        FileStoreWithMonitoredAccess() throws URISyntaxException, IOException {
+        public FileStoreWithMonitoredAccess() throws URISyntaxException, IOException {
             files = new ArrayList<>();
             updateResourceFileFromClass(getClass());
         }
