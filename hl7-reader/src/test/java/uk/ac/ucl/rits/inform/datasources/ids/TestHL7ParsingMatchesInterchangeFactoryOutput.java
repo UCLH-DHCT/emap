@@ -429,15 +429,15 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         for (var file: interchangeFactory.fileStore){
 
-            if (file.sourceSystem().isPresent() && Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())){
-                continue;  // Source system is excluded
-            }
-
             if (!file.getFilePath().endsWith(".yaml")
                     || file.getFilePath().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
                     || file.hasBeenAccessed()
                     || file.sourceSystem().isEmpty()){
                 continue;
+            }
+
+            if (file.sourceSystem().isPresent() && Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())){
+                continue;  // Source system is excluded
             }
 
             missedFilePaths.add(file.getFilePath().toString());
