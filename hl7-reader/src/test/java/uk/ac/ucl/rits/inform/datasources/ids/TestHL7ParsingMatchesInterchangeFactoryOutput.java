@@ -42,7 +42,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
      */
     TestHL7ParsingMatchesInterchangeFactoryOutput() throws IOException, URISyntaxException {
         interchangeFactory = InterchangeMessageFactory.withMonitoredFiles();
-        interchangeFactory.fileStore.updateResourceFileFromClass(getClass());
+        interchangeFactory.fileStore.updateFilesFromClassResources(getClass());
     }
 
     private void testAdtMessage(String adtFileStem) throws Exception {
