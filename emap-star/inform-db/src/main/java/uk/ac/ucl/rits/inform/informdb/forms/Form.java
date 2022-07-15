@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -39,6 +40,10 @@ public class Form extends TemporalCore<Form, FormAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long formId;
+
+    /* I don't think Epic SmartForms have the concept of an instance ID in the same
+     * way that SDEs have an HLV ID, hence the absence of a formAnswerSourceId field here.
+     */
 
     /**
      * \brief The form definition of this form instance.
@@ -86,7 +91,7 @@ public class Form extends TemporalCore<Form, FormAudit> {
     private String formFilingUserId;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "formId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "formId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<FormAnswer> formAnswers = new ArrayList<>();
 
     public void addFormAnswer(FormAnswer formAnswer) {

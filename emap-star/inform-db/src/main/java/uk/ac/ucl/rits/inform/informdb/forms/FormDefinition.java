@@ -6,11 +6,16 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Form (Eg. SmartForm) metadata.
@@ -22,22 +27,41 @@ import java.time.Instant;
 @AuditTable
 public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionAudit> {
     /**
-     * \brief Unique identifier in EMAP for this SmartForm description record.
+     * \brief Unique identifier in EMAP for this Form description record.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long formDefinitionId;
 
     /**
+     * \brief The unique string ID that the source system (Epic) uses for this form.
+     * LQF .1
+     * CL_QFORM.FORM_ID
+     * Eg. "2056"
+     */
+    @Column(nullable = false, unique = true)
+    private String formSourceId;
+
+    /**
+     *
      * \brief A string name for this form, as used by the source system.
-     * HLV ?? (Eg. if a SmartForm, SmartForm ID = "SmartForm1222")
+     *
+     * LQF .2
+     * CL_QFORM.FORM_NAME
+     * Eg. "UCLH TEP ADVANCED"
      */
     private String formName;
 
     /**
-     * \brief Text description of the form.
+     * \brief Patient friendly name of the form.
+     * CL_QFORM.PAT_FRNDLY_NAME
+     * LQF 1050
+     * Only about 10% of forms specify this field.
      */
-    private String description;
+    private String patientFriendlyName;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "formDefinitionId")
+    private List<FormDefinitionFormQuestion> questions = new ArrayList<>();
 
     public FormDefinition() {
     }
@@ -45,8 +69,9 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     private FormDefinition(FormDefinition other) {
         super(other);
         this.formDefinitionId = other.formDefinitionId;
+        this.formSourceId = other.formSourceId;
         this.formName = other.formName;
-        this.description = other.description;
+        this.patientFriendlyName = other.patientFriendlyName;
     }
 
     @Override

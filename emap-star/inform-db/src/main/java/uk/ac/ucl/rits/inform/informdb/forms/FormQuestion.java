@@ -6,6 +6,7 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,11 +31,11 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
     private Long formQuestionId;
 
     /**
-     * \brief String identifier from Epic for a Smart Data Element.
-     * Depending on the source of this question, it may not have such an identifier. But for an SDE it will.
-     * HLV 40.
+     * \brief String identifier from the source system of the question.
+     * Eg. Epic it would be the Smart Data Element ID (HLV 40).
      */
-    private String smartDataElementIdString;
+    @Column(nullable = false, unique = true)
+    private String formQuestionSourceId;
 
     /**
      * \brief Smart Data Element name (ie. the "Question")
@@ -73,7 +74,7 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
         super(other);
         this.formQuestionId = other.formQuestionId;
         this.formQuestionConceptName = other.formQuestionConceptName;
-        this.smartDataElementIdString = other.smartDataElementIdString;
+        this.formQuestionSourceId = other.formQuestionSourceId;
         this.formQuestionConceptAbbrevName = other.formQuestionConceptAbbrevName;
         this.formQuestionDescription = other.formQuestionDescription;
         this.formQuestionValueType = other.formQuestionValueType;
