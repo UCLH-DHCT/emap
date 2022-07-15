@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import lombok.Getter;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
@@ -16,22 +15,11 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.stream.Stream;
+
 
 /**
  * Builds interchange messages from yaml files.
@@ -41,7 +29,7 @@ public class InterchangeMessageFactory {
     private final ObjectMapper mapper;
     public FileStoreWithMonitoredAccess fileStore = null;
 
-    public static final String sourceId = "0000000042";
+    private static final String sourceId = "0000000042";
 
     public InterchangeMessageFactory(){
         mapper = new ObjectMapper(new YAMLFactory());
@@ -327,150 +315,4 @@ public class InterchangeMessageFactory {
 
         return getClass().getResourceAsStream(fileStore.get(path));
     }
-
-    /**
-     * Get the paths to all resources for this class
-     */
-    public static Set<Path> getResourcePaths(Class rootClass) throws URISyntaxException, IOException {
-
-        var pathsSet = new HashSet<Path>();
-        var src = rootClass.getProtectionDomain().getCodeSource();
-        var path = new File(src.getLocation().toURI());
-
-        if (path.isDirectory()){
-            addPathsFromDirectory(path, pathsSet);
-        }
-        else if (path.isFile() && path.getName().toLowerCase().endsWith(".jar")) {
-            addPathsFromJar(path, pathsSet) ;
-        }
-
-        return pathsSet;
-    }
-
-    /**
-     * Get the paths to resources contained within a jar file
-     */
-    private static void addPathsFromJar(File file, Set<Path> paths) throws IOException {
-
-        var jarFile = new JarFile(file);
-        for(var entry = jarFile.entries(); entry.hasMoreElements();) {
-            JarEntry j = entry.nextElement();
-            if (!j.isDirectory()) {
-                paths.add(Path.of(new URL("jar", "", file.toURI() + "!/" + j.getName()).getPath()));
-            }
-        }
-    }
-
-    /**
-     * Recursively add all the file paths down from a particular path
-     */
-    private static void addPathsFromDirectory(File path, Set<Path> pathsSet){
-        File[] items = path.listFiles();
-
-        if (items == null){ return; }
-
-        for (var item: items) {
-            if (item.isDirectory()) {
-                addPathsFromDirectory(item, pathsSet);
-            } else if (item.isFile()) {
-                pathsSet.add(item.toPath());
-            }
-        }
-    }
-
-    public static class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile> {
-
-        private final List<MonitoredFile> files;
-
-        /**
-         * A repository of file paths that have a particular extension, each of which has an access-count.
-         * @throws URISyntaxException If the folder path does not exist in the file system
-         */
-        public FileStoreWithMonitoredAccess() throws URISyntaxException, IOException {
-            files = new ArrayList<>();
-            updateResourceFileFromClass(getClass());
-        }
-
-        /**
-         * Update the resource file paths from a class
-         * @param rootClass Class
-         * @throws URISyntaxException if the resource path cannot be found
-         */
-        public void updateResourceFileFromClass(Class rootClass) throws URISyntaxException, IOException {
-
-            InterchangeMessageFactory.getResourcePaths(rootClass)
-                    .forEach(p -> this.files.add(new MonitoredFile(p)));
-        }
-
-        /**
-         * Access a filename within the store and increment the access count.
-         * @param fileName Name of the file
-         * @return fileName
-         * @throws IOException If the file is not in the store
-         */
-        public String get(String fileName) throws IOException {
-
-            for (MonitoredFile file : files) {
-                if (file.filePath.toString().contains(fileName)) {
-                    file.incrementAccessCount();
-                    return fileName;
-                }
-            }
-
-            throw new IOException("Failed to find " + fileName + " in the list of message files");
-        }
-
-        @Override
-        public Iterator<MonitoredFile> iterator() {
-            return files.iterator();
-        }
-
-        public Stream<MonitoredFile> stream() {
-            return files.stream();
-        }
-    }
-
-    /**
-     * A file for which the access count is monitored.
-     */
-    @Getter
-    public static class MonitoredFile {
-
-        private Integer accessCount;
-        private final Path filePath;
-
-        MonitoredFile(Path filePath) {
-            this.filePath = filePath;
-            this.accessCount = 0;
-        }
-
-        public boolean hasBeenAccessed() {
-            return this.accessCount > 0;
-        }
-
-        public void incrementAccessCount() {
-            this.accessCount += 1;
-        }
-
-        /**
-         * Determine the "source system" of this file. If it's an interchange yaml file then there should be a
-         * line with "sourceSystem:" in it. Extract and return the value from this key.
-         * @return Source system string
-         * @throws IOException If the file does not exist
-         */
-        public Optional<String> sourceSystem() throws IOException {
-
-            try (BufferedReader br = new BufferedReader(new FileReader(String.valueOf(filePath)))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-
-                    if (line.contains("sourceSystem: ")) {
-                        return Optional.of(line.split(": ")[1]);
-                    }
-                }
-            }
-            return Optional.empty();
-        }
-    }
-
 }
