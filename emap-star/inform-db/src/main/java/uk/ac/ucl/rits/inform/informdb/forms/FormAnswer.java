@@ -6,6 +6,7 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -40,9 +41,9 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     private FormQuestion formQuestionId;
 
     /**
-     * \brief Which instance of a filled-in form does this question belong to?
+     * \brief The instance of a filled-in form that this answer belongs to.
      */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "formId")
     private Form formId;
 
