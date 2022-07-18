@@ -8,6 +8,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingEx
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
@@ -18,14 +20,17 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
+import uk.ac.ucl.rits.inform.informdb.movement.PlannedMovement;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
@@ -62,6 +67,10 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     private LabResultRepository labResultRepo;
     @Autowired
     private LabResultAuditRepository labResultAuditRepo;
+    @Autowired
+    private PlannedMovementRepository plannedMovementRepo;
+    @Autowired
+    private PlannedMovementAuditRepository plannedMovementAuditRepo;
 
     private final String originalLocation = "T42E^T42E BY03^BY03-17";
     private final long defaultHospitalVisitId = 4001;
@@ -196,33 +205,45 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     }
 
     /**
-     * Delete full record for a person where there are multiple dependent table rows that will require a cascading delete.
+     * Given multiple dependent rows on encounter `123412341234`
+     * When a "delete patient information" message is received for the patient in the encounter
+     * Then dependent rows should be audited and deleted
      * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
     void testDeletePersonInformationWithCascade() throws Exception {
+        // -- Arrange
         List<LabOrderMsg> labOrderMsgs = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
         ConsultRequest consultMsg = messageFactory.getConsult("minimal.yaml");
-        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
-        // process message
+        PendingTransfer pendingAdtMsg = messageFactory.getAdtMessage("pending/A15.yaml");
         for (var loMsg : labOrderMsgs) {
             dbOps.processMessage(loMsg);
         }
         dbOps.processMessage(consultMsg);
+        dbOps.processMessage(pendingAdtMsg);
+
+        // -- Act
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        msg.setEventOccurredDateTime(Instant.now());
         dbOps.processMessage(msg);
+
+        // -- Assert
 
         // original location does not exist
         LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
         assertNull(locationVisit);
 
         // audit row for the existing location
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElse(null);
-        assertNotNull(audit);
+        locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow();
 
-        // also check core demographics? visit observations? MRN itself?
+        // PlannedMovement should be deleted and audited
+        var movements = plannedMovementRepo.findAllByHospitalVisitIdEncounter(defaultEncounter);
+        assertTrue(movements.isEmpty());
+        var movementAudits = plannedMovementAuditRepo.findAllByHospitalVisitId(defaultHospitalVisitId);
+        assertFalse(movementAudits.isEmpty());
 
-        // Do rows exist in audit table and not exist in live table?
+        // Ensure live lab rows are missing, and audit rows do exist
         List<LabOrderAudit> labOrderAudits = labOrderAuditRepository.findAllByHospitalVisitIdIn(List.of(defaultHospitalVisitId));
         assertEquals(2, labOrderAudits.size());
         for (var loa : labOrderAudits) {
