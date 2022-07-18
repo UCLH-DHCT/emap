@@ -1,6 +1,9 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -13,16 +16,12 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import java.time.Instant;
 
 /**
  * \brief This table stores a mapping from every MRN known to the system, to its
  * currently live (in use) MRN.
- *
+ * <p>
  * Over time MRNs are merged into others as more is found out about a patient.
  * @author UCL RITS
  */
@@ -38,7 +37,7 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
     /**
      * \brief Unique identifier in EMAP for this mrnToLive record.
-     *
+     * <p>
      * This is the primary key for the MrnToLive table.
      */
     @Id
@@ -47,7 +46,7 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
     /**
      * \brief Identifier for the Mrn associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the mrnToLive table to the Mrn table.
      */
     @ManyToOne
@@ -58,7 +57,7 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
     /**
      * \brief Identifier for the Mrn associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the mrnToLive table to the Mrn table.
      */
     @ManyToOne(cascade = CascadeType.ALL)
@@ -80,8 +79,8 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
     }
 
     @Override
-    public MrnToLiveAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new MrnToLiveAudit(this, validUntil, storedFrom);
+    public MrnToLiveAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new MrnToLiveAudit(this, validUntil, storedUntil);
     }
 
 }
