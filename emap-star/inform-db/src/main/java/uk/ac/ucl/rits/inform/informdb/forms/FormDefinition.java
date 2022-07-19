@@ -58,6 +58,7 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
      * LQF 1050
      * Only about 10% of forms specify this field.
      */
+    @Column(columnDefinition = "text")
     private String patientFriendlyName;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "formDefinitionId")
