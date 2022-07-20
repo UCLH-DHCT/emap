@@ -156,6 +156,12 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    public void testPendingAdt() throws Exception {
+        testAdtMessage("pending/A15");
+        testAdtMessage("pending/A26");
+    }
+
+    @Test
     public void testDoubleA01WithA13() throws Exception {
         testAdtMessage("DoubleA01WithA13/A03");
         testAdtMessage("DoubleA01WithA13/A08");
