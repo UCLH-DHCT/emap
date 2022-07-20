@@ -40,7 +40,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
      * @throws IOException If a path cannot be accessed
      */
     TestHL7ParsingMatchesInterchangeFactoryOutput() throws IOException, URISyntaxException {
-        interchangeFactory = InterchangeMessageFactory.withMonitoredFiles(getClass());
+        interchangeFactory = InterchangeMessageFactory.withMonitoredFiles();
+        interchangeFactory.updateFileStoreWith(getClass());
     }
 
     private void testAdtMessage(String adtFileStem) throws Exception {
