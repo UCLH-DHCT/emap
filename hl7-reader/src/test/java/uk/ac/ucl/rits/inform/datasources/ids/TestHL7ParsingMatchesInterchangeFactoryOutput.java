@@ -429,7 +429,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         for (var file: interchangeFactory.fileStore){
 
-            if (!file.getFilePath().endsWith(".yaml")
+            if (!file.getFilePath().toString().endsWith(".yaml")
                     || file.getFilePath().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
                     || file.hasBeenAccessed()
                     || file.sourceSystem().isEmpty()){
