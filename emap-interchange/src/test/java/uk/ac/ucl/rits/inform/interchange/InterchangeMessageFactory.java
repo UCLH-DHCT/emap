@@ -318,4 +318,8 @@ public class InterchangeMessageFactory {
     public void updateFileStoreWith(Class rootClass) throws URISyntaxException, IOException {
         fileStore.updateFilesFromClassResources(rootClass);
     }
+
+    public FileStoreWithMonitoredAccess getFileStore(){
+        return fileStore;
+    }
 }
