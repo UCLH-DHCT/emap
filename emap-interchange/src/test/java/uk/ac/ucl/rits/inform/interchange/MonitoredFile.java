@@ -1,8 +1,8 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -35,11 +35,19 @@ public class MonitoredFile {
      * @return Source system string
      * @throws IOException If the file does not exist
      */
-    public Optional<String> sourceSystem() throws IOException {
+    public Optional<String> sourceSystem() throws Exception {
 
-        try (BufferedReader br = new BufferedReader(new FileReader(String.valueOf(filePath)))) {
+        var path = getFilePathString();
+
+        if (path.contains("jar!")){
+            path = path.split("jar!")[1];
+        }
+
+        var inputStream = getClass().getResourceAsStream(path);
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
 
                 if (line.contains("sourceSystem: ")) {
                     var sourceSystem = line.split(": ")[1];
