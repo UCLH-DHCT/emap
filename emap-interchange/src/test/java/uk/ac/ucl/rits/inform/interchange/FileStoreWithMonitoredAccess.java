@@ -24,13 +24,11 @@ public class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile> {
 
     /**
      * A repository of file paths that have a particular extension, each of which has an access-count.
-     * @param additionalClass Additional class to add the resources for on top of FileStoreWithMonitoredAccess
      * @throws URISyntaxException If the folder path does not exist in the file system
      */
-    public FileStoreWithMonitoredAccess(Class additionalClass) throws URISyntaxException, IOException {
+    public FileStoreWithMonitoredAccess() throws URISyntaxException, IOException {
         files = new ArrayList<>();
         updateFilesFromClassResources(getClass());
-        updateFilesFromClassResources(additionalClass);
     }
 
     /**
@@ -57,11 +55,6 @@ public class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile> {
      * @throws URISyntaxException if the resource path cannot be found
      */
     public void updateFilesFromClassResources(Class rootClass) throws URISyntaxException, IOException {
-
-        if (rootClass == null){
-            return;
-        }
-
         getResourcePaths(rootClass).forEach(p -> this.files.add(new MonitoredFile(p)));
     }
 

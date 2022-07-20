@@ -40,14 +40,13 @@ public class InterchangeMessageFactory {
     /**
      * Create a message factory with monitored files, enabling the resources accessible to this class to be
      * queried for if they have, or not, been accessed
-     * @param additionalClass Additional class to add to the resource paths
      * @return Interchange message factory
      * @throws URISyntaxException If the file store cannot be created
      * @throws IOException If the file store cannot be created
      */
-    public static InterchangeMessageFactory withMonitoredFiles(Class additionalClass) throws URISyntaxException, IOException {
+    public static InterchangeMessageFactory withMonitoredFiles() throws URISyntaxException, IOException {
         var factory = new InterchangeMessageFactory();
-        factory.fileStore = new FileStoreWithMonitoredAccess(additionalClass);
+        factory.fileStore = new FileStoreWithMonitoredAccess();
 
         return factory;
     }
@@ -314,5 +313,9 @@ public class InterchangeMessageFactory {
         }
 
         return getClass().getResourceAsStream(fileStore.get(path));
+    }
+
+    public void updateFileStoreWith(Class rootClass) throws URISyntaxException, IOException {
+        fileStore.updateFilesFromClassResources(rootClass);
     }
 }
