@@ -38,15 +38,16 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Create a message factory with monitored files, enabling the resources accessable to this class to be
+     * Create a message factory with monitored files, enabling the resources accessible to this class to be
      * queried for if they have, or not, been accessed
+     * @param additionalClass Additional class to add to the resource paths
      * @return Interchange message factory
      * @throws URISyntaxException If the file store cannot be created
      * @throws IOException If the file store cannot be created
      */
-    public static InterchangeMessageFactory withMonitoredFiles() throws URISyntaxException, IOException {
+    public static InterchangeMessageFactory withMonitoredFiles(Class additionalClass) throws URISyntaxException, IOException {
         var factory = new InterchangeMessageFactory();
-        factory.fileStore = new FileStoreWithMonitoredAccess();
+        factory.fileStore = new FileStoreWithMonitoredAccess(additionalClass);
 
         return factory;
     }
@@ -63,7 +64,6 @@ public class InterchangeMessageFactory {
 
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
-
 
     /**
      * @param fileName filename within the ConsultRequest folder

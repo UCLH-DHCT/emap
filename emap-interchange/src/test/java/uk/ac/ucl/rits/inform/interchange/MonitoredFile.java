@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import lombok.Getter;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -12,7 +10,6 @@ import java.util.Optional;
 /**
  * A file for which the access count is monitored.
  */
-@Getter
 public class MonitoredFile {
 
     private Integer accessCount;
@@ -45,10 +42,15 @@ public class MonitoredFile {
             while ((line = br.readLine()) != null) {
 
                 if (line.contains("sourceSystem: ")) {
-                    return Optional.of(line.split(": ")[1]);
+                    var sourceSystem = line.split(": ")[1];
+                    return Optional.of(sourceSystem.replace("\"", ""));
                 }
             }
         }
         return Optional.empty();
+    }
+
+    public String getFilePathString(){
+        return filePath.toString();
     }
 }
