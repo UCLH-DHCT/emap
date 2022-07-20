@@ -19,7 +19,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -41,13 +40,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
      * @throws IOException If a path cannot be accessed
      */
     TestHL7ParsingMatchesInterchangeFactoryOutput() throws IOException, URISyntaxException {
-        interchangeFactory = InterchangeMessageFactory.withMonitoredFiles();
-        interchangeFactory.fileStore.updateFilesFromClassResources(getClass());
+        interchangeFactory = InterchangeMessageFactory.withMonitoredFiles(getClass());
     }
 
     private void testAdtMessage(String adtFileStem) throws Exception {
         log.info("Testing ADT message with stem '{}'", adtFileStem);
-        System.out.println(adtFileStem);
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem + ".txt");
         AdtMessage expectedAdtMessage = interchangeFactory.getAdtMessage(adtFileStem + ".yaml");
         Assertions.assertEquals(1, messagesFromHl7Message.size());
@@ -417,8 +414,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     /**
-     * Ensure that all the interchange yaml files created from hl7 messages (i.e. those with an "EPIC" source system)
-     * have been accessed, thus have been checked against their yaml counterparts.
+     * Ensure that all the interchange yaml files created from hl7 messages (i.e. those with an "EPIC" source system
+     * and potentially others) have been accessed, thus have been checked against their yaml counterparts.
      * @throws Exception If not all the files have been accessed
      */
     @AfterAll
@@ -429,22 +426,26 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         for (var file: interchangeFactory.fileStore){
 
-            if (!file.getFilePath().toString().endsWith(".yaml")
-                    || file.getFilePath().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
+            if (!file.getFilePathString().endsWith(".yaml")
+                    || file.getFilePathString().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
                     || file.hasBeenAccessed()
                     || file.sourceSystem().isEmpty()){
                 continue;
             }
 
-            if (file.sourceSystem().isPresent() && Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())){
+            if (Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())){
                 continue;  // Source system is excluded
             }
 
-            missedFilePaths.add(file.getFilePath().toString());
+            missedFilePaths.add(file.getFilePathString());
         }
 
         if (missedFilePaths.size() > 0){
-            throw new Exception("Not all the files have been accessed. Missed: "+missedFilePaths);
+            for (var filePathString : missedFilePaths){
+                System.err.println(filePathString);
+            }
+
+            throw new Exception("Not all the files have been accessed. Missed: " + missedFilePaths);
         }
     }
 }
