@@ -431,7 +431,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         var excludedSourceSystems = new String[]{"clarity", "caboodle"};
         var missedFilePaths = new ArrayList<String>();
 
-        for (var file: interchangeFactory.fileStore){
+        for (var file: interchangeFactory.getFileStore()){
 
             if (!file.getFilePathString().endsWith(".yaml")
                     || file.getFilePathString().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
