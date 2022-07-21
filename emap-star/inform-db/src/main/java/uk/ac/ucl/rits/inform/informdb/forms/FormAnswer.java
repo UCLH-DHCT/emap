@@ -17,7 +17,7 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * Stores the value assigned to a particular instance of an answered form question.
+ * \brief Stores the value assigned to a particular instance of an answered form question.
  * Eg. the value of a Smart Data Element (SDE).
  */
 @Entity
@@ -51,7 +51,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
      * \brief A unique ID for this form answer that can be used to track back to the source system.
      * For an Epic SDE this would be the HLV ID (HLV .1)
      */
-    private String formAnswerSourceId;
+    private String internalId;
 
     /**
      * \brief Current value of the SDE - may be a multi-line string concatenated together.
@@ -87,7 +87,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
         this.formAnswerId = other.formAnswerId;
         this.formQuestionId = other.formQuestionId;
         this.formId = other.formId;
-        this.formAnswerSourceId = other.formAnswerSourceId;
+        this.internalId = other.internalId;
         this.valueAsString = other.valueAsString;
         this.valueAsNumber = other.valueAsNumber;
         this.valueAsBoolean = other.valueAsBoolean;

@@ -8,7 +8,6 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A filled out Form. Eg. an Epic SmartForm. Basically a grouping of rows of FormAnswer.
+ * \brief A filled out Form. Eg. an Epic SmartForm. Basically a grouping of rows of FormAnswer.
  */
 @Entity
 @Data
@@ -34,7 +33,6 @@ import java.util.List;
 @AuditTable
 @Check(constraints =
         " hospital_visit_id is not null " +
-                " OR lab_order_id is not null " +
                 " OR mrn_id is not null ")
 public class Form extends TemporalCore<Form, FormAudit> {
     @Id
@@ -69,26 +67,16 @@ public class Form extends TemporalCore<Form, FormAudit> {
     /**
      * We don't currently bring in Notes, so there is no other table to join to.
      * If we do in future, this field would be migrated to a foreign key field.
+     *
      * \brief NOTE ID if this Form is attached to a note, otherwise null.
      */
     private String noteId;
 
     /**
-     * \brief The lab order this SmartForm relates to, or null if it doesn't relate to one.
-     * I'm not currently sure if SmartForms can be attached to Lab Orders.
-     */
-    @ManyToOne
-    @JoinColumn(name = "labOrderId")
-    private LabOrder labOrderId;
-
-    /**
-     * \brief datetime the form was filed.
-     * This may be redundant given valid from?
+     * \brief datetime the form was first filed.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant formFilingDatetime;
-
-    private String formFilingUserId;
+    private Instant firstFiledDatetime;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "formId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
@@ -108,9 +96,7 @@ public class Form extends TemporalCore<Form, FormAudit> {
         this.mrnId = other.mrnId;
         this.hospitalVisitId = other.hospitalVisitId;
         this.noteId = other.noteId;
-        this.labOrderId = other.labOrderId;
-        this.formFilingDatetime = other.formFilingDatetime;
-        this.formFilingUserId = other.formFilingUserId;
+        this.firstFiledDatetime = other.firstFiledDatetime;
     }
 
     @Override

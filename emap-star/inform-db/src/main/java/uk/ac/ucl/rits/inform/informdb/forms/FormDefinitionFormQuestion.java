@@ -16,8 +16,7 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * (Metadata).
- * Junction table to represent the many-to-many relationship between form and questions.
+ * \brief (Metadata) Junction table to represent the many-to-many relationship between form and questions.
  */
 @Entity
 @Data
