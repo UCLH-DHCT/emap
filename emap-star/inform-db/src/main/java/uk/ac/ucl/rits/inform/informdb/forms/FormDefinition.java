@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Form metadata.
+ * \brief Form metadata, in other words, data that doesn't
+ * change from one instance of a form to the next.
  */
 @Entity
 @Data
@@ -40,7 +41,7 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
      * Eg. "2056"
      */
     @Column(nullable = false, unique = true)
-    private String formSourceId;
+    private String internalId;
 
     /**
      *
@@ -50,7 +51,7 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
      * .
      * Eg. "UCLH TEP ADVANCED"
      */
-    private String formName;
+    private String name;
 
     /**
      * \brief Patient friendly name of the form.
@@ -70,8 +71,8 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     private FormDefinition(FormDefinition other) {
         super(other);
         this.formDefinitionId = other.formDefinitionId;
-        this.formSourceId = other.formSourceId;
-        this.formName = other.formName;
+        this.internalId = other.internalId;
+        this.name = other.name;
         this.patientFriendlyName = other.patientFriendlyName;
     }
 

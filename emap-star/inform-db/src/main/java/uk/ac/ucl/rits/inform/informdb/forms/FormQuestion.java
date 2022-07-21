@@ -14,7 +14,7 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * Represents the Question in a form (basically the metadata for a form answer).
+ * \brief Represents the Question in a form (basically the metadata for a form answer).
  * It may not literally be a question, eg. "Limb", you can think of that as a prompt.
  */
 @Entity
@@ -35,31 +35,31 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
      * .
      */
     @Column(nullable = false, unique = true)
-    private String formQuestionSourceId;
+    private String internalId;
 
     /**
      * \brief Name of the concept (ie. the "Question")
      * .
      */
-    private String formQuestionConceptName;
+    private String conceptName;
 
     /**
      * \brief Abbreviated concept name (ie. the "Question")
      * .
      */
-    private String formQuestionConceptAbbrevName;
+    private String conceptAbbrevName;
 
     /**
      * \brief String description of a question, where available
      */
-    private String formQuestionDescription;
+    private String description;
 
     /**
      * \brief Type of answer expected (String, number, etc)
      * Do we store this same value (an instance of ZC_DATA_TYPE) anywhere else in Star?
      * HLX 60
      */
-    private String formQuestionValueType;
+    private String valueType;
 
     /**
      * \brief Categorical string value of the "type" of SDE this is.
@@ -73,11 +73,11 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
     private FormQuestion(FormQuestion other) {
         super(other);
         this.formQuestionId = other.formQuestionId;
-        this.formQuestionConceptName = other.formQuestionConceptName;
-        this.formQuestionSourceId = other.formQuestionSourceId;
-        this.formQuestionConceptAbbrevName = other.formQuestionConceptAbbrevName;
-        this.formQuestionDescription = other.formQuestionDescription;
-        this.formQuestionValueType = other.formQuestionValueType;
+        this.conceptName = other.conceptName;
+        this.internalId = other.internalId;
+        this.conceptAbbrevName = other.conceptAbbrevName;
+        this.description = other.description;
+        this.valueType = other.valueType;
         this.smartDataElementContext = other.smartDataElementContext;
     }
 
