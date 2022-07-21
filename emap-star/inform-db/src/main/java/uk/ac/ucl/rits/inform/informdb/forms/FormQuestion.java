@@ -55,20 +55,10 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
     private String description;
 
     /**
-     * \brief Type of answer expected (String, number, etc)
-     * Do we store this same value (an instance of ZC_DATA_TYPE) anywhere else in Star?
-     * HLX 60
+     * \brief The data type of the answer, as described by the source system (String, number, categorical, etc)
+     * For Epic, this is a value from ZC_DATA_TYPE (found in HLX 60).
      */
-    private String valueType;
-
-    /**
-     * \brief Categorical string value of the "type" of SDE this is.
-     * Ie. is it related to an order, an encounter, a note, etc.
-     * Warning: Unknown if this is the same for every instance of the same SDE.
-     * If not, this field will have to be moved to FormAnswer.
-     * (Convert to enum if we can be sure of possible values?)
-     */
-    private String smartDataElementContext;
+    private String internalValueType;
 
     private FormQuestion(FormQuestion other) {
         super(other);
@@ -77,8 +67,7 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
         this.internalId = other.internalId;
         this.conceptAbbrevName = other.conceptAbbrevName;
         this.description = other.description;
-        this.valueType = other.valueType;
-        this.smartDataElementContext = other.smartDataElementContext;
+        this.internalValueType = other.internalValueType;
     }
 
     public FormQuestion() {

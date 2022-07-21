@@ -54,6 +54,14 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     private String internalId;
 
     /**
+     * \brief Categorical string value of the "context" of an SDE.
+     * Eg. is it related to an order, an encounter, a note, etc.
+     * This value is not the same for every instance of the same SDE, hence why
+     * it goes in FormAnswer and not FormQuestion.
+     */
+    private String context;
+
+    /**
      * \brief Current value of the SDE - may be a multi-line string concatenated together.
      * HLV 50.
      */
@@ -88,6 +96,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
         this.formQuestionId = other.formQuestionId;
         this.formId = other.formId;
         this.internalId = other.internalId;
+        this.context = other.context;
         this.valueAsString = other.valueAsString;
         this.valueAsNumber = other.valueAsNumber;
         this.valueAsBoolean = other.valueAsBoolean;
