@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -425,14 +427,21 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
      * Then the add message takes presidince and the delete is discarded
      * @throws EmapOperationMessageProcessingException should not happen
      */
-    @Test
-    void testDeleteMessageIsDiscardedWhenIdenticalUpdatedTime() throws EmapOperationMessageProcessingException{
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testDeleteMessageIsDiscardedWhenIdenticalUpdatedTime(boolean forwards) throws EmapOperationMessageProcessingException{
+
+        ConditionAction[] actions = {ConditionAction.ADD, ConditionAction.DELETE};
+
+        if (!forwards){
+            Collections.reverse(Arrays.asList(actions));
+        }
 
         var message = hl7MyelomaInpatient;
-        message.setAction(ConditionAction.ADD);
+        message.setAction(actions[0]);
         processSingleMessage(message);
 
-        message.setAction(ConditionAction.DELETE);
+        message.setAction(actions[1]);
         processSingleMessage(message);
 
         PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();

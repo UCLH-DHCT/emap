@@ -285,7 +285,10 @@ public class PatientConditionController {
     }
 
     /**
-     * Update the problem message. Requires special treatment for identical EPIC message updated times
+     * Update the problem message. Requires special treatment for EPIC hl7 messages which are identical (including
+     * the updated datetime) apart from the action. The AD messages seem to take precedence when comparing to the source
+     * of truth. Therefore, the problem should not be updated with a DE action if there was an AD action message
+     * that was processed before but has the same updated datetime.
      * @param msg patient problem message
      * @param condition patient condition row state
      * @return true if the entity should be updated
@@ -295,7 +298,8 @@ public class PatientConditionController {
         Instant validFrom = condition.getEntity().getConditionTypeId().getValidFrom();
 
         // hl7 messages with an identical message updated datetime should favour the AD action over DE
-        if (msg.getSourceSystem().equals("EPIC")
+        if (!condition.isEntityCreated()
+                && msg.getSourceSystem().equals("EPIC")
                 && msg.getUpdatedDateTime().equals(validFrom)
                 && msg.getAction().equals(ConditionAction.DELETE)) {
                 return false;
