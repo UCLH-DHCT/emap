@@ -290,14 +290,14 @@ public class PatientConditionController {
      * @param condition patient condition row state
      * @return true if the entity should be updated
      */
-    private boolean problemMessageShouldBeUpdated(PatientProblem msg, RowState<PatientCondition, PatientConditionAudit> condition){
+    private boolean problemMessageShouldBeUpdated(PatientProblem msg, RowState<PatientCondition, PatientConditionAudit> condition) {
 
         Instant validFrom = condition.getEntity().getConditionTypeId().getValidFrom();
 
         // hl7 messages with an identical message updated datetime should favour the AD action over DE
         if (msg.getSourceSystem().equals("EPIC")
                 && msg.getUpdatedDateTime().equals(validFrom)
-                && msg.getAction().equals(ConditionAction.DELETE)){
+                && msg.getAction().equals(ConditionAction.DELETE)) {
                 return false;
         }
 
@@ -352,8 +352,7 @@ public class PatientConditionController {
 
         if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equalsIgnoreCase("active")) {
             conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
-        }
-        else{
+        } else {
             conditionState.assignIfDifferent(false, condition.getIsDeleted(), condition::setIsDeleted);
         }
     }
