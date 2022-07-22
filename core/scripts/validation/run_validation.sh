@@ -6,9 +6,10 @@ set -euo pipefail
 # - Truncate star_validation tables including progress
 
 date_suffix=$(date +"%Y-%m-%d_%H-%M-%S")
-log_file_prefix=rebuild_log_${date_suffix}
+mkdir -p ../validation_logs
+log_file_prefix=../validation_logs/rebuild_log_${date_suffix}
 
-# edit hl7 (flowsheets+adt) config files in place, keeping a backup named by the timestamp
+# edit config files in place, keeping a backup named by the timestamp
 configure_time_window() {
     window_start_human="$1" # eg. "4 days ago", "2020-04-12", must be >= 1 day ago I think
     window_end_human="$2" # same thing but for end, eg. "today", "2020-04-19"

@@ -8,7 +8,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditReposito
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -20,19 +19,18 @@ import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Autowired
@@ -61,8 +59,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertEquals(1, visits.size());
 
         HospitalVisit visit = visits.get(0);
-        assertNotNull(visit.getAdmissionTime());
-        assertNull(visit.getPresentationTime());
+        assertNotNull(visit.getAdmissionDatetime());
+        assertNull(visit.getPresentationDatetime());
         // no audit log should be added
         assertTrue(getAllAuditHospitalVisits().isEmpty());
     }
@@ -97,8 +95,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertEquals(1, visits.size());
 
         HospitalVisit visit = visits.get(0);
-        assertNull(visit.getAdmissionTime());
-        assertNotNull(visit.getPresentationTime());
+        assertNull(visit.getAdmissionDatetime());
+        assertNotNull(visit.getPresentationDatetime());
     }
 
     /**
@@ -114,9 +112,9 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // Presentation time should not be changed by admission message
-        assertEquals(Instant.parse("2012-09-17T13:25:00Z"), visit.getPresentationTime());
+        assertEquals(Instant.parse("2012-09-17T13:25:00Z"), visit.getPresentationDatetime());
         // Admission time should be changed
-        assertEquals(Instant.parse("2013-02-11T10:00:52Z"), visit.getAdmissionTime());
+        assertEquals(Instant.parse("2013-02-11T10:00:52Z"), visit.getAdmissionDatetime());
         // validFrom and Stored from should be updated
         Instant originalStoredFrom = Instant.parse("2012-09-17T13:25:00Z");
         assertTrue(visit.getStoredFrom().isAfter(originalStoredFrom));
@@ -142,7 +140,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(removeMsg);
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
-        assertNull(visit.getAdmissionTime());
+        assertNull(visit.getAdmissionDatetime());
         assertEquals(removeMsg.getCancelledDateTime(), visit.getValidFrom());
         assertEquals(PatientClass.OUTPATIENT.toString(), visit.getPatientClass());
     }
@@ -164,11 +162,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         // generic information should be added
         assertNotNull(visit.getPatientClass());
         // admission information should be added
-        assertNotNull(visit.getAdmissionTime());
+        assertNotNull(visit.getAdmissionDatetime());
         // discharge information should be added
         assertNotNull(visit.getDischargeDestination());
         assertNotNull(visit.getDischargeDisposition());
-        assertNotNull(visit.getDischargeTime());
+        assertNotNull(visit.getDischargeDatetime());
     }
 
     @Test
@@ -187,7 +185,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         // discharge information should be removed
         assertNull(visit.getDischargeDestination());
         assertNull(visit.getDischargeDisposition());
-        assertNull(visit.getDischargeTime());
+        assertNull(visit.getDischargeDatetime());
         assertEquals(removeMsg.getCancelledDateTime(), visit.getValidFrom());
     }
 
@@ -207,7 +205,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should be updated because it is null
-        assertNotNull(visit.getAdmissionTime());
+        assertNotNull(visit.getAdmissionDatetime());
         // arrival method should not be updated from the message
         assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
     }
@@ -228,7 +226,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should not be updated
-        assertNotEquals(msg.getAdmissionDateTime(), visit.getAdmissionTime());
+        assertNotEquals(msg.getAdmissionDateTime(), visit.getAdmissionDatetime());
     }
 
     /**
@@ -246,7 +244,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should be updated because it is null
-        assertNotNull(visit.getPresentationTime());
+        assertNotNull(visit.getPresentationDatetime());
         // arrival method should not be updated from the message
         assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
     }
@@ -267,7 +265,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should not be updated
-        assertNotEquals(msg.getPresentationDateTime(), visit.getPresentationTime());
+        assertNotEquals(msg.getPresentationDateTime(), visit.getPresentationDatetime());
     }
 
     /**
@@ -287,7 +285,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(untrustedEncounter).orElseThrow(NullPointerException::new);
         // admission time should be updated
-        assertNull(visit.getAdmissionTime());
+        assertNull(visit.getAdmissionDatetime());
     }
 
     /**
@@ -308,7 +306,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(untrustedEncounter).orElseThrow(NullPointerException::new);
         // admission time should be updated
-        assertNotNull(visit.getAdmissionTime());
+        assertNotNull(visit.getAdmissionDatetime());
     }
 
     /**
@@ -328,7 +326,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(encounter).orElseThrow(NullPointerException::new);
         assertEquals(PatientClass.INPATIENT.toString(), visit.getPatientClass());
         assertEquals("Ambulance", visit.getArrivalMethod());
-        assertNotNull(visit.getAdmissionTime());
+        assertNotNull(visit.getAdmissionDatetime());
         assertEquals("EPIC", visit.getSourceSystem());
     }
 

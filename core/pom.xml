@@ -5,21 +5,26 @@
   <groupId>uk.ac.ucl.rits.inform</groupId>
   <artifactId>EmapCore</artifactId>
   <packaging>jar</packaging>
-  <version>2.4</version>
+  <version>2.5</version>
   <name>EmapCore</name>
   <url>http://maven.apache.org</url>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.6.3</version>
+  </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
-    <checkstyle.version>8.32</checkstyle.version>
-    <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
-    <apache.commons.csv.version>1.6</apache.commons.csv.version>
-    <inform-db.version>2.4</inform-db.version>
-    <emap-interchange.version>2.4</emap-interchange.version>
-    <!-- manually pin log4j version to avoid log4shell exploit -->
-    <log4j2.version>2.17.0</log4j2.version>
+    <checkstyle.version>9.3</checkstyle.version>
+    <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
+    <inform-db.version>2.5</inform-db.version>
+    <emap-interchange.version>2.5</emap-interchange.version>
+    <spotbugs-maven-plugin.version>4.5.3.0</spotbugs-maven-plugin.version>
+    <go-offline-maven-plugin.version>1.2.8</go-offline-maven-plugin.version>
   </properties>
 
   <profiles>
@@ -31,11 +36,6 @@
     </profile>
   </profiles>
 
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>(2.3.3, 2.4)</version>
-  </parent>
 
   <dependencies>
     <dependency>
@@ -144,22 +144,13 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>3.1.8</version>
-        <dependencies>
-          <!-- overwrite dependency on spotbugs if you want to specify the 
-            version of spotbugs -->
-          <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs</artifactId>
-            <version>3.1.9</version>
-          </dependency>
-        </dependencies>
+        <version>${spotbugs-maven-plugin.version}</version>
       </plugin>
       <!-- plugin to download dependencies, mvn dependencies:go-offline doesn't exclude artifacts/groups correctly -->
       <plugin>
         <groupId>de.qaware.maven</groupId>
         <artifactId>go-offline-maven-plugin</artifactId>
-        <version>1.2.8</version>
+        <version>${go-offline-maven-plugin.version}</version>
         <configuration>
           <dynamicDependencies>
             <DynamicDependency>
@@ -221,38 +212,6 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
             <forceJavacCompilerUse>true</forceJavacCompilerUse>
-          </configuration>
-        </plugin>
-        <!--This plugin's configuration is used to store Eclipse m2e settings
-        only. It has no influence on the Maven build itself. -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>
-                      org.apache.maven.plugins
-                    </groupId>
-                    <artifactId>
-                      maven-checkstyle-plugin
-                    </artifactId>
-                    <versionRange>
-                      [3.0.0,)
-                    </versionRange>
-                    <goals>
-                      <goal>check</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
           </configuration>
         </plugin>
       </plugins>
