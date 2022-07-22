@@ -14,8 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -25,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @SpringBootTest
 class TestBioConnectOruR01 {
+    private static final String GLUCOSE_TEST_CODE = "2341-6";
+
     @Autowired
     private LabReader labReader;
     private final Instant resultTime = Instant.parse("2013-07-25T12:59:00Z");
@@ -36,7 +36,7 @@ class TestBioConnectOruR01 {
         assertTrue(msg.getEpicCareOrderNumber().isUnknown());
         assertEquals("40800000", msg.getMrn());
         assertEquals("9876543", msg.getLabSpecimenNumber());
-        assertTrue(msg.getVisitNumber().isEmpty());
+        assertEquals("1039274827", msg.getVisitNumber());
     }
 
     @Test
@@ -75,13 +75,13 @@ class TestBioConnectOruR01 {
      */
     @Test
     void testResultStatus() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", GLUCOSE_TEST_CODE);
         assertEquals(LabResultStatus.INVALID_RESULT, result.getResultStatus());
     }
 
     @Test
     void testNumericValueParsed() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", GLUCOSE_TEST_CODE);
         assertEquals(InterchangeValue.buildFromHl7(7.6), result.getNumericValue());
         assertEquals(ValueType.NUMERIC, result.getMimeType());
         assertEquals("=", result.getResultOperator());
@@ -90,20 +90,20 @@ class TestBioConnectOruR01 {
 
     @Test
     void testRangeParsed() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", GLUCOSE_TEST_CODE);
         assertEquals(InterchangeValue.buildFromHl7(4.0), result.getReferenceLow());
         assertEquals(InterchangeValue.buildFromHl7(7.0), result.getReferenceHigh());
     }
 
     @Test
     void testTestCodingSystem() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", GLUCOSE_TEST_CODE);
         assertEquals("BIO-CONNECT", result.getTestItemCodingSystem());
     }
 
     @Test
     void testResultTime() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", GLUCOSE_TEST_CODE);
         assertEquals(resultTime, result.getResultTime());
     }
 
@@ -112,19 +112,19 @@ class TestBioConnectOruR01 {
      */
     @Test
     void testUnitsSet() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", GLUCOSE_TEST_CODE);
         assertEquals(InterchangeValue.buildFromHl7("mmol/L"), result.getUnits());
     }
 
     @Test
     void testAbnormalFlagPresent() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", GLUCOSE_TEST_CODE);
         assertEquals(InterchangeValue.buildFromHl7("H"), result.getAbnormalFlag());
     }
 
     @Test
     void testAbnormalFlagIsNormal() throws Exception {
-        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "normal_flag", "Glu");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "normal_flag", GLUCOSE_TEST_CODE);
         assertTrue(result.getAbnormalFlag().isDelete());
     }
 

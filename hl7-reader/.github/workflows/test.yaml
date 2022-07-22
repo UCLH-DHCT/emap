@@ -11,31 +11,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: emap-hl7-processor
-        # try and checkout the same branch as the PR, otherwise revert to develop
-      - name: Set output variables
-        # gets current branch name
-        id: vars
-        run: echo ::set-output name=branch::${GITHUB_REF#refs/*/} # ${{ steps.vars.outputs.branch }}
+        # try and checkout the same branch as the PR, failing that the base of the PR, failing that develop
       - name: Checkout Emap-Interchange
         id: checkout-Emap-Interchange
         # need to clone using secrets with a github access token as private repo
         run: |
           git clone --branch ${{ github.head_ref }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
+          || git clone --branch ${{ github.base_ref }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
           || git clone --branch develop https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git
       - name: Set up JDK 11 # also enables caching
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '11'
-          distribution: 'adopt'
+          distribution: 'temurin' # adopt has moved to Eclipse Temurin
           cache: 'maven'
-      - name: Build emap-hl7-processor
+      - name: Build Emap-Interchange
         run: mvn clean install # run tests so that test classes can be used in current testing
         working-directory: Emap-Interchange
-      - name: Build and test
-        run: mvn test
+      - name: Test
+        run: mvn clean test
         working-directory: emap-hl7-processor
         env:
           TZ: "America/Chicago"
