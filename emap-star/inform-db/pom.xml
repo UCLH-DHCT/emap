@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>inform-db</artifactId>
-  <version>2.4</version>
+  <version>2.5</version>
   <name>Inform-DB</name>
   <packaging>jar</packaging>
   <description>Inform-DB Spring JPA classes</description>
@@ -11,12 +11,12 @@
   <parent>
     <groupId>uk.ac.ucl.rits.inform</groupId>
     <artifactId>emap-star</artifactId>
-    <version>2.4</version>
+    <version>2.5</version>
   </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <inform-annotations.version>2.4</inform-annotations.version>
+    <inform-annotations.version>2.5</inform-annotations.version>
     <reflections.version>0.10.2</reflections.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <!-- automatically run annotation processors within the incremental compilation -->
