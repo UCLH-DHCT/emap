@@ -126,7 +126,7 @@ abstract class LabOrderBuilder {
      * Set the specimen number from the ORC segment.
      * Each lab result that uses this appears to need a separate implementation of this.
      * @param orc ORC segment
-     * @throws  Hl7InconsistencyException if hl7 message is malformed
+     * @throws Hl7InconsistencyException if hl7 message is malformed
      */
     protected abstract void setLabSpecimenNumber(ORC orc) throws Hl7InconsistencyException;
 
@@ -167,20 +167,33 @@ abstract class LabOrderBuilder {
         msg.setSourceMessageId(subMessageSourceId);
         String sourceApplication = patientHl7.getSendingApplication().isEmpty() ? "Not in Message" : patientHl7.getSendingApplication();
         msg.setSourceSystem(sourceApplication);
-        msg.setVisitNumber(patientHl7.getVisitNumber());
+        msg.setVisitNumber(getVisitNumberFromPv1rPID(patientHl7));
         msg.setMrn(patientHl7.getMrn());
     }
 
     /**
-     * Populate order information from OBR segment (ABL 90 Flex).
-     * @param obr OBR
-     * @throws DataTypeException if HAPI does
+     * Get the visit number from the PV1 segment, falling back to the PID if that is empty.
+     * Winpath ORR messages can have no PV1 segment but store the encounter in the PID.
+     * @param patientHl7 patient information
+     * @return visit number or an empty string if it is not defined
+     * @throws HL7Exception if HAPI does
      */
-    void populateOrderInformation(OBR obr) throws DataTypeException {
-        Instant sampleReceived = interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime());
-        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(sampleReceived));
-        msg.setOrderDateTime(InterchangeValue.buildFromHl7(sampleReceived));
-        msg.setStatusChangeTime(sampleReceived);
+    private String getVisitNumberFromPv1rPID(PatientInfoHl7 patientHl7) throws HL7Exception {
+        String visitNumber = patientHl7.getVisitNumber();
+        if (visitNumber.isEmpty()) {
+            visitNumber = patientHl7.getPatientAccountNumber();
+        }
+        return visitNumber;
+    }
+
+    /**
+     * Populate order temporal information from single instant.
+     * @param time Single time to set all order temporal information from
+     */
+    void setOrderTemporalInformation(Instant time) {
+        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(time));
+        msg.setOrderDateTime(InterchangeValue.buildFromHl7(time));
+        msg.setStatusChangeTime(time);
     }
 
     /**
