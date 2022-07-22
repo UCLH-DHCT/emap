@@ -5,7 +5,7 @@
   <groupId>uk.ac.ucl.rits.inform</groupId>
   <artifactId>EmapCore</artifactId>
   <packaging>jar</packaging>
-  <version>2.4</version>
+  <version>2.5</version>
   <name>EmapCore</name>
   <url>http://maven.apache.org</url>
 
@@ -21,8 +21,8 @@
     <maven.compiler.target>11</maven.compiler.target>
     <checkstyle.version>9.3</checkstyle.version>
     <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
-    <inform-db.version>2.4</inform-db.version>
-    <emap-interchange.version>2.4</emap-interchange.version>
+    <inform-db.version>2.5</inform-db.version>
+    <emap-interchange.version>2.5</emap-interchange.version>
     <spotbugs-maven-plugin.version>4.5.3.0</spotbugs-maven-plugin.version>
     <go-offline-maven-plugin.version>1.2.8</go-offline-maven-plugin.version>
   </properties>
