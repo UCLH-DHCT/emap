@@ -1,6 +1,8 @@
 # Emap Core
 
-This services takes messages from a queue and uses this information to update the EMAP database.
+This services takes messages from a queue and compares this data to the current data in the EMAP database.
+Generally if a message has newer information that is different, then the message will update the database data,
+otherwise the message will have no effect. This is important because the HL7 messages can be received out of order.
 
 # Local setup instructions using IntelliJ IDEA
 
@@ -45,6 +47,8 @@ These setup instructions are aimed at developing in IntelliJ IDEA, but hopefully
 
       ![reload](img/reload_maven.png)
     
+    - You may also need to run `Generate Sources and Update Folders For All Projects` 
+
 # How to deploy a live version
 
 How to deploy an instance of Emap on the ULCH GAE, to be run on real patient data. 
@@ -83,6 +87,7 @@ For now: use your own username+password to clone/fetch/etc from github. Jeremy p
 [credential "https://github.com"]
     username = jeremyestein
 ```
+
 You will also need to create a github token as password access from git CLI is now deprecated.
 You will probably want to configure the credential helper to store the token access token 
 (this will store the connection information in plain text in your home directory)
@@ -101,7 +106,7 @@ Repositories must be checked out to the correct branches. "Correct" will depend 
 
 ## config
 
-Supply the required config files in the `Emap-Core` directory (see below in readme for details). Make sure `INFORMDB_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
+Supply the required config files in the `Emap-Core` directory (see below in readme for details). Make sure `UDS_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
 
 ## docker config
 
@@ -111,7 +116,8 @@ You need the `-p` option to `docker-compose` to make sure the container and netw
 
 ### Adding in a fake UDS
 
-In dev/test environments, you may want to make your own UDS in a docker container. It could also double as an IDS as there's nothing to say these can't be on the same postgres instance.
+In dev environments, you may want to make your own UDS in a docker container.
+It could also double as an IDS as there's nothing to say these can't be on the same postgres instance.
 
 This container is defined in a separate docker-compose file, so you need to specify both files as below:
 
@@ -130,15 +136,22 @@ Emap-Core/emap.sh run glowroot-central java -jar "glowroot-central.jar" setup-ad
 
 ## `emap.sh` script and Emap-in-a-box
 
-To make running with multiple docker-compose files easier, there's a script called `emap.sh` which can run the above command for you. It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
+To make running with multiple docker-compose files easier, there's a script called `emap.sh` which can run the above command for you. 
+It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, 
+and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
 
-By default it gives you the full Emap-in-a-box experience, ie. you get a dockerised postgres server to act as a UDS, and you get a rabbitmq server. To avoid this you would need to pass the service names you need to the script (see docker-compose help).
+By default it gives you the full Emap-in-a-box experience, 
+ie. you get a dockerised postgres server to act as a UDS, and you get a rabbitmq server. 
+To avoid this you would need to pass the service names you need to the script (see docker-compose help).
+
 Useful command: `./emap.sh ps --services` to list available services.
-We should really have multiple emap scripts that include/exclude the fake UDS and/or the DBfiller. Good, concise names on a postcard...
 
-It needs configuring with at least one environment variable `EMAP_PROJECT_NAME` which must live in the file `global-config-envs` in the directory `config`, adjacent to `Emap-Core` and friends.
+It needs configuring with at least one environment variable `EMAP_PROJECT_NAME`
+which must be defined in `global-config-envs` in the directory `config`, adjacent to `Emap-Core` and friends.
 
-Because this is just a file containing environment variables, you can actually put all the local ports here as well, instead of spreading them over multiple `.env` files inside the repository dirs themselves:
+Because this is just a file containing environment variables, 
+you can actually put all the local ports here as well, 
+instead of spreading them over multiple `.env` files inside the repository dirs themselves:
 
 Example `global-config-envs`:
 ```bash
@@ -148,10 +161,12 @@ RABBITMQ_ADMIN_PORT=15972
 FAKEUDS_PORT=5433
 ```
 
+> **_NOTE:_** All of: `Emap-Core`, `Emap-Interchange`, `Inform-DB`, `DatabaseFiller`, `emap-hl7-processor` and `hoover` need to be cloned. 
 
 ### Example
 
-I've appended the docker-compose command `ps` to `emap.sh`, and you can see all the services from all our repos in one place!
+I've appended the docker-compose command `ps` to `emap.sh`, a
+and you can see all the services from all our repos in one place!
 ```
 (develop) $ ./emap.sh ps
 Global Emap config file: /Users/jeremystein/Emap/global-config-envs
@@ -171,7 +186,8 @@ WARNING: The https_proxy variable is not set. Defaulting to a blank string.
 
 ## Dependencies and configuration
 
-The Dockerfiles have to build the dependencies before building Emap-Core. Therefore your local directory structure has to be like this:
+The Dockerfiles have to build the dependencies before building Emap-Core. 
+Therefore your local directory structure has to be like this:
 
 ```
 Emap [project dir, name doesn't actually matter]

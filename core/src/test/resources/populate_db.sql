@@ -4,7 +4,17 @@ INSERT INTO public.mrn (mrn_id, mrn, nhs_number, source_system, stored_from) VAL
     (1001, '40800000', '9999999999', 'EPIC', '2010-09-01 11:04:04'),
     (1002, '60600000', '1111111111', 'caboodle', '2010-09-03 10:05:04'),
     (1003, '30700000', null, 'EPIC', '2010-09-10 16:01:05'),
-    (1004, null, '222222222', 'another', '2010-09-10 17:02:08');
+-- change patient identifiers testing
+    -- previous MRN matches
+    (1004, null, '222222222', 'another', '2010-09-10 17:02:08'),
+    (1005, '50100010', '222222222', 'EPIC', '2010-09-10 18:02:08'),
+    (1006, '50100012', null, 'another', '2010-09-10 18:02:08'),
+    -- surviving MRN matches
+    (1007, '51111111', null, 'EPIC', '2010-09-10 19:02:08'),
+    (1008, null, '111222223', 'another', '2010-09-10 19:02:08'),
+    -- unrelated MRNs
+    (1009, null, '997372627', 'another', '2010-09-10 19:02:08'),
+    (1010, '707070700',  null, 'EPIC', '2010-09-10 19:02:08');
 
 -- Add mrn_to_live
 
@@ -12,7 +22,13 @@ INSERT INTO public.mrn_to_live (mrn_to_live_id, stored_from, valid_from, live_mr
     (2001, '2010-09-01 11:04:04', '2010-09-01 11:04:04', 1001, 1001),
     (2002, '2010-09-03 10:05:04', '2010-09-03 11:04:04', 1003, 1002),
     (2003, '2010-09-10 16:01:05', '2010-09-03 13:06:05', 1003, 1003),
-    (2004, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1004, 1004);
+    (2004, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1005, 1004),
+    (2005, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1005, 1005),
+    (2006, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1005, 1006),
+    (2007, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1007, 1007),
+    (2008, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1008, 1008),
+    (2009, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1009, 1009),
+    (2010, '2010-09-10 17:02:08', '2010-09-05 14:05:04', 1010, 1010);
 
 
 -- Add to core_demographic
@@ -28,8 +44,8 @@ INSERT INTO public.core_demographic (
          '1972-06-14 13:00:00', '2010-05-05 00:00:00', 'Terry', 'T5 1TT', 'AGBTESTD', null, 1002, 'M');
 
 INSERT INTO public.hospital_visit (
-    hospital_visit_id, stored_from, valid_from, admission_time, arrival_method, discharge_destination, discharge_disposition,
-    discharge_time, encounter, patient_class, presentation_time, source_system, mrn_id
+    hospital_visit_id, stored_from, valid_from, admission_datetime, arrival_method, discharge_destination, discharge_disposition,
+    discharge_datetime, encounter, patient_class, presentation_datetime, source_system, mrn_id
     ) VALUES
         (4001, '2012-09-17 13:25:00', '2010-09-14 15:27:00', null, 'Public trans', null, null,
          null, '123412341234', 'INPATIENT', '2012-09-17 13:25:00', 'EPIC', 1001),
@@ -80,8 +96,8 @@ INSERT INTO public.location (location_id, location_string, department_id, room_i
 
 
 INSERT INTO public.location_visit (
-    location_visit_id, stored_from, valid_from, admission_time, inferred_admission, inferred_discharge,
-    discharge_time, hospital_visit_id, location_id) VALUES
+    location_visit_id, stored_from, valid_from, admission_datetime, inferred_admission, inferred_discharge,
+    discharge_datetime, hospital_visit_id, location_id) VALUES
     (106001, '2012-09-10 13:25:00', '2010-09-14 15:27:00', '2010-09-10 12:00:00', false, false,
      '2010-09-14 15:27:00', 4001, 105004),
     (106002, '2012-09-17 13:27:00', '2010-09-14 15:27:00', '2010-09-14 15:27:00', false, false,
@@ -111,3 +127,8 @@ INSERT INTO public.visit_observation (
             null, null, 'you should delete me', 107006, 'EPIC');
 
 
+INSERT INTO public.lab_sample (
+    lab_sample_id, stored_from, valid_from, collection_method, external_lab_number, receipt_at_lab_datetime,
+    sample_collection_datetime, sample_site, specimen_type, mrn_id)
+    VALUES (109001, '2022-02-02 14:00:00', '2020-01-01 14:04:00', null, '22U113534', '2020-01-01 14:04:00',
+            '2020-01-01 10:04:00', null, 'swab', 1001);

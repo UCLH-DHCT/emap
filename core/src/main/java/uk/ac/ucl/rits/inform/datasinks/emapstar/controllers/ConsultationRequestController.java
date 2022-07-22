@@ -31,12 +31,8 @@ import java.time.Instant;
  */
 @Component
 public class ConsultationRequestController {
-    /**
-     * Self-autowire so that @Caching annotation call will be intercepted.
-     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
-     */
     @Resource
-    private ConsultationRequestController self;
+    private ConsultCache cache;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ConsultationRequestRepository consultationRequestRepo;
     private final ConsultationTypeRepository consultationTypeRepo;
@@ -101,7 +97,7 @@ public class ConsultationRequestController {
      */
     @Transactional
     public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom) {
-        ConsultationType consultType = self.getOrCreateMinimalType(msg.getConsultationType(), msg.getStatusChangeDatetime(), storedFrom);
+        ConsultationType consultType = cache.getOrCreateMinimalType(msg.getConsultationType(), msg.getStatusChangeDatetime(), storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
                 msg, visit, consultType, storedFrom);
 
@@ -112,25 +108,6 @@ public class ConsultationRequestController {
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
                 consultationRequest.getEntity().getConsultationRequestId(), msg.getStatusChangeDatetime(), storedFrom);
-    }
-
-    /**
-     * Get existing consult type or create a new saved minimal consult type if it doesn't exist.
-     * <p>
-     * Will cache the consultation type returned from this method.
-     * @param code            Consultation type code
-     * @param messageDatetime Time that the message data was last updated
-     * @param storedFrom      When star started processing this message
-     * @return consult type
-     */
-    @Cacheable(value = "consultationType", key = "#code")
-    public ConsultationType getOrCreateMinimalType(String code, Instant messageDatetime, Instant storedFrom) {
-        return consultationTypeRepo
-                .findByCode(code)
-                .orElseGet(() -> {
-                    ConsultationType type = new ConsultationType(code, messageDatetime, storedFrom);
-                    return consultationTypeRepo.save(type);
-                });
     }
 
     /**
@@ -221,7 +198,43 @@ public class ConsultationRequestController {
         requestState.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(), request::setClosedDueToDischarge);
         // only update status change time if the entity has been created or updated
         if (requestState.isEntityCreated() || requestState.isEntityUpdated()) {
-            requestState.assignIfDifferent(msg.getStatusChangeDatetime(), request.getStatusChangeTime(), request::setStatusChangeTime);
+            requestState.assignIfDifferent(msg.getStatusChangeDatetime(), request.getStatusChangeDatetime(), request::setStatusChangeDatetime);
         }
     }
+}
+
+/**
+ * Helper component, used because Spring cache doesn't intercept self-invoked method calls.
+ */
+@Component
+class ConsultCache {
+    private final ConsultationTypeRepository consultationTypeRepo;
+
+    /**
+     * @param consultationTypeRepo Consultation request type repo
+     */
+    ConsultCache(ConsultationTypeRepository consultationTypeRepo) {
+        this.consultationTypeRepo = consultationTypeRepo;
+    }
+
+
+    /**
+     * Get existing consult type or create a new saved minimal consult type if it doesn't exist.
+     * <p>
+     * Will cache the consultation type returned from this method.
+     * @param code            Consultation type code
+     * @param messageDatetime Time that the message data was last updated
+     * @param storedFrom      When star started processing this message
+     * @return consult type
+     */
+    @Cacheable(value = "consultationType", key = "#code")
+    public ConsultationType getOrCreateMinimalType(String code, Instant messageDatetime, Instant storedFrom) {
+        return consultationTypeRepo
+                .findByCode(code)
+                .orElseGet(() -> {
+                    ConsultationType type = new ConsultationType(code, messageDatetime, storedFrom);
+                    return consultationTypeRepo.save(type);
+                });
+    }
+
 }

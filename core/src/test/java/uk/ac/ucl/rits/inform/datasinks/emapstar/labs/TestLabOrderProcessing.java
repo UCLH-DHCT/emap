@@ -106,7 +106,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         assertEquals("Corepoint", visit.getSourceSystem());
         assertNull(visit.getPatientClass());
         assertNull(visit.getArrivalMethod());
-        assertNull(visit.getAdmissionTime());
+        assertNull(visit.getAdmissionDatetime());
         // then lab order:
         checkFirstMessageLabEntityCount();
     }
@@ -250,8 +250,8 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         assertEquals(sampleType, labSample.getSpecimenType());
         assertEquals(sampleSite, labSample.getSampleSite());
         assertEquals(collectionMethod, labSample.getCollectionMethod());
-        assertEquals(collectTime, labSample.getSampleCollectionTime());
-        assertEquals(collectTime, labSample.getReceiptAtLab());
+        assertEquals(collectTime, labSample.getSampleCollectionDatetime());
+        assertEquals(collectTime, labSample.getReceiptAtLabDatetime());
     }
 
     void processWithChangedSampleInformation(String initialValue, boolean changeSpecimenType) throws EmapOperationMessageProcessingException {
@@ -297,7 +297,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(receivedTime, labSample.getReceiptAtLab());
+        assertEquals(receivedTime, labSample.getReceiptAtLabDatetime());
     }
 
     /**
@@ -317,7 +317,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(laterTime, labSample.getSampleCollectionTime());
+        assertEquals(laterTime, labSample.getSampleCollectionDatetime());
     }
 
 
@@ -339,7 +339,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertNotEquals(laterTime, labSample.getSampleCollectionTime());
+        assertNotEquals(laterTime, labSample.getSampleCollectionDatetime());
     }
 
     @Test
@@ -359,8 +359,8 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         }
         LabSample labSample = labSampleRepository.findByExternalLabNumber("13U444444").orElseThrow();
         assertEquals("BLD", labSample.getSpecimenType()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), labSample.getReceiptAtLab()); // from 02 SC
+        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionDatetime()); // from 01 NW
+        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), labSample.getReceiptAtLabDatetime()); // from 02 SC
 
         LabOrder originalOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("MG", labSample).orElseThrow();
         assertEquals(Instant.parse("2013-07-28T07:08:06Z"), originalOrder.getOrderDatetime()); // from 01 NW
@@ -394,8 +394,8 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
 
-        assertEquals(future, labSample.getSampleCollectionTime());
-        assertEquals(future, labSample.getReceiptAtLab());
+        assertEquals(future, labSample.getSampleCollectionDatetime());
+        assertEquals(future, labSample.getReceiptAtLabDatetime());
     }
 
     /**
