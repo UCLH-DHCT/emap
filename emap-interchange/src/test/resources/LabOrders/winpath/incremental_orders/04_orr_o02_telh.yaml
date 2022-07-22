@@ -7,7 +7,7 @@ epicCareOrderNumber:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "12121212"
-visitNumber: ""
+visitNumber: "1039282726"
 specimenType:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "IGNORE"
