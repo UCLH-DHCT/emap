@@ -84,6 +84,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
      */
     public ConditionType(ConditionType other) {
         super(other);
+        this.conditionTypeId = other.conditionTypeId;
         this.dataType = other.dataType;
         this.internalCode = other.internalCode;
         this.name = other.name;

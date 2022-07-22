@@ -79,13 +79,13 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * \brief Date and time at which this patientCondition was added to the record.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant addedDateTime;
+    private Instant addedDatetime;
 
     /**
      * \brief Date and time at which this patientCondition was resolved.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant resolutionDateTime;
+    private Instant resolutionDatetime;
 
     /**
      * \brief Date at which the patientCondition started (if known).
@@ -120,12 +120,12 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * @param internalId      Id in epic for the patient condition
      * @param conditionTypeId ID for patient state type
      * @param mrn             patient ID
-     * @param addedDateTime   when patient state has been added
+     * @param addedDatetime   when patient state has been added
      */
-    public PatientCondition(Long internalId, ConditionType conditionTypeId, Mrn mrn, Instant addedDateTime) {
+    public PatientCondition(Long internalId, ConditionType conditionTypeId, Mrn mrn, Instant addedDatetime) {
         this.conditionTypeId = conditionTypeId;
         this.mrnId = mrn;
-        this.addedDateTime = addedDateTime;
+        this.addedDatetime = addedDatetime;
         this.internalId = internalId;
     }
 
@@ -142,8 +142,8 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
             hospitalVisitId = other.hospitalVisitId;
         }
         internalId = other.internalId;
-        addedDateTime = other.addedDateTime;
-        resolutionDateTime = other.resolutionDateTime;
+        addedDatetime = other.addedDatetime;
+        resolutionDatetime = other.resolutionDatetime;
         onsetDate = other.onsetDate;
         classification = other.classification;
         status = other.status;
