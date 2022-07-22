@@ -348,27 +348,6 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Given a problem list delete has occurred
-     * When an update message arrives concerning the same condition at a later time
-     * Then the problem is not added
-     * @throws EmapOperationMessageProcessingException should not happen
-     */
-    @Test
-    void testOutOfOrderDeletes() throws EmapOperationMessageProcessingException{
-
-        var addMessage = hooverAddThenDeleteMessages.get(0);
-        var deleteMessage = hooverAddThenDeleteMessages.get(1);
-
-        processSingleMessage(addMessage);
-        processSingleMessage(deleteMessage);
-
-        addMessage.setUpdatedDateTime(deleteMessage.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
-        processSingleMessage(addMessage);
-
-        assertTrue(patientConditionIsDeleted());
-    }
-
-    /**
      * Given a problem list message
      * When it is processed
      * Then a single entry in the patient condition <-> hospital visit linker table should exist
@@ -413,4 +392,50 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         assertEquals(2, links.size());
     }
 
+    /**
+     * Given a deletion message has been processed for a patient
+     * When a new update message arrives concerning the same patient
+     * Then the problem is un-deleted
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testProblemUpdateOnDeletedProblemUndeletes() throws EmapOperationMessageProcessingException{
+
+        var message = hl7MyelomaInpatient;
+        processSingleMessage(message);
+
+        // Set the status to active and action to delete and process the updated message
+        assertEquals(message.getStatus(), "ACTIVE");
+        message.setAction(ConditionAction.DELETE);
+        message.setUpdatedDateTime(message.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
+        processSingleMessage(message);
+
+        // Then set the status to update and processes the updated message
+        message.setAction(ConditionAction.UPDATE);
+        message.setUpdatedDateTime(message.getUpdatedDateTime().plus(2, ChronoUnit.SECONDS));
+        processSingleMessage(message);
+
+        PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
+        assertFalse(condition.getIsDeleted());
+    }
+
+    /**
+     * Given a problem list add message has been processed
+     * When a delete message arrives at an identical time
+     * Then the add message takes presidince and the delete is discarded
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testDeleteMessageIsDiscardedWhenIdenticalUpdatedTime() throws EmapOperationMessageProcessingException{
+
+        var message = hl7MyelomaInpatient;
+        message.setAction(ConditionAction.ADD);
+        processSingleMessage(message);
+
+        message.setAction(ConditionAction.DELETE);
+        processSingleMessage(message);
+
+        PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
+        assertFalse(condition.getIsDeleted());
+    }
 }
