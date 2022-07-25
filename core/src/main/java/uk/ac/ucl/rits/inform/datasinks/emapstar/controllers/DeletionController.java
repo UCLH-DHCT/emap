@@ -111,11 +111,6 @@ public class DeletionController {
         deleteForms(allFormsForVisit, invalidationTime, deletionTime);
     }
 
-    private void deleteFormsForLabOrder(LabOrder lo, Instant invalidationTime, Instant deletionTime) {
-        List<Form> allFormsForLabOrder = formRepository.findAllByLabOrderId(lo);
-        deleteForms(allFormsForLabOrder, invalidationTime, deletionTime);
-    }
-
     /**
      * Delete all forms and form answers directly attached to an MRN.
      * @param mrn mrn to delete from
@@ -145,7 +140,6 @@ public class DeletionController {
         for (var lo : labOrders) {
             deleteLabResultsForLabOrder(lo, invalidationTime, deletionTime);
 
-            deleteFormsForLabOrder(lo, invalidationTime, deletionTime);
             LabOrderAudit labOrderAudit = lo.createAuditEntity(invalidationTime, deletionTime);
             labOrderAuditRepo.save(labOrderAudit);
             labOrderRepo.delete(lo);

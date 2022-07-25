@@ -5,13 +5,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.FormAnswerController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.FormController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 
 import java.time.Instant;
 
@@ -20,23 +21,23 @@ import java.time.Instant;
  */
 @Component
 @Transactional
-public class FormAnswerProcessor {
+public class FormProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final FormAnswerController formAnswerController;
+    private final FormController formController;
     private final VisitController visitController;
     private final PersonController personController;
 
     /**
-     * @param formAnswerController
+     * @param formController
      * @param visitController
      * @param personController
      */
-    public FormAnswerProcessor(
-            FormAnswerController formAnswerController,
+    public FormProcessor(
+            FormController formController,
             VisitController visitController,
             PersonController personController) {
-        this.formAnswerController = formAnswerController;
+        this.formController = formController;
         this.visitController = visitController;
         this.personController = personController;
     }
@@ -48,16 +49,16 @@ public class FormAnswerProcessor {
      * @param storedFrom stored from timestamp to use when writing
      * @throws RequiredDataMissingException if interchange field missing
      */
-    public void processSmartFormMessage(FormMsg formMsg, Instant storedFrom) throws RequiredDataMissingException {
-        String srcSystem = "SDE";
-        Mrn mrn = personController.getOrCreateOnMrnOnly(formMsg.getMrn(), null, srcSystem, formMsg.getFormFilingDatetime(), storedFrom);
+    public void processFormMessage(FormMsg formMsg, Instant storedFrom) throws RequiredDataMissingException {
+        String srcSystem = formMsg.getSourceSystem();
+        Mrn mrn = personController.getOrCreateOnMrnOnly(formMsg.getMrn(), null, srcSystem, formMsg.getFirstFiledDatetime(), storedFrom);
         HospitalVisit hospitalVisit = visitController.getOrCreateMinimalHospitalVisit(
                 formMsg.getVisitNumber(),
                 mrn,
                 srcSystem,
-                formMsg.getFormFilingDatetime(),
+                formMsg.getFirstFiledDatetime(),
                 storedFrom);
-        formAnswerController.processSmartForm(formMsg, storedFrom, hospitalVisit);
+        formController.processForm(formMsg, storedFrom, hospitalVisit);
     }
 
     /**
@@ -68,5 +69,10 @@ public class FormAnswerProcessor {
      * @param storedFrom
      */
     public void processMetadataMessage(FormMetadataMsg msg, Instant storedFrom) {
+        formController.createOrUpdateFormMetadata(msg, storedFrom);
+    }
+
+    public void processQuestionMetadataMessage(FormQuestionMetadataMsg msg, Instant storedFrom) {
+        formController.createOrUpdateFormQuestionMetadata(msg, storedFrom);
     }
 }
