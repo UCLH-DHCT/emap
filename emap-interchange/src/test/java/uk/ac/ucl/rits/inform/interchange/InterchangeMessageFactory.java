@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -272,16 +275,19 @@ public class InterchangeMessageFactory {
 
     public FormMsg getFormMsgTemp() {
         FormMsg formMsg = new FormMsg();
+        formMsg.setSourceMessageId("1234");
         formMsg.setSourceSystemFormId("SmartForm1234");
         formMsg.setFormFilingDatetime(Instant.parse("2022-04-01T11:59:00Z"));
         formMsg.setMrn("examplemrn");
         formMsg.setVisitNumber("examplevisit");
         FormAnswerMsg sde1 = new FormAnswerMsg();
+        sde1.setSourceMessageId("567765");
         sde1.setEpicElementId("UCLH#123");
         sde1.setElementValue("Right arm");
         formMsg.getFormAnswerMsgs().add(sde1);
 
         FormAnswerMsg sde2 = new FormAnswerMsg();
+        sde2.setSourceMessageId("567766");
         sde2.setEpicElementId("UCLH#345");
         sde2.setElementValue("");
         formMsg.getFormAnswerMsgs().add(sde2);
@@ -292,6 +298,39 @@ public class InterchangeMessageFactory {
         String resourcePath = "/Form/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
         return mapper.readValue(inputStream, new TypeReference<FormMsg>() {});
+    }
+
+    public FormMetadataMsg getFormMetadataMsg() {
+        FormMetadataMsg formMetadataMsg = new FormMetadataMsg();
+        // TODO: let's find a second real example that isn't the example that's already in the test db...
+        formMetadataMsg.setSourceMessageId("2056");
+        formMetadataMsg.setFormName("UCLH TEP ADVANCED");
+        // A mixture of questions we do and don't already know about
+        formMetadataMsg.getQuestionIds().addAll(Arrays.asList(
+                // These are to test adding new questions to the form that we didn't previously know
+                // were used in the form.
+                // We have different levels of pre-existing question metadata for them (eg. none, partial, full)
+                "TEST#1000", "TEST#1001", "TEST#1002",
+                // These are the questions already in the populate script
+                "UCLH#1205", "UCLH#1209", "UCLH#1210", "UCLH#1211", "UCLH#1213", "UCLH#1218",
+                "UCLH#1219", "UCLH#1220", "UCLH#1221", "UCLH#1222", "UCLH#1223", "UCLH#1224",
+                // deliberately omit "UCLH#4480 to test deletion"
+                "UCLH#1225", "UCLH#1227", "UCLH#4479", /*"UCLH#4480",*/ "UCLH#4481", "UCLH#4482",
+                "UCLH#4497", "UCLH#4498", "UCLH#4499", "UCLH#4500", "UCLH#4501", "UCLH#4502",
+                "UCLH#4503", "UCLH#4505", "UCLH#4512", "UCLH#4731", "UCLH#4732"));
+        return formMetadataMsg;
+    }
+
+    public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg() {
+        List<FormQuestionMetadataMsg> formQuestionMetadataMsgs = new ArrayList<>();
+        FormQuestionMetadataMsg q1 = new FormQuestionMetadataMsg();
+        q1.setSourceMessageId("UCLH#1205");
+        q1.setFormQuestionName("ICU Discussion");
+        q1.setFormQuestionAbbrevName("ICU Discussion");
+//        q1.setFormQuestionType();
+//        q1.setFormQuestionContext();
+        formQuestionMetadataMsgs.add(q1);
+        return formQuestionMetadataMsgs;
     }
 
 }

@@ -10,6 +10,8 @@ import lombok.Data;
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class FormAnswerMsg {
+    // would normally inherit this field from EmapOperationMessage but this class isn't a message on its own
+    private String sourceMessageId;
 
     private String epicElementId;
 
