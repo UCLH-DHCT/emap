@@ -9,26 +9,30 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class FormMetadataMsg extends EmapOperationMessage implements Serializable  {
+public class FormQuestionMetadataMsg extends EmapOperationMessage implements Serializable  {
+
+    // form question
 
     /**
-     * The form's name, eg. "UCLH ADVANCED TEP"
+     * The questions's name, eg. "ICU DISCUSSION"
      */
-    private String formName;
+    private String formQuestionName;
 
     /**
-     * A list of IDs representing questions contained in this form, in the order
-     * in which they appear, if known (do we know the order?).
-     * The ID corresponds to the sourceMessageId of FormQuestionMetadataMsg.
+     * The questions's abbreviated name (do we actually care?)
      */
-    private List<String> questionIds = new ArrayList<>();
+    private String formQuestionAbbrevName;
+
+    // This should be an enum? I think it already exists.
+    private String formQuestionType;
+
+    // "NOTE", "ORDER", etc.
+    private String formQuestionContext;
 
     /**
      * Messages must call back out to the processor (double dispatch).
