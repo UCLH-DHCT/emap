@@ -19,13 +19,18 @@ import java.util.List;
 public class FormMetadataMsg extends EmapOperationMessage implements Serializable  {
 
     /**
-     * The form's name, eg. "UCLH ADVANCED TEP"
+     * The form's name, eg. "UCLH ADVANCED TEP".
      */
     private String formName;
 
     /**
+     * The form's patient friendly name, if specified.
+     */
+    private String formPatientFriendlyName;
+
+    /**
      * A list of IDs representing questions contained in this form, in the order
-     * in which they appear, if known (do we know the order?).
+     * in which they appear, if known.
      * The ID corresponds to the sourceMessageId of FormQuestionMetadataMsg.
      */
     private List<String> questionIds = new ArrayList<>();

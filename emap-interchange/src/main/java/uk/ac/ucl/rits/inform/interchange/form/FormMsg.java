@@ -20,11 +20,9 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class FormMsg extends EmapOperationMessage implements Serializable {
     // Eg. Epic SmartForm ID
-    private String sourceSystemFormId;
+    private String formId;
 
-    private Instant formFilingDatetime;
-
-    private String formFilingUserId;
+    private Instant firstFiledDatetime;
 
     /**
      * Can't guarantee we are going to get this field!

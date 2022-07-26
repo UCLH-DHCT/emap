@@ -2,6 +2,9 @@ package uk.ac.ucl.rits.inform.interchange.form;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+
+import java.time.Instant;
 
 /**
  * An instance of an answered question (Eg. SDE), which will always be nested in a Form.
@@ -13,9 +16,39 @@ public class FormAnswerMsg {
     // would normally inherit this field from EmapOperationMessage but this class isn't a message on its own
     private String sourceMessageId;
 
-    private String epicElementId;
+    /**
+     * The question that this answer is answering.
+     */
+    private String questionId;
 
-    private String elementName;
+    /**
+     * "NOTE", "ORDER", etc.
+     */
+    private String context;
 
-    private String elementValue;
+    /**
+     * If the form answer has been updated since the form was first filed, then
+     * the filing datetime can be overridden here.
+     */
+    private Instant validFrom;
+
+    /**
+     * Numeric value.
+     */
+    private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
+
+    /**
+     * String value.
+     */
+    private InterchangeValue<String> stringValue = InterchangeValue.unknown();
+
+    /**
+     * UTC timestamp value.
+     */
+    private InterchangeValue<Instant> utcDatetimeValue = InterchangeValue.unknown();
+
+    /**
+     * Boolean value.
+     */
+    private InterchangeValue<Boolean> booleanValue = InterchangeValue.unknown();
 }
