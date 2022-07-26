@@ -15,24 +15,23 @@ import java.io.Serializable;
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class FormQuestionMetadataMsg extends EmapOperationMessage implements Serializable  {
-
     // source id == ELEMENT_ID (HLX 40)
 
     /**
      * The questions's name, eg. "ICU DISCUSSION"
      */
-    private String formQuestionName;
+    private String name;
 
     /**
-     * The questions's abbreviated name (do we actually care?)
+     * The questions's abbreviated name.
      */
-    private String formQuestionAbbrevName;
+    private String abbrevName;
 
-    // This should be an enum? I think it already exists.
-    private String formQuestionType;
-
-    // "NOTE", "ORDER", etc.
-    private String formQuestionContext;
+    /**
+     * How the source system describes the data type of an expected answer to this question.
+     * Epic stores the possible values in the ZC_DATA_TYPE table.
+     */
+    private String internalDataType;
 
     /**
      * Messages must call back out to the processor (double dispatch).

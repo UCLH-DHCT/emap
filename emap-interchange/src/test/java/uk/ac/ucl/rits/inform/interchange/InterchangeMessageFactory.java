@@ -275,21 +275,22 @@ public class InterchangeMessageFactory {
 
     public FormMsg getFormMsgTemp() {
         FormMsg formMsg = new FormMsg();
+        formMsg.setSourceSystem("IDS:SDE");
         formMsg.setSourceMessageId("1234");
-        formMsg.setSourceSystemFormId("SmartForm1234");
-        formMsg.setFormFilingDatetime(Instant.parse("2022-04-01T11:59:00Z"));
+        formMsg.setFormId("SmartForm1234");
+        formMsg.setFirstFiledDatetime(Instant.parse("2022-04-01T11:59:00Z"));
         formMsg.setMrn("examplemrn");
         formMsg.setVisitNumber("examplevisit");
         FormAnswerMsg sde1 = new FormAnswerMsg();
         sde1.setSourceMessageId("567765");
-        sde1.setEpicElementId("UCLH#123");
-        sde1.setElementValue("Right arm");
+        sde1.setQuestionId("UCLH#123");
+        sde1.setStringValue(InterchangeValue.buildFromHl7("Right arm"));
         formMsg.getFormAnswerMsgs().add(sde1);
 
         FormAnswerMsg sde2 = new FormAnswerMsg();
         sde2.setSourceMessageId("567766");
-        sde2.setEpicElementId("UCLH#345");
-        sde2.setElementValue("");
+        sde2.setQuestionId("UCLH#345");
+        sde2.setStringValue(InterchangeValue.delete());
         formMsg.getFormAnswerMsgs().add(sde2);
         return formMsg;
     }
@@ -303,6 +304,7 @@ public class InterchangeMessageFactory {
     public FormMetadataMsg getFormMetadataMsg() {
         FormMetadataMsg formMetadataMsg = new FormMetadataMsg();
         // TODO: let's find a second real example that isn't the example that's already in the test db...
+        formMetadataMsg.setSourceSystem("Clarity");
         formMetadataMsg.setSourceMessageId("2056");
         formMetadataMsg.setFormName("UCLH TEP ADVANCED");
         // A mixture of questions we do and don't already know about
@@ -325,10 +327,9 @@ public class InterchangeMessageFactory {
         List<FormQuestionMetadataMsg> formQuestionMetadataMsgs = new ArrayList<>();
         FormQuestionMetadataMsg q1 = new FormQuestionMetadataMsg();
         q1.setSourceMessageId("UCLH#1205");
-        q1.setFormQuestionName("ICU Discussion");
-        q1.setFormQuestionAbbrevName("ICU Discussion");
-//        q1.setFormQuestionType();
-//        q1.setFormQuestionContext();
+        q1.setName("ICU Discussion");
+        q1.setAbbrevName("ICU Discussion");
+        q1.setInternalDataType("Boolean");
         formQuestionMetadataMsgs.add(q1);
         return formQuestionMetadataMsgs;
     }
