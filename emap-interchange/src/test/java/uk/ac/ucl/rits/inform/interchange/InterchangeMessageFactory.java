@@ -306,6 +306,7 @@ public class InterchangeMessageFactory {
         // TODO: let's find a second real example that isn't the example that's already in the test db...
         formMetadataMsg.setSourceSystem("Clarity");
         formMetadataMsg.setSourceMessageId("2056");
+        formMetadataMsg.setValidFrom(Instant.parse("2022-01-01T13:00:00Z"));
         formMetadataMsg.setFormName("UCLH TEP ADVANCED");
         // A mixture of questions we do and don't already know about
         formMetadataMsg.getQuestionIds().addAll(Arrays.asList(
@@ -327,6 +328,7 @@ public class InterchangeMessageFactory {
         List<FormQuestionMetadataMsg> formQuestionMetadataMsgs = new ArrayList<>();
         FormQuestionMetadataMsg q1 = new FormQuestionMetadataMsg();
         q1.setSourceMessageId("UCLH#1205");
+        q1.setValidFrom(Instant.parse("2022-01-01T13:00:00Z"));
         q1.setName("ICU Discussion");
         q1.setAbbrevName("ICU Discussion");
         q1.setInternalDataType("Boolean");

@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -26,6 +27,11 @@ public class FormQuestionMetadataMsg extends EmapOperationMessage implements Ser
      * The questions's abbreviated name.
      */
     private String abbrevName;
+
+    /**
+     * The instant that the form started existing in its present form.
+     */
+    private Instant validFrom;
 
     /**
      * How the source system describes the data type of an expected answer to this question.
