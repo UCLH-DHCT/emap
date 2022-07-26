@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,11 @@ public class FormMetadataMsg extends EmapOperationMessage implements Serializabl
      * The form's patient friendly name, if specified.
      */
     private String formPatientFriendlyName;
+
+    /**
+     * The instant that the form started existing in its present form.
+     */
+    private Instant validFrom;
 
     /**
      * A list of IDs representing questions contained in this form, in the order
