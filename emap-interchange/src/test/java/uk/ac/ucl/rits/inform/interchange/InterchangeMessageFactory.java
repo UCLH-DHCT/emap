@@ -295,10 +295,15 @@ public class InterchangeMessageFactory {
         return formMsg;
     }
 
-    public FormMsg getFormMsg(final String fileName) throws IOException {
+    public List<FormMsg> getFormMsgs(final String fileName) throws IOException {
         String resourcePath = "/Form/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<FormMsg>() {});
+        List<FormMsg> formMsgs = mapper.readValue(inputStream, new TypeReference<List<FormMsg>>() {});
+        for (FormMsg msg : formMsgs) {
+            // derived source Id, so generate programmatically here
+            msg.setSourceMessageId(String.format("%s_%s_%s", msg.getFirstFiledDatetime(), msg.getMrn(), msg.getFormId()));
+        }
+        return formMsgs;
     }
 
     public FormMetadataMsg getFormMetadataMsg() {

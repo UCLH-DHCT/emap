@@ -1,0 +1,53 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "*116065"
+  mrn: "20017809"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72564
+      questionId: "UCLH#1167"
+      context: "NOTE"
+      validFrom: null
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Here is my reasoining"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72565
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      validFrom: null
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1"
+
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72566
+      questionId: "UCLH#1206"
+      context: "NOTE"
+      validFrom: null
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72567
+      questionId: "UCLH#1207"
+      context: "NOTE"
+      validFrom: null
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72568
+      questionId: "UCLH#1208"
+      context: "NOTE"
+      validFrom: null
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1"
