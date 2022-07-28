@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormQuestionRepository;
@@ -12,8 +13,10 @@ import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.forms.Form;
 import uk.ac.ucl.rits.inform.informdb.forms.FormAnswer;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinition;
+import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionAudit;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionFormQuestion;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestion;
+import uk.ac.ucl.rits.inform.informdb.forms.FormQuestionAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
@@ -68,57 +71,58 @@ public class FormController {
         Instant metadataValidFrom = storedFrom;
 
         // get existing or create a new, minimal, metadata entry
-        FormDefinition formDefinition = getOrCreateFormDefinition(formMsg.getSourceMessageId(), storedFrom, metadataValidFrom);
+        RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
+                formMsg.getSourceMessageId(), storedFrom, metadataValidFrom);
 
         Form form = new Form();
-        form.setFormDefinitionId(formDefinition);
+        form.setFormDefinitionId(formDefinition.getEntity());
         form.setStoredFrom(storedFrom);
         form.setValidFrom(formMsg.getFirstFiledDatetime());
         form.setHospitalVisitId(hospitalVisit);
 
         form.setFirstFiledDatetime(formMsg.getFirstFiledDatetime());
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
-            // TODO: tidy up differences between different epic IDs
-            String epicElementId = answerMsg.getQuestionId();
-            String sdeName = answerMsg.getQuestionId();
-            String sdeStringValue = answerMsg.getStringValue().get();
+            String questionId = answerMsg.getQuestionId();
+            String answerStringValue = answerMsg.getStringValue().get();
             FormAnswer formAnswer = new FormAnswer();
             formAnswer.setStoredFrom(storedFrom);
             formAnswer.setValidFrom(formMsg.getFirstFiledDatetime());
-            formAnswer.setValueAsString(sdeStringValue);
+            formAnswer.setValueAsString(answerStringValue);
             formAnswer.setInternalId(answerMsg.getSourceMessageId());
             form.addFormAnswer(formAnswer);
-            FormQuestion formQuestion = getOrCreateFormQuestion(epicElementId, storedFrom, metadataValidFrom);
-            formAnswer.setFormQuestionId(formQuestion);
+            RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, metadataValidFrom);
+            formAnswer.setFormQuestionId(formQuestion.getEntity());
             formAnswer = formAnswerRepository.save(formAnswer);
         }
 
         form = formRepository.save(form);
     }
 
-    private FormDefinition getOrCreateFormDefinition(String formSourceId, Instant storedFrom, Instant validFrom) {
+    private RowState<FormDefinition, FormDefinitionAudit> getOrCreateFormDefinition(String formSourceId, Instant storedFrom, Instant validFrom) {
         Optional<FormDefinition> existing = formDefinitionRepository.findByInternalId(formSourceId);
         if (existing.isPresent()) {
-            return existing.get();
+            return new RowState<>(existing.get(), validFrom, storedFrom, true);
         } else {
             FormDefinition newFormDefinition = new FormDefinition();
             newFormDefinition.setStoredFrom(storedFrom);
             newFormDefinition.setValidFrom(validFrom);
             newFormDefinition.setInternalId(formSourceId);
-            return formDefinitionRepository.save(newFormDefinition);
+            newFormDefinition = formDefinitionRepository.save(newFormDefinition);
+            return new RowState<>(newFormDefinition, validFrom, storedFrom, true);
         }
     }
 
-    private FormQuestion getOrCreateFormQuestion(String formQuestionId, Instant storedFrom, Instant validFrom) {
+    private RowState<FormQuestion, FormQuestionAudit> getOrCreateFormQuestion(String formQuestionId, Instant storedFrom, Instant validFrom) {
         Optional<FormQuestion> existing = formQuestionRepository.findByInternalId(formQuestionId);
         if (existing.isPresent()) {
-            return existing.get();
+            return new RowState<>(existing.get(), validFrom, storedFrom, true);
         } else {
             FormQuestion newFormQuestion = new FormQuestion();
             newFormQuestion.setStoredFrom(storedFrom);
             newFormQuestion.setValidFrom(validFrom);
             newFormQuestion.setInternalId(formQuestionId);
-            return formQuestionRepository.save(newFormQuestion);
+            newFormQuestion = formQuestionRepository.save(newFormQuestion);
+            return new RowState<>(newFormQuestion, validFrom, storedFrom, true);
         }
     }
 
@@ -131,17 +135,24 @@ public class FormController {
         Instant validFrom = formMetadataMsg.getValidFrom();
         TemporalFrom temporalFrom = new TemporalFrom(validFrom, storedFrom);
 
-        FormDefinition formDefinition = getOrCreateFormDefinition(formMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
-        // TODO: need to use a RowState thingy then update all the fields
-        formDefinition.setName(formMetadataMsg.getFormName());
-        formDefinition.setPatientFriendlyName(formMetadataMsg.getFormPatientFriendlyName());
+        RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
+                formMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
+        formDefinition.assignIfDifferent(
+                formMetadataMsg.getFormName(),
+                formDefinition.getEntity().getName(),
+                formDefinition.getEntity()::setName);
+        formDefinition.assignIfDifferent(
+                formMetadataMsg.getFormPatientFriendlyName(),
+                formDefinition.getEntity().getPatientFriendlyName(),
+                formDefinition.getEntity()::setPatientFriendlyName);
 
         for (String questionId : formMetadataMsg.getQuestionIds()) {
             // We only have the question IDs at this point
             // so ensure that at minimum a placeholder entry exists for the questions,
             // then associate them with the form (what if they already exist?)
-            FormQuestion formQuestion = getOrCreateFormQuestion(questionId, storedFrom, validFrom);
-            FormDefinitionFormQuestion.newLink(formDefinition, formQuestion, temporalFrom);
+            RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, validFrom);
+            FormQuestion formQuestionEntity = formQuestion.getEntity();
+            FormDefinitionFormQuestion.newLink(formDefinition.getEntity(), formQuestionEntity, temporalFrom);
         }
     }
 
@@ -152,9 +163,15 @@ public class FormController {
      */
     public void createOrUpdateFormQuestionMetadata(FormQuestionMetadataMsg formQuestionMetadataMsg, Instant storedFrom) {
         Instant validFrom = formQuestionMetadataMsg.getValidFrom();
-        FormQuestion formQuestion = getOrCreateFormQuestion(formQuestionMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
-        // TODO: need to use a RowState thingy then update all the fields
-        formQuestion.setConceptName(formQuestionMetadataMsg.getName());
-        formQuestion.setInternalId(formQuestionMetadataMsg.getSourceMessageId());
+        RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(
+                formQuestionMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
+        formQuestion.assignIfDifferent(
+                formQuestionMetadataMsg.getName(),
+                formQuestion.getEntity().getConceptName(),
+                formQuestion.getEntity()::setConceptName);
+        formQuestion.assignIfDifferent(
+                formQuestionMetadataMsg.getSourceMessageId(),
+                formQuestion.getEntity().getInternalId(),
+                formQuestion.getEntity()::setInternalId);
     }
 }

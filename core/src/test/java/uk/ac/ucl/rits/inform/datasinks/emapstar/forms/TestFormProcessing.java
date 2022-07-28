@@ -49,8 +49,7 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertEquals(1, formRepository.count());
         Form form = formRepository.findAllByHospitalVisitIdEncounter("examplevisit").get(0);
         FormDefinition formDefinition = form.getFormDefinitionId();
-        // TODO: "SmartForm1234" vs "1234"???
-        assertEquals("1234", formDefinition.getInternalId());
+        assertEquals("SomeDerivedFormInstanceIdentifier", formDefinition.getInternalId());
         // we don't have the name yet
         assertNull(formDefinition.getName());
         List<FormAnswer> formAnswers = form.getFormAnswers();
