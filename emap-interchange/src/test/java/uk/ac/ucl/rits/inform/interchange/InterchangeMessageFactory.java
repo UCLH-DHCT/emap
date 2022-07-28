@@ -275,8 +275,8 @@ public class InterchangeMessageFactory {
 
     public FormMsg getFormMsgTemp() {
         FormMsg formMsg = new FormMsg();
-        formMsg.setSourceSystem("IDS:SDE");
-        formMsg.setSourceMessageId("1234");
+        formMsg.setSourceSystem("ids");
+        formMsg.setSourceMessageId("SomeDerivedFormInstanceIdentifier");
         formMsg.setFormId("SmartForm1234");
         formMsg.setFirstFiledDatetime(Instant.parse("2022-04-01T11:59:00Z"));
         formMsg.setMrn("examplemrn");

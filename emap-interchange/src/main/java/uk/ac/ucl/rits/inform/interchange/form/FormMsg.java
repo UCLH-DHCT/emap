@@ -14,21 +14,33 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * For sending completed form instances to the processor.
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class FormMsg extends EmapOperationMessage implements Serializable {
-    // Eg. Epic SmartForm ID
+    /**
+     * Id for the form definition that this message is an instance of.
+     * Eg. Epic SmartForm ID, "2056".
+     */
     private String formId;
 
+    /**
+     * Timestamp for when this form was filed, not counting any updated answers that may come through (hence "first").
+     */
     private Instant firstFiledDatetime;
 
     /**
-     * Can't guarantee we are going to get this field!
+     * Visit number.
      */
     private String visitNumber;
 
+    /**
+     * Patient MRN.
+     */
     private String mrn;
 
     /**
