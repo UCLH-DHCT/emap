@@ -30,33 +30,33 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     private T entity;
     private final T originalEntity;
     private final boolean entityCreated;
-    private final Instant messageDateTime;
-    private final Instant storedFrom;
+    private final Instant newValidFrom;
+    private final Instant newStoredFrom;
     private boolean entityUpdated = false;
 
     /**
      * @param entity          hibernate entity
-     * @param messageDateTime date time of the message
-     * @param storedFrom      when the message has been read by emap core
-     * @param entityCreated   if the entity has been created (instead of already existing in the database)
+     * @param newValidFrom    valid from timestamp for the "new" value (which may or may not be an actual change)
+     * @param newStoredFrom   stored from timestamp to use if any new rows need to be written
+     * @param entityCreated   whether the entity has just been created (as opposed to already existing in the database)
      */
-    public RowState(T entity, Instant messageDateTime, Instant storedFrom, boolean entityCreated) {
+    public RowState(T entity, Instant newValidFrom, Instant newStoredFrom, boolean entityCreated) {
         this.entity = entity;
-        this.messageDateTime = messageDateTime;
-        this.storedFrom = storedFrom;
+        this.newValidFrom = newValidFrom;
+        this.newStoredFrom = newStoredFrom;
         this.entityCreated = entityCreated;
-        originalEntity = entity.copy();
+        this.originalEntity = entity.copy();
     }
 
     /**
-     * @return was the entity created by this message.
+     * @return was the entity newly created before being wrapped by this object
      */
     public boolean isEntityCreated() {
         return entityCreated;
     }
 
     /**
-     * @return was the entity updated by this message.
+     * @return has the entity been updated by this object
      */
     public boolean isEntityUpdated() {
         return entityUpdated;
@@ -82,7 +82,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If new value is different assign from InterchangeValue of PatientClass to a setter taking a string.
      * @param newValue        new value
      * @param currentValue    current value
-     * @param setPatientClass setter lambda
+     * @param setPatientClass setter if value needs updating
      */
     public void assignInterchangeValue(InterchangeValue<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
         if (newValue.isUnknown()) {
@@ -105,15 +105,15 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * Assign new Instant value to LocalDate if different.
      * @param newValue        new value
      * @param currentValue    current value
-     * @param setPatientClass setter lambda
+     * @param setter          setter if value needs updating
      */
-    public void assignInterchangeValue(InterchangeValue<Instant> newValue, LocalDate currentValue, Consumer<LocalDate> setPatientClass) {
+    public void assignInterchangeValue(InterchangeValue<Instant> newValue, LocalDate currentValue, Consumer<LocalDate> setter) {
         if (newValue.isUnknown()) {
             return;
         }
         Instant unpackedValue = newValue.get();
         LocalDate dateTime = (unpackedValue == null) ? null : unpackedValue.atZone(ZoneId.systemDefault()).toLocalDate();
-        assignIfDifferent(dateTime, currentValue, setPatientClass);
+        assignIfDifferent(dateTime, currentValue, setter);
     }
 
     /**
@@ -121,7 +121,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * Adds in arrays equal check before assigning if different.
      * @param newValue     new value
      * @param currentValue current value
-     * @param setter       setter lambda
+     * @param setter       setter if value needs updating
      */
     public void assignInterchangeValue(InterchangeValue<byte[]> newValue, byte[] currentValue, Consumer<byte[]> setter) {
         if (newValue.isUnknown() || Arrays.equals(newValue.get(), currentValue)) {
@@ -134,7 +134,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If new value is different assign from InterchangeValue to a setter taking the same type.
      * @param newValue     new value
      * @param currentValue current value
-     * @param setter       setter lambda
+     * @param setter       setter if value needs updating
      * @param <R>          type of the value in the hibernate entity
      */
     public <R> void assignInterchangeValue(InterchangeValue<R> newValue, R currentValue, Consumer<R> setter) {
@@ -148,7 +148,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * Directly assign a new value if it is different from current value.
      * @param newValue     new value
      * @param currentValue current value
-     * @param setter       setter lambda
+     * @param setter       setter if value needs updating
      * @param <R>          type of the value in the hibernate entity
      * @return true if state has been updated
      */
@@ -165,7 +165,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     /**
      * If current value exists, remove it and set validFrom cancellation time.
      * @param currentValue      current value
-     * @param setter            setter lambda
+     * @param setter            setter if value needs updating
      * @param cancelledDateTime Time of cancellation
      * @param <R>               type of the value in the hibernate entity
      */
@@ -185,14 +185,14 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      */
     public void saveEntityOrAuditLogIfRequired(CrudRepository<T, Long> entityRepo, CrudRepository<A, Long> auditRepo) {
         if (entityCreated) {
-            entity.setStoredFrom(storedFrom);
-            entity.setValidFrom(messageDateTime);
+            entity.setStoredFrom(newStoredFrom);
+            entity.setValidFrom(newValidFrom);
             logger.debug("New Entity saved: {}", entityRepo.save(entity));
         } else if (entityUpdated) {
-            entity.setStoredFrom(storedFrom);
-            entity.setValidFrom(messageDateTime);
+            entity.setStoredFrom(newStoredFrom);
+            entity.setValidFrom(newValidFrom);
             entityRepo.save(entity);
-            A auditEntity = originalEntity.createAuditEntity(messageDateTime, storedFrom);
+            A auditEntity = originalEntity.createAuditEntity(newValidFrom, newStoredFrom);
             auditRepo.save(auditEntity);
             logger.debug("New AuditEntity being saved: {}", auditEntity);
         }
@@ -203,7 +203,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If a value exists, then should only update the value if the message is newer.
      * @param msgValue         interchange value from message
      * @param currentValue     current value
-     * @param setter           setter lambda
+     * @param setter           setter if value needs updating
      * @param messageValidFrom updateTime of the message
      * @param entityValidFrom  validFrom from the database entity
      * @param <R>              type of the value in the hibernate entity
@@ -221,7 +221,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If a value exists, then should only update the value if the message is newer.
      * @param msgValue         value from message
      * @param currentValue     current value
-     * @param setter           setter lambda
+     * @param setter           setter if value needs updating
      * @param messageValidFrom updateTime of the message
      * @param entityValidFrom  validFrom from the database entity
      * @param <R>              type of the value in the hibernate entity
