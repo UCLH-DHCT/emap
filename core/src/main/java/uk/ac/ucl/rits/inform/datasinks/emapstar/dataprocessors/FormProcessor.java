@@ -62,16 +62,20 @@ public class FormProcessor {
     }
 
     /**
-     * Process metadata for a SmartForm and/or SDE.
-     * I'm unsure whether to structure this as one message per SmartForm, and risk some
-     * repetition of SDEs that may appear in multiple forms. Do repeat much though and does it matter?
-     * @param msg
-     * @param storedFrom
+     * Process metadata for a Form. Tells us which Questions can be included in this Form,
+     * but not the full Question metadat.
+     * @param msg the message containing form metadata
+     * @param storedFrom stored from timestamp
      */
     public void processMetadataMessage(FormMetadataMsg msg, Instant storedFrom) {
         formController.createOrUpdateFormMetadata(msg, storedFrom);
     }
 
+    /**
+     * Process metadata for a Question.
+     * @param msg the message containing question metadata
+     * @param storedFrom stored from timestamp
+     */
     public void processQuestionMetadataMessage(FormQuestionMetadataMsg msg, Instant storedFrom) {
         formController.createOrUpdateFormQuestionMetadata(msg, storedFrom);
     }
