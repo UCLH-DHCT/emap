@@ -49,14 +49,14 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     }
 
     /**
-     * @return was the entity newly created before being wrapped by this object
+     * @return was the entity newly created before being wrapped by this RowState object
      */
     public boolean isEntityCreated() {
         return entityCreated;
     }
 
     /**
-     * @return has the entity been updated by this object
+     * @return has the entity been updated by this RowState object
      */
     public boolean isEntityUpdated() {
         return entityUpdated;
@@ -82,7 +82,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If new value is different assign from InterchangeValue of PatientClass to a setter taking a string.
      * @param newValue        new value
      * @param currentValue    current value
-     * @param setPatientClass setter if value needs updating
+     * @param setPatientClass setter to use if value should be updated
      */
     public void assignInterchangeValue(InterchangeValue<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
         if (newValue.isUnknown()) {
@@ -95,7 +95,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If new value is different assign from LabResultStatus to a setter taking a string.
      * @param newValue        new value
      * @param currentValue    current value
-     * @param setResultStatus setter method reference
+     * @param setResultStatus setter to use if value should be updated
      */
     public void assignIfDifferent(LabResultStatus newValue, String currentValue, Consumer<String> setResultStatus) {
         assignIfDifferent(newValue.toString(), currentValue, setResultStatus);
@@ -121,7 +121,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * Adds in arrays equal check before assigning if different.
      * @param newValue     new value
      * @param currentValue current value
-     * @param setter       setter if value needs updating
+     * @param setter       setter to use if value should be updated
      */
     public void assignInterchangeValue(InterchangeValue<byte[]> newValue, byte[] currentValue, Consumer<byte[]> setter) {
         if (newValue.isUnknown() || Arrays.equals(newValue.get(), currentValue)) {
@@ -134,7 +134,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If new value is different assign from InterchangeValue to a setter taking the same type.
      * @param newValue     new value
      * @param currentValue current value
-     * @param setter       setter if value needs updating
+     * @param setter       setter to use if value should be updated
      * @param <R>          type of the value in the hibernate entity
      */
     public <R> void assignInterchangeValue(InterchangeValue<R> newValue, R currentValue, Consumer<R> setter) {
@@ -148,7 +148,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * Directly assign a new value if it is different from current value.
      * @param newValue     new value
      * @param currentValue current value
-     * @param setter       setter if value needs updating
+     * @param setter       setter to use if value should be updated
      * @param <R>          type of the value in the hibernate entity
      * @return true if state has been updated
      */
@@ -165,7 +165,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     /**
      * If current value exists, remove it and set validFrom cancellation time.
      * @param currentValue      current value
-     * @param setter            setter if value needs updating
+     * @param setter            setter to use if value should be updated
      * @param cancelledDateTime Time of cancellation
      * @param <R>               type of the value in the hibernate entity
      */
@@ -203,7 +203,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If a value exists, then should only update the value if the message is newer.
      * @param msgValue         interchange value from message
      * @param currentValue     current value
-     * @param setter           setter if value needs updating
+     * @param setter           setter to use if value should be updated
      * @param messageValidFrom updateTime of the message
      * @param entityValidFrom  validFrom from the database entity
      * @param <R>              type of the value in the hibernate entity
@@ -221,7 +221,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * If a value exists, then should only update the value if the message is newer.
      * @param msgValue         value from message
      * @param currentValue     current value
-     * @param setter           setter if value needs updating
+     * @param setter           setter to use if value should be updated
      * @param messageValidFrom updateTime of the message
      * @param entityValidFrom  validFrom from the database entity
      * @param <R>              type of the value in the hibernate entity
