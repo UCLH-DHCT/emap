@@ -37,7 +37,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     /**
      * @param entity          hibernate entity
      * @param newValidFrom    valid from timestamp for the "new" value (which may or may not be an actual change)
-     * @param newStoredFrom   stored from timestamp to use if any new rows need to be written
+     * @param newStoredFrom   stored from timestamp to use if the entity is persisted
      * @param entityCreated   whether the entity has just been created (as opposed to already existing in the database)
      */
     public RowState(T entity, Instant newValidFrom, Instant newStoredFrom, boolean entityCreated) {
