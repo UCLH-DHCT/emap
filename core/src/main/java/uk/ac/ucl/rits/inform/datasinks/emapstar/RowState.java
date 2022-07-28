@@ -105,7 +105,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * Assign new Instant value to LocalDate if different.
      * @param newValue        new value
      * @param currentValue    current value
-     * @param setter          setter if value needs updating
+     * @param setter          setter to use if value should be updated
      */
     public void assignInterchangeValue(InterchangeValue<Instant> newValue, LocalDate currentValue, Consumer<LocalDate> setter) {
         if (newValue.isUnknown()) {
