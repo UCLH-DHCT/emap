@@ -32,6 +32,10 @@ public class FormAnswerMsg {
      */
     private Instant validFrom;
 
+    // These different values depend on knowing the type in the SDE data itself,
+    // as a datasource won't have access to the metadata!
+    // Until that's available we will have to use the string value only.
+
     /**
      * Numeric value.
      */
