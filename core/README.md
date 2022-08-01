@@ -41,7 +41,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 3. <details>
     <summary>Open project in IntelliJ IDEA</summary>
    
-    <b>File > New > New Project From existing sources</b> and select the parent directory (e.g. `~/projects/EMAP`). If prompted, choose "Create project from existing sources" and "Unmark All" if promted to select source fiels for the project.
+    <b>File > New > New Project From existing sources</b> and select the parent directory (e.g. `~/projects/EMAP`). If prompted, choose "Create project from existing sources" and "Unmark All" if prompted to select source files for the project.
 </details>
 
 4. <details>
