@@ -174,7 +174,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     void testAdtMoves() throws Exception {
         String hl7PathTemplate = "Adt/Location/Moves/%s.txt";
         String interchangePathTemplate = "Location/Moves/%s.yaml";
-        String[] fileNames = {"02_A01", "03_A02"};
+        String[] fileNames = {"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"};
 
         Collection<EmapOperationMessage> builtMessages = new ArrayList<>(fileNames.length);
         Collection<AdtMessage> expectedMessages = new ArrayList<>(fileNames.length);
