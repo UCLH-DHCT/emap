@@ -143,7 +143,7 @@ public class AdtMessageFactory {
             msg.setPatientTitle(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientTitle()));
             msg.setPatientZipOrPostalCode(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
         }
-        if (null != evn) {
+        if (evn != null) {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
             msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
