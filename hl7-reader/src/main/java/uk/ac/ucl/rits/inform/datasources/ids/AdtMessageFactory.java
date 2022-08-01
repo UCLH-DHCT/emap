@@ -400,9 +400,6 @@ public class AdtMessageFactory {
      * @throws HL7Exception if PID doesn't exist for a merge message
      */
     private PID getPid(Message hl7Msg, boolean secondSegment) throws HL7Exception {
-        // I want the "MRG" segment for A40 messages, is this really
-        // the best way to get it? Why do we have to get the PID segment in
-        // a different way for an A39/A40 message?
         PID pid = null;
         if (hl7Msg instanceof ADT_A39) {
             ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) hl7Msg.get("PATIENT");
