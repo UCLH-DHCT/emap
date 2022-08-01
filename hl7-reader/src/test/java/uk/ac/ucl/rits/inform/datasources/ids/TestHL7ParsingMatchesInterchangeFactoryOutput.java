@@ -18,12 +18,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 
 /**
@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Slf4j
 public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory;
+
 
     /**
      * Constructor for the test class. Populates all the message files
@@ -48,16 +49,16 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         log.info("Testing ADT message with stem '{}'", adtFileStem);
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem + ".txt");
         AdtMessage expectedAdtMessage = interchangeFactory.getAdtMessage(adtFileStem + ".yaml");
-        Assertions.assertEquals(1, messagesFromHl7Message.size());
-        Assertions.assertEquals(expectedAdtMessage, messagesFromHl7Message.get(0));
+        assertEquals(1, messagesFromHl7Message.size());
+        assertEquals(expectedAdtMessage, messagesFromHl7Message.get(0));
     }
 
     private void assertListOfMessagesEqual(List<? extends EmapOperationMessage> expectedMessages, List<? extends EmapOperationMessage> messagesFromHl7Message) {
         for (int i = 0; i < expectedMessages.size(); i++) {
             String failMessage = String.format("Failed on message %d", i);
-            Assertions.assertEquals(expectedMessages.get(i), messagesFromHl7Message.get(i), failMessage);
+            assertEquals(expectedMessages.get(i), messagesFromHl7Message.get(i), failMessage);
         }
-        Assertions.assertEquals(expectedMessages.size(), messagesFromHl7Message.size());
+        assertEquals(expectedMessages.size(), messagesFromHl7Message.size());
     }
 
     private void assertLabOrdersWithValueAsBytesEqual(List<LabOrderMsg> expectedMessages, List<? extends EmapOperationMessage> messagesFromHl7Message) {
@@ -169,8 +170,31 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         testAdtMessage("DoubleA01WithA13/A13");
     }
 
+    @Test
+    void testAdtMoves() throws Exception {
+        String hl7PathTemplate = "Adt/Location/Moves/%s.txt";
+        String interchangePathTemplate = "Location/Moves/%s.yaml";
+        String[] fileNames = {"02_A01", "03_A02"};
+
+        Collection<EmapOperationMessage> builtMessages = new ArrayList<>(fileNames.length);
+        Collection<AdtMessage> expectedMessages = new ArrayList<>(fileNames.length);
+        // build up order messages
+        for (String fileName : fileNames) {
+            log.info("Processing file {}", fileName);
+            EmapOperationMessage builtMessage = processSingleMessage(String.format(hl7PathTemplate, fileName)).stream().findFirst().orElseThrow();
+            AdtMessage expectedMessage = interchangeFactory.getAdtMessage(String.format(interchangePathTemplate, fileName));
+
+            assertEquals(expectedMessage, builtMessage);
+            expectedMessages.add(expectedMessage);
+            builtMessages.add(builtMessage);
+        }
+
+        assertEquals(expectedMessages.size(), builtMessages.size());
+
+    }
+
     void checkConsultMatchesInterchange(String fileName) throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("ConsultRequest/"+fileName+".txt");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("ConsultRequest/" + fileName + ".txt");
         ConsultRequest expected = interchangeFactory.getConsult(String.format("%s.yaml", fileName));
         assertEquals(1, messagesFromHl7Message.size());
         assertEquals(expected, messagesFromHl7Message.get(0));
@@ -197,11 +221,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     void checkAdvanceDecisionMatchesInterchange(String fileName) throws Exception {
-        checkAdvanceDecisionMatchesInterchange("AdvanceDecision/"+fileName+".txt",
+        checkAdvanceDecisionMatchesInterchange("AdvanceDecision/" + fileName + ".txt",
                 String.format("%s.yaml", fileName));
     }
 
-    void checkAdvanceDecisionMatchesInterchange(String txtFileName, String yamlFileName) throws Exception{
+    void checkAdvanceDecisionMatchesInterchange(String txtFileName, String yamlFileName) throws Exception {
 
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(txtFileName);
         AdvanceDecisionMessage expected = interchangeFactory.getAdvanceDecision(yamlFileName);
@@ -408,8 +432,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         List<PatientInfection> expectedMessages = interchangeFactory.getPatientInfections(yamlFileName);
 
-        for (int i = 0; i < expectedMessages.size(); i++){
-            Assertions.assertEquals(expectedMessages.get(i), messagesFromHl7.get(i));
+        for (int i = 0; i < expectedMessages.size(); i++) {
+            assertEquals(expectedMessages.get(i), messagesFromHl7.get(i));
         }
 
         assertEquals(expectedMessages.size(), messagesFromHl7.size());
@@ -426,29 +450,29 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
      * @throws Exception If not all the files have been accessed
      */
     @AfterAll
-    void checkAllFilesHaveBeenAccessed() throws Exception{
+    void checkAllFilesHaveBeenAccessed() throws Exception {
 
         var excludedSourceSystems = new String[]{"clarity", "caboodle"};
         var missedFilePaths = new ArrayList<String>();
 
-        for (var file: interchangeFactory.getFileStore()){
+        for (var file : interchangeFactory.getFileStore()) {
 
             if (!file.getFilePathString().endsWith(".yaml")
                     || file.getFilePathString().endsWith("_defaults.yaml") // Implicitly considered - non-prefixed version inherits
                     || file.hasBeenAccessed()
-                    || file.sourceSystem().isEmpty()){
+                    || file.sourceSystem().isEmpty()) {
                 continue;
             }
 
-            if (Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())){
+            if (Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())) {
                 continue;  // Source system is excluded
             }
 
             missedFilePaths.add(file.getFilePathString());
         }
 
-        if (missedFilePaths.size() > 0){
-            for (var filePathString : missedFilePaths){
+        if (missedFilePaths.size() > 0) {
+            for (var filePathString : missedFilePaths) {
                 System.err.println(filePathString);
             }
 
