@@ -61,7 +61,7 @@ emap setup --help
 
 Clone all the repositories for the specified branches:
 ```bash
-emap setup --init test_branch
+emap setup --init --branch test_branch
 ```
 
 > **_NOTE:_**  If a branch has not been specified the runner defaults to the _develop_ branch.
