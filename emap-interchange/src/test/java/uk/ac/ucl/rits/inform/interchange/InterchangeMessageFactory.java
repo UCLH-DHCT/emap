@@ -24,12 +24,10 @@ import java.util.List;
  * Allows for easier setup for integration testing in hl7 sources and emap star
  */
 public class InterchangeMessageFactory {
-    private final ObjectMapper mapper;
+    private final InterchangeMapper mapper;
 
     public InterchangeMessageFactory() {
-        mapper = new ObjectMapper(new YAMLFactory());
-        // Finds modules so instants can be parsed correctly
-        mapper.findAndRegisterModules();
+        mapper = new InterchangeMapper();
     }
 
     /**
