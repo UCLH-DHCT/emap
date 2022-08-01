@@ -48,7 +48,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
     <summary>Add Maven projects</summary>
    
     In the project pane on the top left of the IDE, switch to "Project Files" mode, right-click `Emap-Core/pom.xml` and select <b>Add as Maven project</b>.
-    Do the same with `Emap-Interchange/pom.xml` and `Inform-DB/pom.xml` - not to be confused with `Inform-DB/inform-db/pom.xml`! Likewise with `hoover/pom.xml` and `emap-hl7-processor/pom.xml` 
+    Do the same with `Emap-Interchange/pom.xml` and `Inform-DB/pom.xml` - not to be confused with `Inform-DB/inform-db/pom.xml` (which contains the Hibernate entity definitions, but requires the annotation preprocessor)! Likewise with `hoover/pom.xml` and `emap-hl7-processor/pom.xml` 
     If you add something by mistake use "Unlink Maven projects" in the Maven pane, which is the opposite of "Add..."
 </details>
 
