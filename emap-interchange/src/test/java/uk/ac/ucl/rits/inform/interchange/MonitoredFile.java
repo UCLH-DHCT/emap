@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.interchange;
 
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -38,21 +39,25 @@ public class MonitoredFile {
     public Optional<String> sourceSystem() throws Exception {
 
         var path = getFilePathString();
+        BufferedReader reader;
 
         if (path.contains("jar!")){
-            path = path.split("jar!")[1];
+            var stream = getClass().getResourceAsStream(path.split("jar!")[1]);
+            if (stream == null){
+                throw new Exception("Failed to get the stream of " + path);
+            }
+            reader = new BufferedReader(new InputStreamReader(stream));
+        }
+        else{
+            reader = new BufferedReader(new FileReader(path));
         }
 
-        var inputStream = getClass().getResourceAsStream(path);
+        String line;
+        while ((line = reader.readLine()) != null) {
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-
-                if (line.contains("sourceSystem: ")) {
-                    var sourceSystem = line.split(": ")[1];
-                    return Optional.of(sourceSystem.replace("\"", ""));
-                }
+            if (line.contains("sourceSystem: ")) {
+                var sourceSystem = line.split(": ")[1];
+                return Optional.of(sourceSystem.replace("\"", ""));
             }
         }
         return Optional.empty();
