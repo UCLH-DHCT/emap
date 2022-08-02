@@ -72,7 +72,6 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
      */
     private String standardisedVocabulary;
 
-
     /**
      * Minimal information constructor.
      * @param dataType   Type of patient state type; either patient infection or problem list
@@ -99,7 +98,8 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
         this.name = other.name;
         this.standardisedCode = other.standardisedCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
-
+        this.severity = other.severity;
+        this.subType = other.subType;
     }
 
     @Override
@@ -111,5 +111,4 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     public ConditionTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
         return new ConditionTypeAudit(this, validUntil, storedUntil);
     }
-
 }
