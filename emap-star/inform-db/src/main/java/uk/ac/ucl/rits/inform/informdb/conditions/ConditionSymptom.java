@@ -55,13 +55,11 @@ public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSy
     /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
      */
-    @Column(nullable = true)
     private String standardisedCode;
 
     /**
      * \brief Nomenclature or classification system used. Not yet implemented.
      */
-    @Column(nullable = true)
     private String standardisedVocabulary;
 
     /**
@@ -83,7 +81,8 @@ public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSy
         this.name = other.name;
         this.standardisedCode = other.standardisedCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
-
+        this.conditionSymptomId = other.conditionSymptomId;
+        this.patientConditionId = other.patientConditionId;
     }
 
     @Override
