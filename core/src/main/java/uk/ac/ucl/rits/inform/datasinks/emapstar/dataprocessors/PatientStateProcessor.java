@@ -8,15 +8,15 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientConditionCont
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientSymptomController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionSymptom;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
 
+
 import java.time.Instant;
-import java.util.List;
 
 /**
  * Handle processing of patient state messages.
@@ -33,50 +33,34 @@ public class PatientStateProcessor {
     /**
      * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
      * @param patientConditionController patient state controller
+     * @param patientSymptomController   patient symptom controller
      * @param personController           person controller
      * @param visitController            hospital visit controller
      */
     public PatientStateProcessor(
-            PatientConditionController patientConditionController, PersonController personController,
-            VisitController visitController, PatientSymptomController symptomController) {
+            PatientConditionController patientConditionController, PatientSymptomController patientSymptomController, PersonController personController, VisitController visitController) {
         this.patientConditionController = patientConditionController;
-        this.patientSymptomController = symptomController;
+        this.patientSymptomController = patientSymptomController;
         this.personController = personController;
         this.visitController = visitController;
     }
 
-
     /**
-     * Process patient condition message, which can represent either an infection, problem or allergy of a patient.
+     * Process patient condition (problem/infection/allergy) message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(PatientProblem msg, final Instant storedFrom)
+    public void processMessage(PatientConditionMessage msg, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
+
         logger.trace("Processing {}", msg);
         Mrn mrn = getOrCreateMrn(msg, storedFrom);
         HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
-        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
+        PatientCondition condition = patientConditionController.getOrCreateCondition(msg, mrn, visit, storedFrom);
+        patientSymptomController.processMessage(msg, condition, storedFrom);
     }
-
-
-    /**
-     * Process patient infection message.
-     * @param msg        message
-     * @param storedFrom Time the message started to be processed by star
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
-     */
-    @Transactional
-    public void processMessage(PatientInfection msg, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException {
-
-        Mrn mrn = getOrCreateMrn(msg, storedFrom);
-        HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
-        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
-    }
-
 
     /**
      * Get or create a hospital visit using the visitController.
@@ -95,11 +79,8 @@ public class PatientStateProcessor {
             visit = visitController.getOrCreateMinimalHospitalVisit(msg.getVisitNumber().get(), mrn,
                     msg.getSourceSystem(), msg.getUpdatedDateTime(), storedFrom);
         }
-        PatientCondition condition = patientConditionController.getOrCreatePatientCondition(msg, mrn, visit, storedFrom);
 
-        if (condition != null){
-            patientSymptomController.processMessage(msg, condition, storedFrom);
-        }
+        return visit;
     }
 
     /**
@@ -117,6 +98,5 @@ public class PatientStateProcessor {
         return personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
                 msgUpdatedTime, storedFrom);
     }
-
 
 }
