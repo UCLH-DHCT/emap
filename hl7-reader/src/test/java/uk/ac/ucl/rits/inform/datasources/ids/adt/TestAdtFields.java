@@ -1,7 +1,8 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.adt;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.ac.ucl.rits.inform.datasources.ids.TestHl7MessageStream;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;

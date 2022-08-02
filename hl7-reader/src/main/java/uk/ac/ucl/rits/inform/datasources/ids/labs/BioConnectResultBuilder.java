@@ -45,7 +45,7 @@ public class BioConnectResultBuilder extends LabResultBuilder {
     void setCustomOverrides() {
         getMessage().setTestItemCodingSystem(codingSystem);
 
-        String localCode = getObx().getObx3_ObservationIdentifier().getCwe2_Text().getValueOrEmpty();
+        String localCode = getObx().getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
         getMessage().setTestItemLocalCode(localCode);
     }
 
