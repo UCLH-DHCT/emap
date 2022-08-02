@@ -19,7 +19,7 @@
   addedDate: "2019-06-01"
   action: "ADD"
   status: "ACTIVE"
-  onsetTime:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-05-31"
