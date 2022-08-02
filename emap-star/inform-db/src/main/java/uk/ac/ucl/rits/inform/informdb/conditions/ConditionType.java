@@ -76,7 +76,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     /**
      * Minimal information constructor.
      * @param dataType   Type of patient state type; either patient infection or problem list
-     * @param code       EPIC code of the patient state type
+     * @param code       code of the patient condition type
      * @param validFrom  Timestamp from which information valid from
      * @param storedFrom Timestamp from which information stored from
      */
@@ -93,6 +93,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
      */
     public ConditionType(ConditionType other) {
         super(other);
+        this.conditionTypeId = other.conditionTypeId;
         this.dataType = other.dataType;
         this.internalCode = other.internalCode;
         this.name = other.name;
