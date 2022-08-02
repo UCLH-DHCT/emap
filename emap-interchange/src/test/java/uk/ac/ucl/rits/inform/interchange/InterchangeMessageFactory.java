@@ -1,9 +1,7 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
@@ -24,10 +22,10 @@ import java.util.List;
  * Allows for easier setup for integration testing in hl7 sources and emap star
  */
 public class InterchangeMessageFactory {
-    private final InterchangeMapper mapper;
+    private final EmapYamlMapper mapper;
 
     public InterchangeMessageFactory() {
-        mapper = new InterchangeMapper();
+        mapper = new EmapYamlMapper();
     }
 
     /**
