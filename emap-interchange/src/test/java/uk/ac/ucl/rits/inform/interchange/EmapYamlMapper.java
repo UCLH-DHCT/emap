@@ -20,11 +20,18 @@ public class EmapYamlMapper {
     /**
      * Create an EMAP interchange Mapper object, configured to allow for serialising and deserialising YAML.
      */
-    public EmapYamlMapper() {
+    private EmapYamlMapper() {
         mapper = new ObjectMapper(new YAMLFactory());
         // Finds modules so instants can be parsed correctly
         mapper.findAndRegisterModules();
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    }
+    private static class SingletonHolder {
+        private static final EmapYamlMapper INSTANCE = new EmapYamlMapper();
+    }
+
+    public static String convertToString(EmapOperationMessage message) {
+        return SingletonHolder.INSTANCE.removeSourceAndConvertToString(message);
     }
 
     /**
@@ -32,7 +39,7 @@ public class EmapYamlMapper {
      * @param message EMAP message to convert to a string
      * @return YAML string of the message contents
      */
-    public String convertToString(EmapOperationMessage message) {
+    private String removeSourceAndConvertToString(EmapOperationMessage message) {
         try {
             String json = mapper.writeValueAsString(message);
             return SOURCE_ID_PATTERN.matcher(json).replaceFirst("");
@@ -42,11 +49,11 @@ public class EmapYamlMapper {
         return null;
     }
 
-    <T> T readValue(InputStream src, TypeReference<T> valueTypeRef) throws IOException {
-        return mapper.readValue(src, valueTypeRef);
+    static <T> T readValue(InputStream src, TypeReference<T> valueTypeRef) throws IOException {
+        return SingletonHolder.INSTANCE.mapper.readValue(src, valueTypeRef);
     }
 
-    ObjectReader readerForUpdating(Object valueToUpdate) {
-        return mapper.readerForUpdating(valueToUpdate);
+    static ObjectReader readerForUpdating(Object valueToUpdate) {
+        return SingletonHolder.INSTANCE.mapper.readerForUpdating(valueToUpdate);
     }
 }
