@@ -71,26 +71,16 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     private InterchangeValue<String> comment = InterchangeValue.unknown();
 
     /**
-     * Effectively message type, i.e. whether to add, update or delete problem list.
-     */
-    private String action = "AD";
-
-    /**
      * Subtype of a particular condition i.e. condition->infection->null, condition->allergy->drug where drug is
-     * the subtype of the problem
+     * the subtype of the problem.
      */
     private InterchangeValue<String> subType = InterchangeValue.unknown();
-
-    /**
-     * Severity of the condition
-     */
-    private InterchangeValue<String> severity = InterchangeValue.unknown();
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
      * @param processor the processor to call back to
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    abstract public void processMessage(EmapOperationMessageProcessor processor)
+    public abstract void processMessage(EmapOperationMessageProcessor processor)
             throws EmapOperationMessageProcessingException;
 }
