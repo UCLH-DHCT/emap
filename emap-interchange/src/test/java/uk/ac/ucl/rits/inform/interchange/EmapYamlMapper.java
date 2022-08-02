@@ -42,11 +42,15 @@ public class EmapYamlMapper {
     private String removeSourceAndConvertToString(EmapOperationMessage message) {
         try {
             String json = mapper.writeValueAsString(message);
-            return SOURCE_ID_PATTERN.matcher(json).replaceFirst("");
+            return removeSourceMessageIdLine(json);
         } catch (JsonProcessingException e) {
             log.error("Message could not be parsed", e);
         }
         return null;
+    }
+
+    private static String removeSourceMessageIdLine(CharSequence yaml) {
+        return SOURCE_ID_PATTERN.matcher(yaml).replaceFirst("");
     }
 
     static <T> T readValue(InputStream src, TypeReference<T> valueTypeRef) throws IOException {
