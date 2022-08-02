@@ -3,17 +3,20 @@
   sourceMessageId: "1"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"
-  allergenType: "Food"
-  allergenName:
+  subType:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Food"
+  conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value:  "NUTS"
-  epicAllergyId:
+  epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
-  allergyAdded: "2019-06-08T10:31:05Z"
-  allergyOnset:
+  addedDatetime: "2019-06-08T10:31:05Z"
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-05"
@@ -24,26 +27,26 @@
   reactions:
     - "Anaphylaxis"
     - "Hives"
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Active"
+  status: "Active"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
   sourceSystem: "clarity"
   sourceMessageId: "2"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
-  allergenType: "Drug Class"
-  allergenName:
+  subType:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Drug Class"
+  conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value:  "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
-  epicAllergyId:
+  epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 2
-  allergyAdded: "2019-06-08T02:05:49Z"
-  allergyOnset:
+  addedDatetime: "2019-06-08T02:05:49Z"
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-05"
@@ -53,7 +56,4 @@
     value: "Medium"
   reactions:
     - "Hives"
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Active"
+  status: "Active"
