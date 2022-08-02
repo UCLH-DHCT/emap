@@ -122,7 +122,7 @@ public class TestPatientProblems extends TestHl7MessageStream {
 
         var problem = getAllProblems("problem_list_onset").get(0);
         assertEquals(VISIT_NUMBER, problem.getVisitNumber().get());
-        assertEquals(PROBLEM_ONSET, problem.getOnsetTime().get());
+        assertEquals(PROBLEM_ONSET, problem.getOnsetDate().get());
     }
 
     /**

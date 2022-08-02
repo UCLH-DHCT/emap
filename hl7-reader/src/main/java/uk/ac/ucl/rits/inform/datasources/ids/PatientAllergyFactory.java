@@ -86,12 +86,15 @@ public class PatientAllergyFactory {
         patientAllergy.setMrn(patientInfo.getMrn());
         patientAllergy.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
 
+        // TODO: check status in IDS
+        patientAllergy.setStatus("Active");
+
         // allergy specific information
-        patientAllergy.setAllergyOnset(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(iam.getIam11_OnsetDate())));
-        patientAllergy.setAllergenType(iam.getAllergenTypeCode().getCwe1_Identifier().getValueOrEmpty());
-        patientAllergy.setAllergenName(InterchangeValue.buildFromHl7(iam.getAllergenCodeMnemonicDescription().getText().getValueOrEmpty()));
-        patientAllergy.setAllergyAdded(HL7Utils.interpretLocalTime(iam.getReportedDateTime()));
-        patientAllergy.setSeverity(iam.getAllergySeverityCode().getCwe1_Identifier().getValue());
+        patientAllergy.setOnsetDate(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(iam.getIam11_OnsetDate())));
+        patientAllergy.setSubType(InterchangeValue.buildFromHl7(iam.getAllergenTypeCode().getCwe1_Identifier().getValueOrEmpty()));
+        patientAllergy.setConditionName(InterchangeValue.buildFromHl7(iam.getAllergenCodeMnemonicDescription().getText().getValueOrEmpty()));
+        patientAllergy.setAddedDatetime(HL7Utils.interpretLocalTime(iam.getReportedDateTime()));
+        patientAllergy.setSeverity(InterchangeValue.buildFromHl7(iam.getAllergySeverityCode().getCwe1_Identifier().getValue()));
 
         // add reactions of which there can be multiple
         for (ST reactionCode : iam.getIam5_AllergyReactionCode()) {
@@ -107,12 +110,12 @@ public class PatientAllergyFactory {
      * @param allergies Collection of potentially other allergies that this new allergy will be added to.
      */
     private void addNewAllergyAndUpdateProgress(PatientAllergy patientAllergy, Collection<PatientAllergy> allergies) {
-        Instant allergyAdded = patientAllergy.getAllergyAdded();
-        if (allergyAdded == null || allergyAdded.isBefore(allergiesProgress)) {
-            logger.debug("Allergy processing skipped as current allergy added is {} and progress is {}", allergyAdded, allergiesProgress);
+        Instant addedTime = patientAllergy.getAddedDatetime();
+        if (addedTime == null || addedTime.isBefore(allergiesProgress)) {
+            logger.debug("Allergy processing skipped as current allergy added is {} and progress is {}", addedTime, allergiesProgress);
             return;
         }
         allergies.add(patientAllergy);
-        allergiesProgress = patientAllergy.getAllergyAdded();
+        allergiesProgress = addedTime;
     }
 }
