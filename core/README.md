@@ -200,7 +200,7 @@ manages the multiple repositories and configuration files.
     <summary>Clone the repositories</summary>
 
     Repositories must be checked out to the correct branches. "Correct" will depend on what you're trying to do.
-    Conventionally a live instance would all be deployed from master, but during the development phase `develop`
+    Conventionally a live instance would all be deployed from main/master, but during the development phase `develop`
     or a feature branch is more likely to be the correct. Clone all the master branches with:
 
     ```bash
