@@ -8,18 +8,18 @@
   visitNumber:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "11144333"
-  updatedDateTime: "2019-06-07T11:33:00Z"
+    value: "123412341234"
+  updatedDateTime: "2019-06-08T12:00:00Z"
   mrn: "8DcEwvqa8Q3"
-  conditionCode: "Z84.8"
+  conditionCode: "C90.0"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "Family history of other specified conditions"
+    value: "Multiple Myeloma"
   addedDate: "2019-06-01"
   onsetTime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-05-31"
-  action: "ADD"
+  action: "DELETE"
   status: "ACTIVE"

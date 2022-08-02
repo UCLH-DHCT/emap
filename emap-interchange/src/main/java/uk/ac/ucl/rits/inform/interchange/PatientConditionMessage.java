@@ -9,19 +9,24 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Abstract class defining a patient condition message, either a 'problem' (aka. problem list) or an infection
+ * Interface defining a patient condition message, either a 'problem' (aka. problem list) or an infection
  * @author Tom Young
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public abstract class PatientConditionMessage extends EmapOperationMessage{
+public abstract class PatientConditionMessage extends EmapOperationMessage {
 
     private String mrn;
 
     /**
-     * Number of the hospital visit
+     * Status of the condition.
+     */
+    private String status;
+
+    /**
+     * Number of the hospital visit.
      */
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
@@ -31,7 +36,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
     private String conditionCode;
 
     /**
-     * Human-readable condtion name.
+     * Human-readable condition name.
      */
     private InterchangeValue<String> conditionName = InterchangeValue.unknown();
 
@@ -41,35 +46,29 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
     private Instant updatedDateTime;
 
     /**
-     * Unique Id for a condition in EPIC.
-     * If we can't get this added to the live HL7 interface when we should remove it.
+     * Unique Id for a condition, e.g. problem list id in clarity.
      */
-    private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
-
-    /**
-     * Status of a condition
-     */
-    private InterchangeValue<String> status = InterchangeValue.unknown();
-
-    /**
-     * Comment about the condition
-     */
-    private InterchangeValue<String> comment = InterchangeValue.unknown();
-
-    /**
-     * Condition added at...
-     */
-    private Instant addedTime;
-
-    /**
-     * Condition resolved at...
-     */
-    private InterchangeValue<Instant> resolvedTime = InterchangeValue.unknown();
+    private InterchangeValue<Long> conditionId = InterchangeValue.unknown();
 
     /**
      * Onset of condition known at...
      */
     private InterchangeValue<LocalDate> onsetTime = InterchangeValue.unknown();
+
+    /**
+     * Effectively message type, i.e. whether to add, update or delete the condition.
+     */
+    private ConditionAction action = ConditionAction.ADD;
+
+    /**
+     * Identifier for condition as provided in HL7 messages.
+     */
+    private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
+
+    /**
+     * Comment on a condition.
+     */
+    private InterchangeValue<String> comment = InterchangeValue.unknown();
 
     /**
      * Effectively message type, i.e. whether to add, update or delete problem list.
