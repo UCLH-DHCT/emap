@@ -15,34 +15,18 @@ import java.util.List;
 /**
  * Interchange format of a PatientAllergy message.
  * @author Anika Cawthorn
+ * @author Tom Young
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientAllergy extends PatientConditionMessage implements Serializable {
-    private String mrn;
-    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
     /**
-     * Type of allergy, i.e. whether patient is allergic against a drug, particles in the environment, etc.
+     * Reaction (aka. symptom) occurring when patient is exposed to allergen...
      */
-    private String allergenType;
-
-    /**
-     * Human readable allergen name.
-     */
-    private InterchangeValue<String> allergenName = InterchangeValue.unknown();
-
-    /**
-     * Time of the update for the message carrying this information.
-     */
-    private Instant updatedDateTime;
-
-    /**
-     * Unique Id for allergy in EPIC.
-     */
-    private InterchangeValue<Long> epicAllergyId = InterchangeValue.unknown();
+    private List<String> reactions = new ArrayList<>();
 
     /**
      * Allergy added at...
@@ -50,29 +34,9 @@ public class PatientAllergy extends PatientConditionMessage implements Serializa
     private Instant allergyAdded;
 
     /**
-     * Onset of allergy known at...
-     */
-    private InterchangeValue<LocalDate> allergyOnset = InterchangeValue.unknown();
-
-    /**
      * Severity of reaction patient shows when exposed to allergen...
      */
     private String severity;
-
-    /**
-     * Status of the allergy...
-     */
-    private InterchangeValue<String> status = InterchangeValue.unknown();
-
-    /**
-     * Action in relation to allergy information, e.g. whether add/update/delete...
-     */
-    private String action;
-    /**
-     * Reaction occurring when patient exposed to allergen...
-     */
-    private List<String> reactions = new ArrayList<>();
-
 
     /**
      * Adds a list of strings to the reactions.

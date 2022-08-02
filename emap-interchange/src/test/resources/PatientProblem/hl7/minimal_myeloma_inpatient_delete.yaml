@@ -1,0 +1,25 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "EPIC"
+  sourceMessageId: "0000000042"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1333555
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "123412341234"
+  updatedDateTime: "2019-06-08T12:00:00Z"
+  mrn: "8DcEwvqa8Q3"
+  conditionCode: "C90.0"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Multiple Myeloma"
+  addedDate: "2019-06-01"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
+  action: "DELETE"
+  status: "ACTIVE"
