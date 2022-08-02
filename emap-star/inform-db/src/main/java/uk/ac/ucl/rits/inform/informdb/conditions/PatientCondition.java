@@ -130,6 +130,12 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      */
     private String priority;
 
+
+    /**
+     * \brief condition severity.
+     */
+    private String severity;
+
     /**
      * \brief Is this condition deleted.
      */
