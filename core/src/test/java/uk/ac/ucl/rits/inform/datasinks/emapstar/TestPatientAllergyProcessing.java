@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test the processing of allergy interchange messages and population of the patient condition databases
  * @author Tom Young
  */
-public class TestAllergyProcessing extends MessageProcessingBase {
+public class TestPatientAllergyProcessing extends MessageProcessingBase {
     @Autowired
     PatientConditionRepository patientConditionRepository;
     @Autowired
@@ -81,7 +81,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     }
 
     private boolean hasNoPriorityCommentOrResolutionTime(PatientCondition condition){
-        return condition.getPriority() == null && condition.getComment() == null && condition.getResolutionDateTime() == null;
+        return condition.getPriority() == null && condition.getComment() == null && condition.getResolutionDatetime() == null;
     }
 
     /**
@@ -101,7 +101,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         PatientCondition condition = firstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
         assertEquals(NUM_TRAMADOL_REACTIONS, getAllEntities(conditionSymptomRepository).size());
-        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
+        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDatetime());
         assertEquals(LocalDate.parse(FIRST_ONSET_DATE), condition.getOnsetDate());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
     }
@@ -147,7 +147,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertEquals(SECOND_ALLERGEN, condition.getConditionTypeId().getName());
         assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
         assertEquals(SECOND_ALLERGEN_SUBTYPE, condition.getConditionTypeId().getSubType());
-        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
+        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDatetime());
         assertEquals(LocalDate.parse(SECOND_ONSET_DATE), condition.getOnsetDate());
         assertEquals(SECOND_ALLERGY_SEVERITY, condition.getConditionTypeId().getSeverity());
         assertEquals(ACTIVE, condition.getStatus());
@@ -201,7 +201,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertEquals(THIRD_ALLERGEN, condition.getConditionTypeId().getName());
         assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
         assertEquals(THIRD_ALLERGEN_SUBTYPE, condition.getConditionTypeId().getSubType());
-        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
+        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDatetime());
         assertEquals(LocalDate.parse(THIRD_ONSET_DATE), condition.getOnsetDate());
         assertEquals(THIRD_SEVERITY, condition.getConditionTypeId().getSeverity());
         assertEquals(ACTIVE, condition.getStatus());
@@ -252,7 +252,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertTrue(aSingleConditionExists());
         assertNull(firstPatientCondition().getStatus());
 
-        hl7Tramadol.setStatus(InterchangeValue.buildFromHl7(ACTIVE));
+        hl7Tramadol.setStatus(ACTIVE);
         hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).minus(1, ChronoUnit.SECONDS));
 
         processSingleMessage(hl7Tramadol);
