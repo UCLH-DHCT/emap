@@ -1,10 +1,15 @@
-package uk.ac.ucl.rits.inform.interchange;
+package uk.ac.ucl.rits.inform.interchange.test.helpers;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
+import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
+import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
+import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
