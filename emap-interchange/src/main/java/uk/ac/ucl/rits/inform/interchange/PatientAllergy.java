@@ -22,6 +22,8 @@ import java.util.List;
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientAllergy extends PatientConditionMessage implements Serializable {
+    private String mrn;
+    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
 
     /**
@@ -31,14 +33,39 @@ public class PatientAllergy extends PatientConditionMessage implements Serializa
 
 
     /**
-     * Call back to the processor so it knows what type this object is (ie. double dispatch).
-     * @param processor the processor to call back to
-     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     * Unique Id for allergy in EPIC.
      */
-    @Override
-    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        processor.processMessage(this);
-    }
+    private InterchangeValue<Long> epicAllergyId = InterchangeValue.unknown();
+
+    /**
+     * Allergy added at...
+     */
+    private Instant allergyAdded;
+
+    /**
+     * Onset of allergy known at...
+     */
+    private InterchangeValue<LocalDate> allergyOnset = InterchangeValue.unknown();
+
+    /**
+     * Severity of reaction patient shows when exposed to allergen...
+     */
+    private String severity;
+
+    /**
+     * Status of the allergy...
+     */
+    private InterchangeValue<String> status = InterchangeValue.unknown();
+
+    /**
+     * Action in relation to allergy information, e.g. whether add/update/delete...
+     */
+    private String action;
+    /**
+     * Reaction occurring when patient exposed to allergen...
+     */
+    private List<String> reactions = new ArrayList<>();
+
 
     /**
      * Adds a list of strings to the reactions.
@@ -49,25 +76,12 @@ public class PatientAllergy extends PatientConditionMessage implements Serializa
     }
 
     /**
-     * Type of allergy, i.e. whether patient is allergic against a drug, particles in the environment, etc.
+     * Call back to the processor so it knows what type this object is (ie. double dispatch).
+     * @param processor the processor to call back to
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    public InterchangeValue<String> getAllergenType(){ return getSubType(); }
-
-    public void setAllergenType(InterchangeValue<String> value){ setSubType(value); }
-    public void setAllergenType(String value){ setSubType(new InterchangeValue<>(value)); }
-
-    public InterchangeValue<String> getAllergenName(){ return getConditionName(); }
-    public void setAllergenName(InterchangeValue<String> AllergyName){ setConditionName(AllergyName);}
-
-    public InterchangeValue<Long> getEpicAllergyId(){ return getEpicConditionId(); }
-    public void setEpicAllergyId(InterchangeValue<Long> epicAllergyId){ setEpicConditionId(epicAllergyId); }
-
-    public InterchangeValue<Instant> getAllergyResolved(){ return getResolvedTime(); }
-    public void setAllergyResolved(InterchangeValue<Instant> resolvedTime){ setResolvedTime(resolvedTime); }
-
-    public Instant getAllergyAdded(){ return getAddedTime(); }
-    public void setAllergyAdded(Instant addedTime){ setAddedTime(addedTime); }
-
-    public InterchangeValue<LocalDate> getAllergyOnset(){ return getOnsetTime(); }
-    public void setAllergyOnset(InterchangeValue<LocalDate> date){setOnsetTime(date);}
+    @Override
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
+    }
 }
