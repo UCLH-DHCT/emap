@@ -80,7 +80,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         olderMessage.setConditionName(InterchangeValue.buildFromHl7(MUMPS_INFECTION));
         olderMessage.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
         olderMessage.setResolvedDatetime(InterchangeValue.buildFromHl7(olderResolvedTime));
-        olderMessage.setOnsetTime(InterchangeValue.buildFromHl7(olderOnsetDate));
+        olderMessage.setOnsetDate(InterchangeValue.buildFromHl7(olderOnsetDate));
         processSingleMessage(olderMessage);
     }
 

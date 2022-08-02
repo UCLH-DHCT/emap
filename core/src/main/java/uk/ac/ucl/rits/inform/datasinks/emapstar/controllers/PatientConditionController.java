@@ -89,7 +89,7 @@ public class PatientConditionController {
             return getOrCreateProblemCondition((PatientProblem) msg, mrn, visit, storedFrom);
         }
         else if (msg instanceof PatientAllergy){
-            // TODO: Process allergies
+            return getOrCreateAllergyCondition((PatientAllergy) msg, mrn, visit, storedFrom);
         }
         else if (msg instanceof PatientInfection){
             return getOrCreateInfectionCondition((PatientInfection)msg, mrn, visit, storedFrom);
@@ -102,8 +102,34 @@ public class PatientConditionController {
     }
 
     /**
-     * Process patient problem or allergy message, which includes a single problem (subtype of condition) and an
-     * associated status and optional severity.
+     * Process allergy message, which includes an allergy with an associated status and optional severity.
+     * @param msg        message
+     * @param mrn        patient id
+     * @param visit      hospital visit can be null
+     * @param storedFrom valid from in database
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    private PatientCondition getOrCreateAllergyCondition(final PatientAllergy msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+            throws EmapOperationMessageProcessingException {
+
+        var conditionType = getOrCreateConditionType(
+                PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
+        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PATIENT_ALLERGY,
+                msg.getConditionCode(), msg.getUpdatedDateTime());
+
+        var patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType.getEntity(), storedFrom);
+
+        if (messageShouldBeUpdated(msg, patientCondition)) {
+            updatePatientAllergy(msg, visit, patientCondition);
+        }
+        patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+        savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
+
+        return patientCondition.getEntity();
+    }
+
+    /**
+     * Process patient problem, which includes a single problem (subtype of condition) and an associated status.
      * @param msg        message
      * @param mrn        patient id
      * @param visit      hospital visit can be null
@@ -118,7 +144,7 @@ public class PatientConditionController {
         cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PROBLEM_LIST,
                 msg.getConditionCode(), msg.getUpdatedDateTime());
 
-        var patientCondition = getOrCreatePatientProblem(msg, mrn, conditionType.getEntity(), storedFrom);
+        var patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType.getEntity(), storedFrom);
 
         if (problemMessageShouldBeUpdated(msg, patientCondition)) {
             updatePatientProblem(msg, visit, patientCondition);
@@ -271,7 +297,7 @@ public class PatientConditionController {
      * @param storedFrom    time that emap-core started processing the message
      * @return observation entity wrapped in RowState
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientProblem(
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
             PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
         Instant updatedTime = msg.getUpdatedDateTime();
 
@@ -348,7 +374,7 @@ public class PatientConditionController {
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
-        conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
+        conditionState.assignInterchangeValue(msg.getOnsetDate(), condition.getOnsetDate(), condition::setOnsetDate);
     }
 
     /**
@@ -368,7 +394,7 @@ public class PatientConditionController {
 
     /**
      * Update specific patient problem attributes from patient problem message.
-     * @param msg            patient infection message
+     * @param msg            patient problem message
      * @param visit          hospital visit
      * @param conditionState patient condition entity to update
      */
@@ -385,6 +411,23 @@ public class PatientConditionController {
             conditionState.assignIfDifferent(false, condition.getIsDeleted(), condition::setIsDeleted);
         }
     }
+
+    /**
+     * Update specific patient allergy attributes from patient allergy message.
+     * @param msg            patient allergy message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     */
+    private void updatePatientAllergy(PatientAllergy msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) {
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignIfDifferent(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
+        conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
+        conditionState.assignInterchangeValue(msg.getSeverity(), condition.getSeverity(), condition::setSeverity);
+        updatePatientCondition(msg, visit, conditionState);
+    }
+
+
 
 }
 
