@@ -1,0 +1,25 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "EPIC"
+  sourceMessageId: "0000000042"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1333555
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "11144333"
+  updatedDateTime: "2019-06-07T11:33:00Z"
+  mrn: "8DcEwvqa8Q3"
+  conditionCode: "Z84.8"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Family history of other specified conditions"
+  addedDate: "2019-06-01"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
+  action: "ADD"
+  status: "ACTIVE"
