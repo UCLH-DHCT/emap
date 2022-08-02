@@ -4,9 +4,9 @@ sourceSystem: "Not in Message"
 labDepartment: "Path,Cyt"
 visitNumber: ""
 questions:
+  "Is this the patient's first biopsy on the cancer pathway?": "No"
   "How many labels to print?": "2"
   "Clinical Details:": "aml relapse"
-  "Is this the patient's first biopsy on the cancer pathway?": "No"
 requestedDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
