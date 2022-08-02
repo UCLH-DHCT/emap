@@ -102,13 +102,13 @@ public class BedState extends AuditCore<BedState> {
     private BedState(BedState other) {
         super(other);
         setValidFrom(other.getValidFrom());
-        setStoredFrom(other.getValidUntil());
-        bedId = other.bedId;
-        csn = other.csn;
-        isInCensus = other.isInCensus;
-        isBunk = other.isBunk;
-        poolBedCount = other.poolBedCount;
-
+        setStoredFrom(other.getStoredFrom());
+        this.bedId = other.bedId;
+        this.csn = other.csn;
+        this.isInCensus = other.isInCensus;
+        this.isBunk = other.isBunk;
+        this.poolBedCount = other.poolBedCount;
+        this.status = other.status;
     }
 
     @Override

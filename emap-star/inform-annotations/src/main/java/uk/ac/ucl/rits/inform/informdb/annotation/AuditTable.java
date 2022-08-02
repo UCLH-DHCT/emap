@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 import javax.persistence.Index;
 
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface AuditTable {
 
     /**
