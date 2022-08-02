@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,14 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 @Slf4j
 public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
-    private static final EmapYamlMapper mapper = new EmapYamlMapper();
 
     private void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual, String message) {
-        Assertions.assertEquals(mapper.convertToString(expected), mapper.convertToString(actual), message);
+        Assertions.assertEquals(EmapYamlMapper.convertToString(expected), EmapYamlMapper.convertToString(actual), message);
     }
 
     private void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual) {
-        Assertions.assertEquals(mapper.convertToString(expected), mapper.convertToString(actual));
+        Assertions.assertEquals(EmapYamlMapper.convertToString(expected), EmapYamlMapper.convertToString(actual));
     }
 
     private void testAdtMessage(String adtFileStem) throws Exception {
