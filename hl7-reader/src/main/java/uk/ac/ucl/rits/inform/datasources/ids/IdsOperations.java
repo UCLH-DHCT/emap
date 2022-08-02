@@ -8,6 +8,7 @@ import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R30;
+import ca.uhn.hl7v2.model.v26.message.PPR_PC1;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
@@ -47,8 +48,9 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Operations that can be performed on the IDS.
- *
- * @author Jeremy Stein & Stef Piatek & Anika Cawthorn
+ * @author Jeremy Stein
+ * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 @Component
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
@@ -56,12 +58,12 @@ public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
     private static final String ALLOWED_ADT_SENDER = "EPIC";
 
-
     private SessionFactory idsFactory;
     private final AdtMessageFactory adtMessageFactory;
     private final OrderAndResultService orderAndResultService;
     private final PatientStatusService patientStatusService;
     private final PatientAllergyFactory patientAllergyFactory;
+    private final PatientProblemService patientProblemService;
     private final IdsProgressRepository idsProgressRepository;
     private final boolean idsEmptyOnInit;
     private final Integer defaultStartUnid;
@@ -72,6 +74,7 @@ public class IdsOperations implements AutoCloseable {
      * @param adtMessageFactory     builds ADT messages
      * @param orderAndResultService orchestrates processing of messages for orders and results
      * @param patientStatusService  orchestrates processing of messages with patient status
+     * @param patientProblemService orchestrates processing of messages with patient problems
      * @param patientAllergyFactory orchestrates processing of messages with patient allergies
      * @param idsProgressRepository interaction with ids progress table (stored in the star database)
      */
@@ -81,11 +84,13 @@ public class IdsOperations implements AutoCloseable {
             OrderAndResultService orderAndResultService,
             PatientStatusService patientStatusService,
             PatientAllergyFactory patientAllergyFactory,
+            PatientProblemService patientProblemService,
             IdsProgressRepository idsProgressRepository) {
         this.patientStatusService = patientStatusService;
         this.patientAllergyFactory = patientAllergyFactory;
         this.adtMessageFactory = adtMessageFactory;
         this.orderAndResultService = orderAndResultService;
+        this.patientProblemService = patientProblemService;
         this.idsProgressRepository = idsProgressRepository;
         idsFactory = idsConfiguration.getSessionFactory();
         idsEmptyOnInit = getIdsIsEmpty();
@@ -289,7 +294,7 @@ public class IdsOperations implements AutoCloseable {
         // performance
         // when doing large "catch-up" operations
         // (handle the batching in the caller)
-        try (Session idsSession = idsFactory.openSession();) {
+        try (Session idsSession = idsFactory.openSession()) {
             idsSession.setDefaultReadOnly(true);
             Query<IdsMaster> qnext =
                     idsSession.createQuery("SELECT i FROM IdsMaster i where i.unid > :lastProcessedId order by i.unid", IdsMaster.class);
@@ -452,6 +457,15 @@ public class IdsOperations implements AutoCloseable {
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R01) msgFromIds));
                 } else if ("R30".equals(triggerEvent)) {
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R30) msgFromIds));
+                } else {
+                    logErrorConstructingFromType(messageType, triggerEvent);
+                }
+                break;
+            case "PPR":
+                if ("PC1".equals(triggerEvent) || "PC2".equals(triggerEvent) || "PC3".equals(triggerEvent)) {
+                    logger.trace("Parsing Problem list");
+                    messages.addAll(patientProblemService.buildPatientProblems(sourceId, (PPR_PC1) msgFromIds));
+                    logger.trace("After parsing problem list {}", messages);
                 } else {
                     logErrorConstructingFromType(messageType, triggerEvent);
                 }

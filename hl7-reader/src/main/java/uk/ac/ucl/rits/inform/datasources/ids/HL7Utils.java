@@ -59,11 +59,8 @@ public final class HL7Utils {
             return null;
         }
         valueAsCal.setTimeZone(TimeZone.getTimeZone(LONDON_TIMEZONE));
-
         return valueAsCal.toInstant();
     }
-
-
     /**
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
@@ -71,7 +68,7 @@ public final class HL7Utils {
      * @throws DataTypeException if date cannot be parsed correctly.
      */
     static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
-        if (hl7Date == null) {
+        if (hl7Date.toString() == null) {
             return null;
         }
         return LocalDate.of(hl7Date.getYear(), hl7Date.getMonth(), hl7Date.getDay());
@@ -84,7 +81,7 @@ public final class HL7Utils {
      * @throws DataTypeException if date cannot be parsed correctly.
      */
     public static LocalDate interpretDate(DTM hl7Date) throws DataTypeException {
-        if (hl7Date == null) {
+        if (hl7Date.toString() == null) {
             return null;
         }
         return LocalDate.of(hl7Date.getYear(), hl7Date.getMonth(), hl7Date.getDay());
