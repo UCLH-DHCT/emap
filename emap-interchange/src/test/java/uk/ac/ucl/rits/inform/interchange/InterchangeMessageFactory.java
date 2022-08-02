@@ -1,29 +1,29 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
+import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Builds interchange messages from yaml files.
  * Allows for easier setup for integration testing in hl7 sources and emap star
  */
+@NoArgsConstructor
 public class InterchangeMessageFactory {
-    public InterchangeMessageFactory() {
-    }
 
     /**
      * Builds an ADT message from yaml file.
@@ -119,11 +119,9 @@ public class InterchangeMessageFactory {
      * @throws IOException if reading failed
      */
     public List<FlowsheetMetadata> getFlowsheetMetadata(final String fileName) throws IOException {
-        List<FlowsheetMetadata> flowsheetMetadata = new ArrayList<>();
         String resourcePath = "/FlowsheetMetadata/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        flowsheetMetadata = EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
-        return flowsheetMetadata;
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     /**
