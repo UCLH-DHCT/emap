@@ -22,20 +22,11 @@ import java.util.List;
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientAllergy extends PatientConditionMessage implements Serializable {
-    private String mrn;
-    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
-
 
     /**
      * Reaction (aka. symptom) occurring when patient is exposed to allergen...
      */
     private List<String> reactions = new ArrayList<>();
-
-
-    /**
-     * Unique Id for allergy in EPIC.
-     */
-    private InterchangeValue<Long> epicAllergyId = InterchangeValue.unknown();
 
     /**
      * Allergy added at...
@@ -43,29 +34,9 @@ public class PatientAllergy extends PatientConditionMessage implements Serializa
     private Instant allergyAdded;
 
     /**
-     * Onset of allergy known at...
-     */
-    private InterchangeValue<LocalDate> allergyOnset = InterchangeValue.unknown();
-
-    /**
      * Severity of reaction patient shows when exposed to allergen...
      */
     private String severity;
-
-    /**
-     * Status of the allergy...
-     */
-    private InterchangeValue<String> status = InterchangeValue.unknown();
-
-    /**
-     * Action in relation to allergy information, e.g. whether add/update/delete...
-     */
-    private String action;
-    /**
-     * Reaction occurring when patient exposed to allergen...
-     */
-    private List<String> reactions = new ArrayList<>();
-
 
     /**
      * Adds a list of strings to the reactions.

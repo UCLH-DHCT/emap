@@ -130,7 +130,6 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(LabMetadataMsg msg) throws EmapOperationMessageProcessingException;
-    void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the PatientAllergy message to process
