@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids.hl7.parser;
 
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
@@ -77,6 +78,19 @@ public class PatientInfoHl7 implements PV1Wrap, PV2Wrap, PIDWrap, MSHWrap {
         this.pid = pid;
         this.pv1 = pv1;
         this.pv2 = pv2;
+    }
+
+    /**
+     * Get the visit number from the PV1 segment, falling back to the PID if that is empty.
+     * @return visit number or an empty string if it is not defined
+     * @throws HL7Exception if HAPI does
+     */
+    public String getVisitNumberFromPv1orPID() throws HL7Exception {
+        String visitNumber = getVisitNumber();
+        if (visitNumber.isEmpty()) {
+            visitNumber = getPatientAccountNumber();
+        }
+        return visitNumber;
     }
 
 }
