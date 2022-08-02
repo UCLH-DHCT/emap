@@ -66,18 +66,20 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
      */
     private String standardisedVocabulary;
 
+    /**
+     * \brief Human readable name of the lab test.
+     */
+    private String name;
 
     public LabTestDefinition() {}
 
     /**
      * Create minimal LabTestDefinition.
      * @param labProvider lab provider that has defined the lab code
-     * @param labDepartment department for the lab
      * @param testLabCode lab code
      */
-    public LabTestDefinition(String labProvider, String labDepartment, String testLabCode) {
+    public LabTestDefinition(String labProvider, String testLabCode) {
         this.labProvider = labProvider;
-        this.labDepartment = labDepartment;
         this.testLabCode = testLabCode;
     }
 
@@ -89,6 +91,7 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
         this.testLabCode = other.testLabCode;
         this.testStandardCode = other.testStandardCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
+        this.name = other.name;
     }
 
     @Override

@@ -37,7 +37,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private long conditionTypeId;
 
     /**
-     * \brief Problem list or patient infection.
+     * \brief Problem list, patient infection or allergy
      */
     @Column(nullable = false)
     private String dataType;
@@ -45,13 +45,22 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     /**
      * \brief Code used within source system for this conditionType.
      */
-    @Column(nullable = false)
     private String internalCode;
 
     /**
      * \brief Human readable name for this conditionType.
      */
     private String name;
+
+    /**
+     * \brief Subtype of the condition e.g. an allergy to food
+     */
+    private String subType;
+
+    /**
+     * \brief Description of how severe this condition is
+     */
+    private String severity;
 
     /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
@@ -63,11 +72,10 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
      */
     private String standardisedVocabulary;
 
-
     /**
      * Minimal information constructor.
      * @param dataType   Type of patient state type; either patient infection or problem list
-     * @param code       EPIC code of the patient state type
+     * @param code       code of the patient condition type
      * @param validFrom  Timestamp from which information valid from
      * @param storedFrom Timestamp from which information stored from
      */
@@ -84,12 +92,14 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
      */
     public ConditionType(ConditionType other) {
         super(other);
+        this.conditionTypeId = other.conditionTypeId;
         this.dataType = other.dataType;
         this.internalCode = other.internalCode;
         this.name = other.name;
         this.standardisedCode = other.standardisedCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
-
+        this.severity = other.severity;
+        this.subType = other.subType;
     }
 
     @Override
@@ -101,5 +111,4 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     public ConditionTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
         return new ConditionTypeAudit(this, validUntil, storedUntil);
     }
-
 }
