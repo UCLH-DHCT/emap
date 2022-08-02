@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class EmapYamlMapper {
+public final class EmapYamlMapper {
     private static final Pattern SOURCE_ID_PATTERN = Pattern.compile("sourceMessageId:.*\n");
     private final ObjectMapper mapper;
 
