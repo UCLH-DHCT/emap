@@ -74,7 +74,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
      * \brief Date and time at which this consultationRequest was last updated.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant statusChangeTime;
+    private Instant statusChangeDatetime;
 
     /**
      * \brief Date and time at which this consultationRequest was scheduled.
@@ -105,12 +105,13 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
      */
     public ConsultationRequest(ConsultationRequest other) {
         super(other);
+        this.consultationRequestId = other.consultationRequestId;
         this.consultationTypeId = other.consultationTypeId;
         this.hospitalVisitId = other.hospitalVisitId;
         this.internalId = other.internalId;
         this.closedDueToDischarge = other.closedDueToDischarge;
         this.comments = other.comments;
-        this.statusChangeTime = other.statusChangeTime;
+        this.statusChangeDatetime = other.statusChangeDatetime;
         this.scheduledDatetime = other.scheduledDatetime;
         this.cancelled = other.cancelled;
     }

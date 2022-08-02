@@ -22,7 +22,7 @@ import java.time.LocalDate;
 /**
  * \brief Represents patient conditions that start and can end.
  *
- * Currently envisaged as storing infection control's patient infection information and problem lists.
+ * Currently envisaged as storing infection control's patient infection information and problems from problem lists.
  * @author Anika Cawthorn
  * @author Stef Piatek
  */
@@ -36,7 +36,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Unique identifier in EMAP for this patientCondition record.
-     *
+     * <p>
      * This is the primary key for the patientCondition table.
      */
     @Id
@@ -45,7 +45,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Identifier for the ConditionType associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the patientCondition table to the ConditionType table.
      */
     @ManyToOne
@@ -59,7 +59,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Identifier for the Mrn associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the patientCondition table to the Mrn table.
      */
     @ManyToOne
@@ -68,7 +68,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Identifier for the HospitalVisit associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the patientCondition table to the HospitalVisit table.
      */
     @ManyToOne
@@ -77,15 +77,36 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Date and time at which this patientCondition was added to the record.
+     * <p>
+     * It will only ever addedDatetime OR addedDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant addedDateTime;
+    private Instant addedDatetime;
 
     /**
+     * \brief Date at which this patientCondition was added to the record.
+     * <p>
+     * It will only ever addedDatetime OR addedDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
+     */
+    private LocalDate addedDate;
+    /**
      * \brief Date and time at which this patientCondition was resolved.
+     * <p>
+     * It will only ever resolutionDatetime OR resolutionDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant resolutionDateTime;
+    private Instant resolutionDatetime;
+
+    /**
+     * \brief Date at which this patientCondition was resolved.
+     * <p>
+     * It will only ever resolutionDatetime OR resolutionDate depending on the granularity available for the kind of
+     * condition, i.e. whether it is a problem list, allergy or infection.
+     */
+    private LocalDate resolutionDate;
 
     /**
      * \brief Date at which the patientCondition started (if known).
@@ -99,15 +120,20 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Status of patientCondition.
-     *
+     * <p>
      * Is this active, resolved, expired etc.
      */
     private String status;
 
     /**
-     * \brief Problem List priority.
+     * \brief condition priority.
      */
     private String priority;
+
+    /**
+     * \brief Is this condition deleted.
+     */
+    private Boolean isDeleted = false;
 
     /**
      * \brief Comments added by clinician.
@@ -117,16 +143,14 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * Minimal information constructor.
-     * @param internalId      Id in epic for the patient condition
      * @param conditionTypeId ID for patient state type
      * @param mrn             patient ID
-     * @param addedDateTime   when patient state has been added
+     * @param conditionId     identifier used for condition in EPIC
      */
-    public PatientCondition(Long internalId, ConditionType conditionTypeId, Mrn mrn, Instant addedDateTime) {
+    public PatientCondition(ConditionType conditionTypeId, Mrn mrn, Long conditionId) {
         this.conditionTypeId = conditionTypeId;
         this.mrnId = mrn;
-        this.addedDateTime = addedDateTime;
-        this.internalId = internalId;
+        this.internalId = conditionId;
     }
 
     /**
@@ -142,13 +166,16 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
             hospitalVisitId = other.hospitalVisitId;
         }
         internalId = other.internalId;
-        addedDateTime = other.addedDateTime;
-        resolutionDateTime = other.resolutionDateTime;
+        addedDate = other.addedDate;
+        addedDatetime = other.addedDatetime;
+        resolutionDate = other.resolutionDate;
+        resolutionDatetime = other.resolutionDatetime;
         onsetDate = other.onsetDate;
         classification = other.classification;
         status = other.status;
         priority = other.priority;
         comment = other.comment;
+        isDeleted = other.isDeleted;
     }
 
     @Override
@@ -161,4 +188,3 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
         return new PatientConditionAudit(this, validUntil, storedUntil);
     }
 }
-

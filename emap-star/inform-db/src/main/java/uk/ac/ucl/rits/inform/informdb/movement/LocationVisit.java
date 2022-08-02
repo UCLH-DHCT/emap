@@ -71,13 +71,13 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
      * \brief Date and time at which the patient was admitted to this location.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant admissionTime;
+    private Instant admissionDatetime;
 
     /**
      * Date and time at which the patient was discharged from this location.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant dischargeTime;
+    private Instant dischargeDatetime;
 
     /**
      * Identifier of the Location associated with this locationVisit.
@@ -108,7 +108,7 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
      * @param hospitalVisit Hospital visit
      */
     public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
-        setAdmissionTime(validFrom);
+        setAdmissionDatetime(validFrom);
         setLocationId(location);
         setHospitalVisitId(hospitalVisit);
         setValidFrom(validFrom);
@@ -117,14 +117,14 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
 
     /**
      * Create Inferred location visit.
-     * @param admissionTime inferred admission time
+     * @param admissionDatetime inferred admission time
      * @param validFrom     time that the message was valid from
      * @param storedFrom    time that emap core stared processing the message
      * @param location      location for admission
      * @param hospitalVisit parent hospital visit
      */
-    public LocationVisit(Instant admissionTime, Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
-        setAdmissionTime(admissionTime);
+    public LocationVisit(Instant admissionDatetime, Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
+        setAdmissionDatetime(admissionDatetime);
         setLocationId(location);
         setHospitalVisitId(hospitalVisit);
         setValidFrom(validFrom);
@@ -136,8 +136,8 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
         this.locationVisitId = other.locationVisitId;
         this.hospitalVisitId = other.hospitalVisitId;
         this.parentLocationVisitId = other.parentLocationVisitId;
-        this.admissionTime = other.admissionTime;
-        this.dischargeTime = other.dischargeTime;
+        this.admissionDatetime = other.admissionDatetime;
+        this.dischargeDatetime = other.dischargeDatetime;
         this.locationId = other.locationId;
         this.inferredAdmission = other.inferredAdmission;
         this.inferredDischarge = other.inferredDischarge;
@@ -149,8 +149,8 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     }
 
     @Override
-    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new LocationVisitAudit(this, validUntil, storedFrom);
+    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LocationVisitAudit(this, validUntil, storedUntil);
     }
 
 }
