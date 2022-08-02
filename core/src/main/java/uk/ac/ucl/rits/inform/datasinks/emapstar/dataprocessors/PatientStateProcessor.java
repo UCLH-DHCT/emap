@@ -32,9 +32,9 @@ public class PatientStateProcessor {
 
     /**
      * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
-     * @param patientConditionController     patient state controller
-     * @param personController               person controller
-     * @param visitController                hospital visit controller
+     * @param patientConditionController patient state controller
+     * @param personController           person controller
+     * @param visitController            hospital visit controller
      */
     public PatientStateProcessor(
             PatientConditionController patientConditionController, PersonController personController,
@@ -45,6 +45,7 @@ public class PatientStateProcessor {
         this.visitController = visitController;
     }
 
+
     /**
      * Process patient condition message, which can represent either an infection, problem or allergy of a patient.
      * @param msg        message
@@ -52,19 +53,47 @@ public class PatientStateProcessor {
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(PatientConditionMessage msg, final Instant storedFrom)
-        throws EmapOperationMessageProcessingException {
+    public void processMessage(PatientProblem msg, final Instant storedFrom)
+            throws EmapOperationMessageProcessingException {
+        logger.trace("Processing {}", msg);
+        Mrn mrn = getOrCreateMrn(msg, storedFrom);
+        HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
+        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
+    }
 
-        String mrnStr = msg.getMrn();
-        Instant msgUpdatedTime = msg.getUpdatedDateTime();
-        Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
-                msgUpdatedTime, storedFrom);
+
+    /**
+     * Process patient infection message.
+     * @param msg        message
+     * @param storedFrom Time the message started to be processed by star
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    @Transactional
+    public void processMessage(PatientInfection msg, final Instant storedFrom)
+            throws EmapOperationMessageProcessingException {
+
+        Mrn mrn = getOrCreateMrn(msg, storedFrom);
+        HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
+        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
+    }
+
+
+    /**
+     * Get or create a hospital visit using the visitController.
+     * @param msg          Patient condition message
+     * @param mrn          MRN
+     * @param storedFrom   Instant at which the message started being processed
+     * @return HospitalVisit
+     * @throws RequiredDataMissingException
+     */
+    private HospitalVisit getOrCreateHospitalVisit(PatientConditionMessage msg, Mrn mrn, Instant storedFrom)
+            throws RequiredDataMissingException {
 
         HospitalVisit visit = null;
 
-        if (msg.getVisitNumber().isSave()){
+        if (msg.getVisitNumber().isSave()) {
             visit = visitController.getOrCreateMinimalHospitalVisit(msg.getVisitNumber().get(), mrn,
-                    msg.getSourceSystem(), msgUpdatedTime, storedFrom);
+                    msg.getSourceSystem(), msg.getUpdatedDateTime(), storedFrom);
         }
         PatientCondition condition = patientConditionController.getOrCreatePatientCondition(msg, mrn, visit, storedFrom);
 
@@ -72,4 +101,22 @@ public class PatientStateProcessor {
             patientSymptomController.processMessage(msg, condition, storedFrom);
         }
     }
+
+    /**
+     * Get or create an MRN id associated with a patient.
+     * @param msg          Patient condition message
+     * @param storedFrom   Instant at which the message started being processed
+     * @return HospitalVisit
+     * @throws RequiredDataMissingException
+     */
+    private Mrn getOrCreateMrn(PatientConditionMessage msg, Instant storedFrom) throws RequiredDataMissingException {
+
+        String mrnStr = msg.getMrn();
+        Instant msgUpdatedTime = msg.getUpdatedDateTime();
+
+        return personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
+                msgUpdatedTime, storedFrom);
+    }
+
+
 }

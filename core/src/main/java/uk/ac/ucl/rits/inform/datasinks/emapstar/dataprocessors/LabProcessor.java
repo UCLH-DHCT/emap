@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 
 import java.time.Instant;
 
@@ -28,10 +29,11 @@ public class LabProcessor {
 
     /**
      * @param personController controller for person tables
-     * @param visitController controller for visit tables
-     * @param labController controller for lab tables
+     * @param visitController  controller for visit tables
+     * @param labController    controller for lab tables
      */
-    public LabProcessor(PersonController personController, VisitController visitController, LabController labController) {
+    public LabProcessor(PersonController personController, VisitController visitController,
+                        LabController labController) {
         this.personController = personController;
         this.visitController = visitController;
         this.labController = labController;
@@ -56,5 +58,10 @@ public class LabProcessor {
             logger.debug("No visit for LabOrder, skipping creating an encounter");
         }
         labController.processLabOrder(mrn, visit, msg, storedFrom);
+    }
+
+    @Transactional
+    public void processMessage(final LabMetadataMsg labMetadataMsg, final Instant storedFrom) throws RequiredDataMissingException {
+        labController.processLabMetadata(labMetadataMsg, storedFrom);
     }
 }

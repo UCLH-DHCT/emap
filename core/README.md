@@ -47,6 +47,8 @@ These setup instructions are aimed at developing in IntelliJ IDEA, but hopefully
 
       ![reload](img/reload_maven.png)
     
+    - You may also need to run `Generate Sources and Update Folders For All Projects` 
+
 # How to deploy a live version
 
 How to deploy an instance of Emap on the ULCH GAE, to be run on real patient data. 
@@ -85,6 +87,7 @@ For now: use your own username+password to clone/fetch/etc from github. Jeremy p
 [credential "https://github.com"]
     username = jeremyestein
 ```
+
 You will also need to create a github token as password access from git CLI is now deprecated.
 You will probably want to configure the credential helper to store the token access token 
 (this will store the connection information in plain text in your home directory)
@@ -103,7 +106,7 @@ Repositories must be checked out to the correct branches. "Correct" will depend 
 
 ## config
 
-Supply the required config files in the `Emap-Core` directory (see below in readme for details). Make sure `INFORMDB_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
+Supply the required config files in the `Emap-Core` directory (see below in readme for details). Make sure `UDS_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
 
 ## docker config
 
@@ -158,6 +161,7 @@ RABBITMQ_ADMIN_PORT=15972
 FAKEUDS_PORT=5433
 ```
 
+> **_NOTE:_** All of: `Emap-Core`, `Emap-Interchange`, `Inform-DB`, `DatabaseFiller`, `emap-hl7-processor` and `hoover` need to be cloned. 
 
 ### Example
 
