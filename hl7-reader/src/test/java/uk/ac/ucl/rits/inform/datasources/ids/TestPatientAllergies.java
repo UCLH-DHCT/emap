@@ -70,9 +70,9 @@ class TestPatientAllergies extends TestHl7MessageStream {
         PatientAllergy allergy = allergies.get(0);
         assertEquals(MRN, allergy.getMrn());
         assertEquals(EPIC, allergy.getSourceSystem());
-        assertEquals(ALLERGEN_TYPE, allergy.getAllergenType());
-        assertEquals(ALLERGY_SEVERITY, allergy.getSeverity());
-        assertEquals(ALLERGY_ADD, allergy.getAllergyAdded());
+        assertEquals(ALLERGEN_TYPE, allergy.getSubType().get());
+        assertEquals(ALLERGY_SEVERITY, allergy.getSeverity().get());
+        assertEquals(ALLERGY_ADD, allergy.getAddedDatetime());
         assertEquals(ALLERGY_UPDATE, allergy.getUpdatedDateTime());
     }
 

@@ -87,7 +87,7 @@ public class PatientProblemService {
         patientProblem.setEpicConditionId(InterchangeValue.buildFromHl7(Long.valueOf(problemId)));
         DTM problemOnset = problemSegment.getPrb16_ProblemDateOfOnset();
         if (problemOnset.getValue() != null) {
-            patientProblem.setOnsetTime(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemOnset)));
+            patientProblem.setOnsetDate(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemOnset)));
         }
 
         return patientProblem;
