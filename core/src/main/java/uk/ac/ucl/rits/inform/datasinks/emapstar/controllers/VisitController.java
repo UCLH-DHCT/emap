@@ -166,7 +166,7 @@ public class VisitController {
         }
 
         // Add admission date time from any message that has it if it doesn't exist already, always update from an AdmitPatient message
-        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null || msg instanceof AdmitPatient) {
+        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionDatetime() == null || msg instanceof AdmitPatient) {
             addAdmissionDateTime((AdmissionDateTime) msg, visitState);
         } else if (msg instanceof RegisterPatient) {
             addRegistrationInformation((RegisterPatient) msg, visitState);
@@ -216,7 +216,7 @@ public class VisitController {
      */
     private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
+        visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionDatetime(), visit::setAdmissionDatetime);
     }
 
     /**
@@ -226,7 +226,7 @@ public class VisitController {
      */
     private void removeAdmissionInformation(final AdtCancellation msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.removeIfExists(visit.getAdmissionTime(), visit::setAdmissionTime, msg.getCancelledDateTime());
+        visitState.removeIfExists(visit.getAdmissionDatetime(), visit::setAdmissionDatetime, msg.getCancelledDateTime());
     }
 
     /**
@@ -236,7 +236,7 @@ public class VisitController {
      */
     private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignInterchangeValue(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
+        visitState.assignInterchangeValue(msg.getPresentationDateTime(), visit.getPresentationDatetime(), visit::setPresentationDatetime);
     }
 
     /**
@@ -247,13 +247,13 @@ public class VisitController {
      */
     private void addDischargeInformation(final DischargePatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignIfDifferent(msg.getDischargeDateTime(), visit.getDischargeTime(), visit::setDischargeTime);
+        visitState.assignIfDifferent(msg.getDischargeDateTime(), visit.getDischargeDatetime(), visit::setDischargeDatetime);
         visitState.assignIfDifferent(msg.getDischargeDisposition(), visit.getDischargeDisposition(), visit::setDischargeDisposition);
         visitState.assignIfDifferent(msg.getDischargeLocation(), visit.getDischargeDestination(), visit::setDischargeDestination);
 
         // If started mid-stream, no admission information so add this in on discharge
-        if (visit.getAdmissionTime() == null && !msg.getAdmissionDateTime().isUnknown()) {
-            visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
+        if (visit.getAdmissionDatetime() == null && !msg.getAdmissionDateTime().isUnknown()) {
+            visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionDatetime(), visit::setAdmissionDatetime);
         }
     }
 
@@ -264,7 +264,7 @@ public class VisitController {
      */
     private void removeDischargeInformation(final AdtCancellation msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.removeIfExists(visit.getDischargeTime(), visit::setDischargeTime, msg.getCancelledDateTime());
+        visitState.removeIfExists(visit.getDischargeDatetime(), visit::setDischargeDatetime, msg.getCancelledDateTime());
         visitState.removeIfExists(visit.getDischargeDisposition(), visit::setDischargeDisposition, msg.getCancelledDateTime());
         visitState.removeIfExists(visit.getDischargeDestination(), visit::setDischargeDestination, msg.getCancelledDateTime());
 
@@ -273,19 +273,6 @@ public class VisitController {
 
     public List<HospitalVisit> getOlderVisits(Mrn mrn, Instant messageDateTime) {
         return hospitalVisitRepo.findAllByMrnIdAndValidFromIsLessThanEqual(mrn, messageDateTime);
-    }
-
-    /**
-     * Delete all visits that are older than the current message.
-     * @param visits     List of hopsital visits
-     * @param validFrom  Time of the delete information message
-     * @param storedFrom time that emap-core started processing the message.
-     */
-    public void deleteVisits(Iterable<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
-        for (HospitalVisit visit : visits) {
-            hospitalVisitAuditRepo.save(new HospitalVisitAudit(visit, validFrom, storedFrom));
-            hospitalVisitRepo.delete(visit);
-        }
     }
 
     /**
