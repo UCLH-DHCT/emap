@@ -167,23 +167,8 @@ abstract class LabOrderBuilder {
         msg.setSourceMessageId(subMessageSourceId);
         String sourceApplication = patientHl7.getSendingApplication().isEmpty() ? "Not in Message" : patientHl7.getSendingApplication();
         msg.setSourceSystem(sourceApplication);
-        msg.setVisitNumber(getVisitNumberFromPv1rPID(patientHl7));
+        msg.setVisitNumber(patientHl7.getVisitNumberFromPv1orPID());
         msg.setMrn(patientHl7.getMrn());
-    }
-
-    /**
-     * Get the visit number from the PV1 segment, falling back to the PID if that is empty.
-     * Winpath ORR messages can have no PV1 segment but store the encounter in the PID.
-     * @param patientHl7 patient information
-     * @return visit number or an empty string if it is not defined
-     * @throws HL7Exception if HAPI does
-     */
-    private String getVisitNumberFromPv1rPID(PatientInfoHl7 patientHl7) throws HL7Exception {
-        String visitNumber = patientHl7.getVisitNumber();
-        if (visitNumber.isEmpty()) {
-            visitNumber = patientHl7.getPatientAccountNumber();
-        }
-        return visitNumber;
     }
 
     /**
