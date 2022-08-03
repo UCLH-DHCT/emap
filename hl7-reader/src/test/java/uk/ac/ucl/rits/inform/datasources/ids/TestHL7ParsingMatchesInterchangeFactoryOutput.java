@@ -51,11 +51,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         interchangeFactory.updateFileStoreWith(getClass());
     }
 
-    private void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual, String message) {
+    private static void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual, String message) {
         Assertions.assertEquals(EmapYamlMapper.convertToString(expected), EmapYamlMapper.convertToString(actual), message);
     }
 
-    private void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual) {
+    private static void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual) {
         Assertions.assertEquals(EmapYamlMapper.convertToString(expected), EmapYamlMapper.convertToString(actual));
     }
 
