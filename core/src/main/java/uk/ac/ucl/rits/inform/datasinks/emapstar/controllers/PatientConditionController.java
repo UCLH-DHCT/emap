@@ -114,7 +114,7 @@ public class PatientConditionController {
 
         var conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
-
+        
         cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PROBLEM_LIST, msg.getConditionCode(),
                 msg.getUpdatedDateTime());
 
@@ -205,7 +205,7 @@ public class PatientConditionController {
             throws EmapOperationMessageProcessingException {
 
         var conditionType = getOrCreateConditionType(
-                PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
+                PatientConditionType.PATIENT_INFECTION, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
 
         cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(),
                 msg.getUpdatedDateTime());
@@ -338,10 +338,6 @@ public class PatientConditionController {
         return condition.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(condition.getEntity().getConditionTypeId().getValidFrom());
     }
 
-    private boolean conditionTypeShouldBeUpdated(PatientConditionMessage msg, RowState<ConditionType, ConditionTypeAudit> condition) {
-        return condition.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(condition.getEntity().getValidFrom());
-    }
-
     /**
      * Update the problem message. Requires special treatment for EPIC hl7 messages which are identical (including
      * the updated datetime) apart from the action. The AD messages seem to take precedence when comparing to the source
@@ -382,7 +378,7 @@ public class PatientConditionController {
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(msg.getOnsetDate(), condition.getOnsetDate(), condition::setOnsetDate);
-
+        conditionState.assignInterchangeValue(msg.getSeverity(), condition.getSeverity(), condition::setSeverity);
     }
 
     /**
@@ -430,11 +426,13 @@ public class PatientConditionController {
             PatientConditionAudit> conditionState) {
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
+
+        if (msg.getAction().equals(ConditionAction.DELETE)){
+            conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
+        }
+
         updatePatientCondition(msg, visit, conditionState);
     }
-
-
-
 }
 
 
@@ -524,8 +522,6 @@ class PatientConditionCache {
                 typeEntity::setName, validFrom, typeEntity.getValidFrom());
         typeState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getSubType(), typeEntity.getSubType(),
                 typeEntity::setSubType, validFrom, typeEntity.getValidFrom());
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getSeverity(), typeEntity.getSeverity(),
-                typeEntity::setSeverity, validFrom, typeEntity.getValidFrom());
 
         typeState.saveEntityOrAuditLogIfRequired(conditionTypeRepo, conditionTypeAuditRepo);
     }

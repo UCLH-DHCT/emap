@@ -59,7 +59,7 @@ public class PatientStateProcessor {
         Mrn mrn = getOrCreateMrn(msg, storedFrom);
         HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
         PatientCondition condition = patientConditionController.getOrCreateCondition(msg, mrn, visit, storedFrom);
-        patientSymptomController.processMessage(msg, condition, storedFrom);
+        patientSymptomController.processMessage(msg, condition);
     }
 
     /**
