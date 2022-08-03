@@ -1,0 +1,42 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "clarity"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-09T01:02:05Z"
+  mrn: "8DcEwvqa8Q3"
+  conditionCode: "M54.9"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Backache"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  status: "Active"
+  action: "DELETE"
+  addedDate: "2019-06-01"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "clarity"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "8DcEwvqa8Q3"
+  conditionCode: "M54.9"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Backache"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  status: "Active"
+  action: "ADD"
+  addedDate: "2019-06-01"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
