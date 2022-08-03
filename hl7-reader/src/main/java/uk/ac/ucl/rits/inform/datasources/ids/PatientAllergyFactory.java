@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 
@@ -85,9 +86,18 @@ public class PatientAllergyFactory {
         patientAllergy.setSourceSystem(patientInfo.getSendingApplication());
         patientAllergy.setMrn(patientInfo.getMrn());
         patientAllergy.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
+        patientAllergy.setStatus(iam.getAllergyClinicalStatusCode().getCwe1_Identifier().getValueOrEmpty());
 
-        // TODO: check status in IDS
-        patientAllergy.setStatus("Active");
+        switch (iam.getIam6_AllergyActionCode().getCne1_Identifier().getValueOrEmpty()){
+            case "A":
+                patientAllergy.setAction(ConditionAction.ADD);
+            case "D":
+                patientAllergy.setAction(ConditionAction.DELETE);
+            case "U":
+                patientAllergy.setAction(ConditionAction.UPDATE);
+            default:
+                patientAllergy.setAction(ConditionAction.UPDATE);
+        }
 
         // allergy specific information
         patientAllergy.setOnsetDate(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(iam.getIam11_OnsetDate())));
