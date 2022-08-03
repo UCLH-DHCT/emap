@@ -58,11 +58,6 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private String subType;
 
     /**
-     * \brief Description of how severe this condition is
-     */
-    private String severity;
-
-    /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
      */
     private String standardisedCode;
@@ -98,7 +93,6 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
         this.name = other.name;
         this.standardisedCode = other.standardisedCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
-        this.severity = other.severity;
         this.subType = other.subType;
     }
 

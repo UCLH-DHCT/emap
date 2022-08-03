@@ -1,19 +1,14 @@
 package uk.ac.ucl.rits.inform.informdb.conditions;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 import javax.persistence.Id;
-import java.time.Instant;
 
 /**
  * \brief Symptoms of a condition that a patient can have so that it can be recognised by clinical staff.
@@ -22,13 +17,12 @@ import java.time.Instant;
  * e.g. allergies.
  *
  * @author Anika Cawthorn
+ * @author Tom Young
  */
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AuditTable
-public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSymptomAudit> {
+public class AllergenReaction {
     /**
      * \brief Unique identifier in EMAP for this conditionSymptom record.
      * <p>
@@ -67,7 +61,7 @@ public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSy
      *
      * @param name       Name of the conditionSymptom, how it is referred to in the hospital.
      */
-    public ConditionSymptom(String name, PatientCondition condition) {
+    public AllergenReaction(String name, PatientCondition condition) {
         this.name = name;
         this.patientConditionId = condition;
     }
@@ -76,8 +70,7 @@ public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSy
      * Build a new PatientStateType from an existing one.
      * @param other existing PatientStateType
      */
-    public ConditionSymptom(ConditionSymptom other) {
-        super(other);
+    public AllergenReaction(AllergenReaction other) {
         this.name = other.name;
         this.standardisedCode = other.standardisedCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
@@ -85,13 +78,7 @@ public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSy
         this.patientConditionId = other.patientConditionId;
     }
 
-    @Override
-    public ConditionSymptom copy() {
-        return new ConditionSymptom(this);
-    }
-
-    @Override
-    public ConditionSymptomAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new ConditionSymptomAudit(this, validUntil, storedUntil);
+    public AllergenReaction copy() {
+        return new AllergenReaction(this);
     }
 }

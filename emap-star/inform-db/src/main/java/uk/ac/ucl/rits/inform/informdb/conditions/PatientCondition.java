@@ -142,6 +142,11 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private String comment;
 
     /**
+     * \brief Description of how severe this condition is
+     */
+    private String severity;
+
+    /**
      * Minimal information constructor.
      * @param conditionTypeId ID for patient state type
      * @param mrn             patient ID
@@ -176,6 +181,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
         priority = other.priority;
         comment = other.comment;
         isDeleted = other.isDeleted;
+        severity = other.severity;
     }
 
     @Override
