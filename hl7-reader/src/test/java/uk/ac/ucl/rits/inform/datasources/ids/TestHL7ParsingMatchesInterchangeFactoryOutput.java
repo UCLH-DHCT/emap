@@ -220,7 +220,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testPermutationCancelDischarge() throws Exception {
-        String[] fileNames = {"01_A01", "02_A02", "03_A01", "04_A13", "05_A03"};
+        String[] fileNames = {"01_A01", "02_A02", "03_A03", "04_A13", "05_A03"};
 
         builtAndAssertAdtMessages("Adt", "Location/CancelDischarge", fileNames);
     }
