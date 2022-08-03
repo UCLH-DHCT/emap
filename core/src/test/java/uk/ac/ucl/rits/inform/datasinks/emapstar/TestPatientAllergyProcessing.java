@@ -117,8 +117,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         assertEquals(0, conditionTypeRepository.count());
         processSingleMessage(hl7Tramadol);
 
-        ConditionType type = conditionTypeRepository.findByDataTypeAndName(
-                CONDITION_TYPE, FIRST_ALLERGEN).orElseThrow();
+        ConditionType type = conditionTypeRepository.findByDataTypeAndName(CONDITION_TYPE, FIRST_ALLERGEN).orElseThrow();
 
         assertEquals(FIRST_ALLERGEN, type.getName());
         assertEquals(CONDITION_TYPE, type.getDataType());

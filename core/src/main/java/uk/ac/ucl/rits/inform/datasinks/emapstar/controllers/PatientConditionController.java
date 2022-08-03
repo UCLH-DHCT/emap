@@ -114,12 +114,13 @@ public class PatientConditionController {
 
         var conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
-        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PATIENT_ALLERGY,
-                msg.getConditionCode(), msg.getUpdatedDateTime());
+
+        cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PROBLEM_LIST, msg.getConditionCode(),
+                msg.getUpdatedDateTime());
 
         var patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType.getEntity(), storedFrom);
 
-        if (messageShouldBeUpdated(msg, patientCondition)) {
+        if (this.conditionShouldBeUpdated(msg, patientCondition)) {
             updatePatientAllergy(msg, visit, patientCondition);
         }
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
@@ -141,8 +142,8 @@ public class PatientConditionController {
 
         var conditionType = getOrCreateConditionType(
                 PatientConditionType.PROBLEM_LIST, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
-        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PROBLEM_LIST,
-                msg.getConditionCode(), msg.getUpdatedDateTime());
+        cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PROBLEM_LIST, msg.getConditionCode(),
+                msg.getUpdatedDateTime());
 
         var patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType.getEntity(), storedFrom);
 
@@ -206,12 +207,13 @@ public class PatientConditionController {
         var conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
 
-        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(), msg.getUpdatedDateTime());
+        cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(),
+                msg.getUpdatedDateTime());
         deletePreviousInfectionOrClearInfectionTypesCache(msg, storedFrom);
 
-        var patientCondition = getOrCreatePatientInfection(msg, mrn, conditionType.getEntity(), storedFrom);
+        var patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType.getEntity(), storedFrom);
 
-        if (messageShouldBeUpdated(msg, patientCondition)) {
+        if (this.conditionShouldBeUpdated(msg, patientCondition)) {
             updatePatientInfection(msg, visit, patientCondition);
         }
 
@@ -254,30 +256,30 @@ public class PatientConditionController {
 
     /**
      * Get or create existing patient condition entity.
-     * @param msg           patient infection message
+     * @param msg           patient infection or allergy message
      * @param mrn           patient identifier
      * @param conditionType condition type referred to in message
      * @param storedFrom    time that emap-core started processing the message
      * @return observation entity wrapped in RowState
      * @throws RequiredDataMissingException if no patient infection Id in hoover data or unrecognised source system
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientInfection(
-            PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
+            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
             throws RequiredDataMissingException {
         Optional<PatientCondition> patientCondition;
-        final Long epicInfectionId;
+        final Long epicConditionId;
         switch (msg.getSourceSystem()) {
             case "EPIC":
-                epicInfectionId = null;
+                epicConditionId = null;
                 patientCondition = patientConditionRepo
                         .findByMrnIdAndConditionTypeIdAndAddedDatetime(mrn, conditionType, msg.getAddedDatetime());
                 break;
             case "clarity":
                 if (msg.getEpicConditionId().isUnknown()) {
-                    throw new RequiredDataMissingException("No patientInfectionId from clarity");
+                    throw new RequiredDataMissingException("No epicConditionId from clarity");
                 }
-                epicInfectionId = msg.getEpicConditionId().get();
-                patientCondition = patientConditionRepo.findByConditionTypeIdAndInternalId(conditionType, epicInfectionId);
+                epicConditionId = msg.getEpicConditionId().get();
+                patientCondition = patientConditionRepo.findByConditionTypeIdAndInternalId(conditionType, epicConditionId);
                 break;
             default:
                 throw new RequiredDataMissingException(String.format("'%s' is not a recognised source system", msg.getSourceSystem()));
@@ -285,20 +287,21 @@ public class PatientConditionController {
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, epicInfectionId,
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, epicConditionId,
                         msg.getUpdatedDateTime(), storedFrom));
     }
 
     /**
-     * Get or create existing patient condition entity.
+     * Get or create existing patient condition entity. Can create on the internal ID as it exists in both the hl7
+     * messages and in clarity.
      * @param msg           patient infection message
      * @param mrn           patient identifier
      * @param conditionType condition type referred to in message
      * @param storedFrom    time that emap-core started processing the message
      * @return observation entity wrapped in RowState
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
-            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientProblem(
+            PatientProblem msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
         Instant updatedTime = msg.getUpdatedDateTime();
 
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndInternalId(
@@ -331,8 +334,12 @@ public class PatientConditionController {
      * @param condition row state of condition
      * @return true if message should be updated
      */
-    private boolean messageShouldBeUpdated(PatientConditionMessage msg, RowState<PatientCondition, PatientConditionAudit> condition) {
+    private boolean conditionShouldBeUpdated(PatientConditionMessage msg, RowState<PatientCondition, PatientConditionAudit> condition) {
         return condition.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(condition.getEntity().getConditionTypeId().getValidFrom());
+    }
+
+    private boolean conditionTypeShouldBeUpdated(PatientConditionMessage msg, RowState<ConditionType, ConditionTypeAudit> condition) {
+        return condition.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(condition.getEntity().getValidFrom());
     }
 
     /**
@@ -356,7 +363,7 @@ public class PatientConditionController {
             return false;
         }
 
-        return messageShouldBeUpdated(msg, condition);
+        return this.conditionShouldBeUpdated(msg, condition);
     }
 
     /**
@@ -375,6 +382,7 @@ public class PatientConditionController {
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(msg.getOnsetDate(), condition.getOnsetDate(), condition::setOnsetDate);
+
     }
 
     /**
@@ -421,9 +429,7 @@ public class PatientConditionController {
     private void updatePatientAllergy(PatientAllergy msg, HospitalVisit visit, RowState<PatientCondition,
             PatientConditionAudit> conditionState) {
         PatientCondition condition = conditionState.getEntity();
-        conditionState.assignIfDifferent(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
         conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
-        conditionState.assignInterchangeValue(msg.getSeverity(), condition.getSeverity(), condition::setSeverity);
         updatePatientCondition(msg, visit, conditionState);
     }
 
@@ -501,21 +507,25 @@ class PatientConditionCache {
     /**
      * Persist condition type with new name and remove this entry from the cache.
      * @param typeState     condition type entity to updated
-     * @param name          updated name to add
+     * @param msg           message from which to update the entity from
      * @param type          used as the key for the cache
      * @param conditionCode used as the key for the cache
      * @param validFrom     when the condition information is valid from
      */
     @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
-    public void updateNameAndClearFromCache(
+    public void updateAndClearFromCache(
             RowState<ConditionType, ConditionTypeAudit> typeState,
-            InterchangeValue<String> name, PatientConditionController.PatientConditionType type,
+            PatientConditionMessage msg, PatientConditionController.PatientConditionType type,
             String conditionCode, Instant validFrom) {
 
         ConditionType typeEntity = typeState.getEntity();
 
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(name, typeEntity.getName(), typeEntity::setName, validFrom,
-                typeEntity.getValidFrom());
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getConditionName(), typeEntity.getName(),
+                typeEntity::setName, validFrom, typeEntity.getValidFrom());
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getSubType(), typeEntity.getSubType(),
+                typeEntity::setSubType, validFrom, typeEntity.getValidFrom());
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getSeverity(), typeEntity.getSeverity(),
+                typeEntity::setSeverity, validFrom, typeEntity.getValidFrom());
 
         typeState.saveEntityOrAuditLogIfRequired(conditionTypeRepo, conditionTypeAuditRepo);
     }
