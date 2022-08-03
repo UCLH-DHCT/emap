@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -546,7 +547,16 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         if (!missedFilePaths.isEmpty()) {
             String sortedAndJoined = missedFilePaths.stream().sorted().collect(Collectors.joining("\n\t"));
-            throw new Exception("Not all interchange YAML files have been accessed. Missed:\n\t" + sortedAndJoined);
+            String message = new StringJoiner("\n")
+                    .add("Not all interchange YAML files have been accessed.")
+                    .add("Make sure that you are using the `getInputStream` method in the interchange factory.")
+                    .add("Otherwise it looks like you've defined data that is not from caboodle or clarity,")
+                    .add("we should test that we can build an hl7 message that matches the yaml file in this class.")
+                    .add("Missing files:")
+                    .add(String.format("\t%s", sortedAndJoined))
+                    .toString();
+
+            throw new Exception(message);
         }
     }
 }
