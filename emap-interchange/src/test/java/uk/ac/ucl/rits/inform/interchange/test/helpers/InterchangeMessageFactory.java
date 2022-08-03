@@ -10,6 +10,7 @@ import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -113,6 +114,12 @@ public class InterchangeMessageFactory {
 
     public List<PatientInfection> getPatientInfections(final String fileName) throws IOException {
         String resourcePath = "/PatientInfection/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
+    }
+
+    public List<PatientProblem> getPatientProblems(final String fileName) throws IOException {
+        String resourcePath = "/PatientProblem/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
         return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
