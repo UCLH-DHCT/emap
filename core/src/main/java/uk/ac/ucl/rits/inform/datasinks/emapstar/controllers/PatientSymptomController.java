@@ -1,22 +1,13 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionSymptomAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionSymptomRepository;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionSymptomAudit;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AllergenReactionRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionSymptom;
+import uk.ac.ucl.rits.inform.informdb.conditions.AllergenReaction;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
-
-
-import java.time.Instant;
 
 
 /**
@@ -27,85 +18,46 @@ import java.time.Instant;
 @Component
 public class PatientSymptomController {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final ConditionSymptomRepository conditionSymptomRepo;
-    private final ConditionSymptomAuditRepository conditionSymptomAuditRepo;
+    private final AllergenReactionRepository conditionSymptomRepo;
 
     /**
      * @param conditionSymptomRepo       autowired PatientSymptomRepository
-     * @param conditionSymptomAuditRepo  autowired PatientSymptomAuditRepository
      */
-    public PatientSymptomController(ConditionSymptomRepository conditionSymptomRepo,
-                                    ConditionSymptomAuditRepository conditionSymptomAuditRepo) {
+    public PatientSymptomController(AllergenReactionRepository conditionSymptomRepo) {
         this.conditionSymptomRepo = conditionSymptomRepo;
-        this.conditionSymptomAuditRepo = conditionSymptomAuditRepo;
     }
 
     /**
      * Process a message containing symptoms of a condition.
      * @param msg Message to process
      * @param condition Patient condition entity
-     * @param storedFrom Start time for processing
      * @throws EmapOperationMessageProcessingException If the message cannot be processed
      */
     @Transactional
-    public void processMessage(PatientConditionMessage msg, PatientCondition condition, Instant storedFrom)
+    public void processMessage(PatientConditionMessage msg, PatientCondition condition)
             throws EmapOperationMessageProcessingException {
 
         if (msg instanceof PatientAllergy){
-            processAllergyMessage((PatientAllergy) msg, condition, storedFrom);
+            processAllergyMessage((PatientAllergy) msg, condition);
         }
-        else{
-            throw new RequiredDataMissingException("Type of the message *"+msg.getClass()+"* could not "+
-                    "be processed");
-        }
+
+        // No other messages yet have symptoms
     }
 
     /**
      * Process an allergy message which has reactions, treated as a symptom of a condition
      * @param msg Patient allergy message to process
      * @param condition Patient condition entity
-     * @param storedFrom Start time for processing
      */
-    private void processAllergyMessage(PatientAllergy msg, PatientCondition condition, Instant storedFrom){
+    private void processAllergyMessage(PatientAllergy msg, PatientCondition condition){
 
         for (String reactionName : msg.getReactions()){
 
-            var symptomState = getOrCreateConditionSymptomState(msg, reactionName, condition, storedFrom);
-
-            if (symptomShouldBeUpdated(msg, symptomState)) {
-                symptomState.saveEntityOrAuditLogIfRequired(conditionSymptomRepo, conditionSymptomAuditRepo);
+            var symptom = new AllergenReaction(reactionName, condition);
+            if (conditionSymptomRepo.findByNameAndPatientConditionId(reactionName, condition).isEmpty()){
+                conditionSymptomRepo.save(symptom);
             }
         }
     }
 
-    /**
-     * Get a patient condition row state if it exists in the database, otherwise create a minimal version
-     * @param msg Patient allergy message
-     * @param symptomName Name of the symptom
-     * @param condition Patient condition entity
-     * @param storedFrom Start time for processing
-     * @return Condition rowstate
-     */
-    private RowState<ConditionSymptom, ConditionSymptomAudit> getOrCreateConditionSymptomState(
-            PatientConditionMessage msg, String symptomName, PatientCondition condition, Instant storedFrom){
-
-        var possibleSymptom = conditionSymptomRepo.findByNameAndPatientConditionId(symptomName, condition);
-        Instant updatedTime = msg.getUpdatedDateTime();
-
-        return possibleSymptom
-                .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))
-                .orElseGet(() -> new RowState<>(new ConditionSymptom(symptomName, condition), updatedTime, storedFrom, true));
-    }
-
-    /**
-     * Should the symptom be updated in the database?
-     * @param msg Patient condition message
-     * @param symptom Patient symptom rowstate
-     * @return True if there should be an update
-     */
-    private boolean symptomShouldBeUpdated(PatientConditionMessage msg,
-                                           RowState<ConditionSymptom, ConditionSymptomAudit> symptom) {
-        return symptom.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(symptom.getEntity().getPatientConditionId().getValidFrom());
-    }
 }

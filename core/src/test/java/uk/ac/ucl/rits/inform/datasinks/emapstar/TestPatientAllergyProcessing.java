@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionSymptomRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AllergenReactionRepository;
 
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionSymptom;
+import uk.ac.ucl.rits.inform.informdb.conditions.AllergenReaction;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -38,7 +38,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    ConditionSymptomRepository conditionSymptomRepository;
+    AllergenReactionRepository allergenReactionRepository;
 
     private List<PatientAllergy> hooverMessages;
     private PatientAllergy hl7Tramadol;
@@ -62,6 +62,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
     private static final String THIRD_MRN = "suI83US";
     private static final String THIRD_ALLERGEN = "SEROTONIN REUPTAKE INHIBITORS (SSRIS)";
     private static final String THIRD_ALLERGEN_SUBTYPE = "Drug Class";
+    private static final String THIRD_ADDED_TIME = "2019-06-08T02:05:49Z";
     private static final String THIRD_ONSET_DATE = "2019-03-05";
     private static final String THIRD_SEVERITY = "Medium";
 
@@ -100,7 +101,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
 
         PatientCondition condition = firstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
-        assertEquals(NUM_TRAMADOL_REACTIONS, getAllEntities(conditionSymptomRepository).size());
+        assertEquals(NUM_TRAMADOL_REACTIONS, getAllEntities(allergenReactionRepository).size());
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDatetime());
         assertEquals(LocalDate.parse(FIRST_ONSET_DATE), condition.getOnsetDate());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
@@ -117,8 +118,9 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         assertEquals(0, conditionTypeRepository.count());
         processSingleMessage(hl7Tramadol);
 
-        ConditionType type = conditionTypeRepository.findByDataTypeAndName(CONDITION_TYPE, FIRST_ALLERGEN).orElseThrow();
+        ConditionType type = conditionTypeRepository.findByDataTypeAndInternalCode(CONDITION_TYPE, FIRST_ALLERGEN).orElseThrow();
 
+        assertEquals(FIRST_ALLERGEN, type.getInternalCode());
         assertEquals(FIRST_ALLERGEN, type.getName());
         assertEquals(CONDITION_TYPE, type.getDataType());
         assertEquals(FIRST_ALLERGEN_SUBTYPE, type.getSubType());
@@ -143,16 +145,16 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         PatientCondition condition = firstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
         assertEquals(1, condition.getInternalId());
-        assertEquals(SECOND_ALLERGEN, condition.getConditionTypeId().getName());
+        assertEquals(SECOND_ALLERGEN, condition.getConditionTypeId().getInternalCode());
         assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
         assertEquals(SECOND_ALLERGEN_SUBTYPE, condition.getConditionTypeId().getSubType());
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDatetime());
-        assertEquals(LocalDate.parse(SECOND_ONSET_DATE), condition.getOnsetDate());
-        assertEquals(SECOND_ALLERGY_SEVERITY, condition.getConditionTypeId().getSeverity());
+        assertEquals(LocalDate.parse("2019-03-05"), condition.getOnsetDate());
+        assertEquals(SECOND_ALLERGY_SEVERITY, condition.getSeverity());
         assertEquals(ACTIVE, condition.getStatus());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
 
-        List<ConditionSymptom> reactions = getAllEntities(conditionSymptomRepository);
+        List<AllergenReaction> reactions = getAllEntities(allergenReactionRepository);
         assertEquals(2, reactions.size());
 
         List<String> reactionNames = Arrays.asList(reactions.get(0).getName(), reactions.get(1).getName());
@@ -176,7 +178,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
 
         assertTrue(aSingleConditionExists());
         assertEquals(1, getAllEntities(conditionTypeRepository).size());
-        assertEquals(2, getAllEntities(conditionSymptomRepository).size());
+        assertEquals(2, getAllEntities(allergenReactionRepository).size());
     }
 
     /**
@@ -195,23 +197,25 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         assertEquals(0, getAllEntities(hospitalVisitRepository).size());
 
         // Get the second condition and check the data
-        PatientCondition condition = getAllEntities(patientConditionRepository).get(1);
-        assertEquals(THIRD_MRN, condition.getMrnId().getMrn());
-        assertEquals(THIRD_ALLERGEN, condition.getConditionTypeId().getName());
-        assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
-        assertEquals(THIRD_ALLERGEN_SUBTYPE, condition.getConditionTypeId().getSubType());
-        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDatetime());
+        var condition = patientConditionRepository.findByMrnIdMrn(THIRD_MRN).orElseThrow();
+        var conditionType = condition.getConditionTypeId();
+        assertEquals(CONDITION_TYPE, conditionType.getDataType());
+
+        System.err.println(hooverMessages.get(1).getSubType());
+        assertEquals(THIRD_ALLERGEN_SUBTYPE, conditionType.getSubType());
+        assertEquals(THIRD_ALLERGEN, conditionType.getInternalCode());
+        assertEquals(Instant.parse(THIRD_ADDED_TIME), condition.getAddedDatetime());
         assertEquals(LocalDate.parse(THIRD_ONSET_DATE), condition.getOnsetDate());
-        assertEquals(THIRD_SEVERITY, condition.getConditionTypeId().getSeverity());
+        assertEquals(THIRD_SEVERITY, condition.getSeverity());
         assertEquals(ACTIVE, condition.getStatus());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
 
         // Hives should only be added once to the symptom repository
-        List<ConditionSymptom> reactions = getAllEntities(conditionSymptomRepository);
+        List<AllergenReaction> reactions = getAllEntities(allergenReactionRepository);
         assertEquals(3, reactions.size());
 
         List<String> reactionNames = new ArrayList<>();
-        for (ConditionSymptom reaction: reactions) {
+        for (AllergenReaction reaction: reactions) {
             reactionNames.add(reaction.getName());
         }
 
@@ -272,11 +276,11 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         hl7Tramadol.setReactions(List.of(new String[]{reactionName}));
         processSingleMessage(hl7Tramadol);
 
-        assertEquals(NUM_TRAMADOL_REACTIONS+1, getAllEntities(conditionSymptomRepository).size());
-        assertEquals(reactionName, getAllEntities(conditionSymptomRepository).get(0).getName());
+        assertEquals(NUM_TRAMADOL_REACTIONS+1, getAllEntities(allergenReactionRepository).size());
+        assertEquals(reactionName, getAllEntities(allergenReactionRepository).get(0).getName());
 
         hl7Tramadol.setReactions(List.of(new String[]{"Y"}));
         processSingleMessage(hl7Tramadol);
-        assertEquals(NUM_TRAMADOL_REACTIONS+2, getAllEntities(conditionSymptomRepository).size());
+        assertEquals(NUM_TRAMADOL_REACTIONS+2, getAllEntities(allergenReactionRepository).size());
     }
 }
