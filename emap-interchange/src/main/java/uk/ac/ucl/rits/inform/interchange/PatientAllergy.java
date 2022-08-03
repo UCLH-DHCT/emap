@@ -29,21 +29,6 @@ public class PatientAllergy extends PatientConditionMessage implements Serializa
     private List<String> reactions = new ArrayList<>();
 
     /**
-     * Time and date condition was added at.
-     */
-    private Instant addedDatetime;
-
-    /**
-     * Time and date condition was resolved at.
-     */
-    private LocalDate resolvedDate;
-
-    /**
-     * Severity of reaction patient shows when exposed to allergen...
-     */
-    private InterchangeValue<String> severity;
-
-    /**
      * Adds a list of strings to the reactions.
      * @param allergyReactions Collection of strings, each representing an allergy reaction.
      */
