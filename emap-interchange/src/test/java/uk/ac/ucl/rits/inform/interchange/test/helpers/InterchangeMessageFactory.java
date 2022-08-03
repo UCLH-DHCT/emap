@@ -91,13 +91,17 @@ public class InterchangeMessageFactory {
         List<LabOrderMsg> labOrderMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (LabOrderMsg order : labOrderMsgs) {
-            String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
+            String sourceMessageId = sourceMessageIdWithCount(sourceMessagePrefix, count);
             updateLabOrderAndResults(order, sourceMessageId, resourcePath.replace(".yaml", ""));
             updateLabIsolates(order, resourcePath.replace(".yaml", "_micro"));
             count++;
         }
 
         return labOrderMsgs;
+    }
+
+    private static String sourceMessageIdWithCount(String sourceMessagePrefix, int count) {
+        return String.format("%s_%02d", sourceMessagePrefix, count);
     }
 
     /**
@@ -166,7 +170,7 @@ public class InterchangeMessageFactory {
         List<Flowsheet> flowsheets = EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (Flowsheet flowsheet : flowsheets) {
-            String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
+            String sourceMessageId = sourceMessageIdWithCount(sourceMessagePrefix, count);
             flowsheet.setSourceMessageId(sourceMessageId);
 
             // update order with yaml data
