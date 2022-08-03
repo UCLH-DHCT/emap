@@ -87,7 +87,6 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         populateObrFields(obr);
         populateOrderInformation(orc, obr);
         setEpicOrderNumberFromORC();
-        // battery can change throughout messages, but only one specimen number per request so using the coding system name as a dummy battery
         getMsg().setTestBatteryLocalCode(getCodingSystem().name());
     }
 

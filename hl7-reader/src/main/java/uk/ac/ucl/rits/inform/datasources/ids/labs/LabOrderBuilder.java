@@ -189,8 +189,7 @@ abstract class LabOrderBuilder {
      */
     void populateObrFields(OBR obr) throws DataTypeException, Hl7InconsistencyException {
         // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
-        // which is the closest we get to a "collection" time. The actual collection will happen some point
-        // before or after this, we can't really tell. That's why an order message contains a non blank collection time.
+        // which is the closest we get to a "collection" time.
         // This field is consistent throughout the workflow.
         Instant collectionTime = interpretLocalTime(obr.getObr7_ObservationDateTime());
         if (collectionTime == null) {
@@ -206,8 +205,6 @@ abstract class LabOrderBuilder {
 
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
-        // this is the "last updated" field for results as well as changing to order "in progress"
-        // Will be set from ORC if status change time is not in message type
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
         String reasonForStudy = List.of(obr.getObr31_ReasonForStudy()).stream()
