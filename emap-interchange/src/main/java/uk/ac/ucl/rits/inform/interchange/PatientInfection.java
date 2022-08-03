@@ -23,11 +23,6 @@ public class PatientInfection extends PatientConditionMessage implements Seriali
     /**
      * Time and date condition was added at.
      */
-    private Instant addedDatetime;
-
-    /**
-     * Time and date condition was added at.
-     */
     private InterchangeValue<Instant> resolvedDatetime = InterchangeValue.unknown();
 
     /**
