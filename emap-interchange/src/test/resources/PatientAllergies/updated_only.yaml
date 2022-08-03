@@ -7,10 +7,11 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Food"
+  conditionCode: "NUTS"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "NUTS"
+    value: "NUTS"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -37,10 +38,11 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Drug Class"
+  conditionCode: "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
+    value: "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"

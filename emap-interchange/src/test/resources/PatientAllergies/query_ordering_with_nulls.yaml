@@ -7,10 +7,11 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "DRUG INGREDI"
+  conditionCode: "TRAMADOL"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "TRAMADOL"
+    value: "TRAMADOL"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -38,10 +39,11 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "DRUG INGREDI"
+  conditionCode: "CO-TRIMOXAZOLE (TRIMETHOPRIM AND SULFAMETHOXAZOLE)"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "CO-TRIMOXAZOLE (TRIMETHOPRIM AND SULFAMETHOXAZOLE)"
+    value: "CO-TRIMOXAZOLE (TRIMETHOPRIM AND SULFAMETHOXAZOLE)"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -61,10 +63,11 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Food"
+  conditionCode: "NUTS"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "NUTS"
+    value: "NUTS"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -91,10 +94,11 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Drug Class"
+  conditionCode: "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
+    value: "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
