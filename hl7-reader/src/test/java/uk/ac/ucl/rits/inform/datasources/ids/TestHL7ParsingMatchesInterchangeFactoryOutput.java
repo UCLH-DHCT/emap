@@ -185,7 +185,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
-    void testAdtMoves() throws Exception {
+    void testAdtPermutationMoves() throws Exception {
         String[] fileNames = {"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"};
 
         builtAndAssertAdtMessages("Adt", "Location/Moves", fileNames);
@@ -209,6 +209,34 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         }
 
         Assertions.assertEquals(expectedMessages.size(), builtMessages.size());
+    }
+
+    @Test
+    void testPermutationCancelAdmit() throws Exception {
+        String[] fileNames = {"01_A01", "02_A11", "03_A01", "04_A02", "05_A03"};
+
+        builtAndAssertAdtMessages("Adt", "Location/CancelAdmit", fileNames);
+    }
+
+    @Test
+    void testPermutationCancelDischarge() throws Exception {
+        String[] fileNames = {"01_A01", "02_A02", "03_A01", "04_A13", "05_A03"};
+
+        builtAndAssertAdtMessages("Adt", "Location/CancelDischarge", fileNames);
+    }
+
+    @Test
+    void testPermutationCancelTransfer() throws Exception {
+        String[] fileNames = {"01_A01", "02_A02", "03_A02", "04_A12", "05_A02", "06_A03"};
+
+        builtAndAssertAdtMessages("Adt", "Location/CancelTransfer", fileNames);
+    }
+
+    @Test
+    void testPermutationDuplicateSimple() throws Exception {
+        String[] fileNames = {"01_A01", "02_A02", "03_A02", "04_A03"};
+
+        builtAndAssertAdtMessages("Adt", "Location/DuplicateSimple", fileNames);
     }
 
     void checkConsultMatchesInterchange(String fileName) throws Exception {
