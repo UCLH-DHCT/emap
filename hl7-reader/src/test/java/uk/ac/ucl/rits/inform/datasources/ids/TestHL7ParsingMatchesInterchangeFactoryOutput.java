@@ -7,10 +7,11 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.test.helpers.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+import uk.ac.ucl.rits.inform.interchange.test.helpers.EmapYamlMapper;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -32,18 +32,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
+    private void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual, String message) {
+        Assertions.assertEquals(EmapYamlMapper.convertToString(expected), EmapYamlMapper.convertToString(actual), message);
+    }
+
+    private void assertEquals(EmapOperationMessage expected, EmapOperationMessage actual) {
+        Assertions.assertEquals(EmapYamlMapper.convertToString(expected), EmapYamlMapper.convertToString(actual));
+    }
+
     private void testAdtMessage(String adtFileStem) throws Exception {
         log.info("Testing ADT message with stem '{}'", adtFileStem);
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem + ".txt");
         AdtMessage expectedAdtMessage = interchangeFactory.getAdtMessage(adtFileStem + ".yaml");
         Assertions.assertEquals(1, messagesFromHl7Message.size());
-        Assertions.assertEquals(expectedAdtMessage, messagesFromHl7Message.get(0));
+        assertEquals(expectedAdtMessage, messagesFromHl7Message.get(0));
     }
 
     private void assertListOfMessagesEqual(List<? extends EmapOperationMessage> expectedMessages, List<? extends EmapOperationMessage> messagesFromHl7Message) {
         for (int i = 0; i < expectedMessages.size(); i++) {
             String failMessage = String.format("Failed on message %d", i);
-            Assertions.assertEquals(expectedMessages.get(i), messagesFromHl7Message.get(i), failMessage);
+            assertEquals(expectedMessages.get(i), messagesFromHl7Message.get(i), failMessage);
         }
         Assertions.assertEquals(expectedMessages.size(), messagesFromHl7Message.size());
     }
@@ -174,7 +182,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
                 String.format("ConsultRequest/%s.txt", fileName));
         ConsultRequest expected = interchangeFactory.getConsult(String.format("%s.yaml", fileName));
-        assertEquals(1, messagesFromHl7Message.size());
+        Assertions.assertEquals(1, messagesFromHl7Message.size());
         assertEquals(expected, messagesFromHl7Message.get(0));
     }
 
@@ -202,7 +210,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
                 String.format("AdvanceDecision/%s.txt", fileName));
         AdvanceDecisionMessage expected = interchangeFactory.getAdvanceDecision(String.format("%s.yaml", fileName));
-        assertEquals(1, messagesFromHl7Message.size());
+        Assertions.assertEquals(1, messagesFromHl7Message.size());
         assertEquals(expected, messagesFromHl7Message.get(0));
     }
 
@@ -246,7 +254,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     public void testLabOrderMsgProducesAdtFirst() throws Exception {
         EmapOperationMessage messageFromHl7 = processSingleMessage("LabOrders/winpath/ORU_R01.txt").get(0);
         AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/lab_oru_r01.yaml");
-        Assertions.assertEquals(expectedAdt, messageFromHl7);
+        assertEquals(expectedAdt, messageFromHl7);
     }
 
     @Test
@@ -419,14 +427,14 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     public void testVitalSignsProducesAdtFirst() throws Exception {
         EmapOperationMessage messageFromHl7 = processSingleMessage("VitalSigns/MixedHL7Message.txt").get(0);
         AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/flowsheet_oru_r01.yaml");
-        Assertions.assertEquals(expectedAdt, messageFromHl7);
+        assertEquals(expectedAdt, messageFromHl7);
     }
 
     @Test
     public void testPatientInfectionCreatesAdt() throws Exception {
         EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt").get(0);
         AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/patient_infection_a05.yaml");
-        Assertions.assertEquals(expectedAdt, messageFromHl7);
+        assertEquals(expectedAdt, messageFromHl7);
     }
 
     @Test
@@ -436,7 +444,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                 .filter(msg -> msg instanceof PatientInfection)
                 .findFirst().orElseThrow();
         PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
-        Assertions.assertEquals(expected, messageFromHl7);
+        assertEquals(expected, messageFromHl7);
     }
 
     @Test
