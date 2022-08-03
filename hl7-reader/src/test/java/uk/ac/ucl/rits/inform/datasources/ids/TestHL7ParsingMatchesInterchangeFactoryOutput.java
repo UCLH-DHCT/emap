@@ -501,8 +501,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     void testPatientProblem() throws Exception {
         String[] fileNames = {
-                "minimal_myeloma_outpatient", "minimal_myeloma_inpatient", "minimal_myeloma_inpatient_delete",
-                "myeloma_add", "minimal_other_problem_inpatient"
+                "minimal_myeloma_outpatient", "minimal_myeloma_inpatient", "myeloma_add", "minimal_other_problem_inpatient"
         };
         for (String fileName : fileNames) {
             log.info("Testing file {}", fileName);
