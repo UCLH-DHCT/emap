@@ -234,7 +234,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testPermutationDuplicateSimple() throws Exception {
-        String[] fileNames = {"01_A01", "02_A02", "03_A02", "04_A03"};
+        String[] fileNames = {"01_A04", "02_A01", "03_A02", "04_A03"};
 
         builtAndAssertAdtMessages("Adt", "Location/DuplicateSimple", fileNames);
     }
