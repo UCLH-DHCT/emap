@@ -167,23 +167,8 @@ abstract class LabOrderBuilder {
         msg.setSourceMessageId(subMessageSourceId);
         String sourceApplication = patientHl7.getSendingApplication().isEmpty() ? "Not in Message" : patientHl7.getSendingApplication();
         msg.setSourceSystem(sourceApplication);
-        msg.setVisitNumber(getVisitNumberFromPv1rPID(patientHl7));
+        msg.setVisitNumber(patientHl7.getVisitNumberFromPv1orPID());
         msg.setMrn(patientHl7.getMrn());
-    }
-
-    /**
-     * Get the visit number from the PV1 segment, falling back to the PID if that is empty.
-     * Winpath ORR messages can have no PV1 segment but store the encounter in the PID.
-     * @param patientHl7 patient information
-     * @return visit number or an empty string if it is not defined
-     * @throws HL7Exception if HAPI does
-     */
-    private String getVisitNumberFromPv1rPID(PatientInfoHl7 patientHl7) throws HL7Exception {
-        String visitNumber = patientHl7.getVisitNumber();
-        if (visitNumber.isEmpty()) {
-            visitNumber = patientHl7.getPatientAccountNumber();
-        }
-        return visitNumber;
     }
 
     /**
@@ -204,8 +189,7 @@ abstract class LabOrderBuilder {
      */
     void populateObrFields(OBR obr) throws DataTypeException, Hl7InconsistencyException {
         // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
-        // which is the closest we get to a "collection" time. The actual collection will happen some point
-        // before or after this, we can't really tell. That's why an order message contains a non blank collection time.
+        // which is the closest we get to a "collection" time.
         // This field is consistent throughout the workflow.
         Instant collectionTime = interpretLocalTime(obr.getObr7_ObservationDateTime());
         if (collectionTime == null) {
@@ -221,8 +205,6 @@ abstract class LabOrderBuilder {
 
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
-        // this is the "last updated" field for results as well as changing to order "in progress"
-        // Will be set from ORC if status change time is not in message type
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
         String reasonForStudy = List.of(obr.getObr31_ReasonForStudy()).stream()

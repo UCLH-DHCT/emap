@@ -55,9 +55,6 @@ public class AppHl7 {
                     exitCode = 0;
                     break;
                 } catch (Exception e) {
-                    // we may want to handle AmqpException specifically
-                    // we need to distinguish between situations where a retry will help
-                    // (eg. full queue) and where it won't.
                     logger.error("Exiting because encountered exception: ", e);
                     break;
                 }
