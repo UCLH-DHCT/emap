@@ -186,17 +186,22 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testAdtMoves() throws Exception {
-        String hl7PathTemplate = "Adt/Location/Moves/%s.txt";
-        String interchangePathTemplate = "Location/Moves/%s.yaml";
         String[] fileNames = {"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"};
 
-        Collection<EmapOperationMessage> builtMessages = new ArrayList<>(fileNames.length);
-        Collection<AdtMessage> expectedMessages = new ArrayList<>(fileNames.length);
-        // build up order messages
+        builtAndAssertAdtMessages("Adt", "Location/Moves", fileNames);
+    }
+
+    // later could abstract this and pass in a lambda for how to get the interchange message? Worth adding as an issue?
+    private void builtAndAssertAdtMessages
+            (String hl7PathBase, String sharedBase, String[] fileNames) throws Exception {
+        String hl7PathTemplate = String.join( "/", hl7PathBase, sharedBase, "%s.txt");
+        String interchangePathTemplate = String.join( "/", sharedBase, "%s.yaml");
+        Collection<EmapOperationMessage> builtMessages = new ArrayList<>();
+        Collection<EmapOperationMessage> expectedMessages = new ArrayList<>();
         for (String fileName : fileNames) {
             log.info("Processing file {}", fileName);
             EmapOperationMessage builtMessage = processSingleMessage(String.format(hl7PathTemplate, fileName)).stream().findFirst().orElseThrow();
-            AdtMessage expectedMessage = interchangeFactory.getAdtMessage(String.format(interchangePathTemplate, fileName));
+            EmapOperationMessage expectedMessage = interchangeFactory.getAdtMessage(String.format(interchangePathTemplate, fileName));
 
             assertEquals(expectedMessage, builtMessage);
             expectedMessages.add(expectedMessage);
@@ -204,7 +209,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         }
 
         Assertions.assertEquals(expectedMessages.size(), builtMessages.size());
-
     }
 
     void checkConsultMatchesInterchange(String fileName) throws Exception {
