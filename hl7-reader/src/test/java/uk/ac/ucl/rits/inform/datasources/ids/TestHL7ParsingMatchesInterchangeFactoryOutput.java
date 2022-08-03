@@ -191,7 +191,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         builtAndAssertAdtMessages("Adt", "Location/Moves", fileNames);
     }
 
-    // later could abstract this and pass in a lambda for how to get the interchange message? Worth adding as an issue?
     private void builtAndAssertAdtMessages
             (String hl7PathBase, String sharedBase, String[] fileNames) throws Exception {
         String hl7PathTemplate = String.join( "/", hl7PathBase, sharedBase, "%s.txt");
@@ -548,7 +547,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         if (!missedFilePaths.isEmpty()) {
             String sortedAndJoined = missedFilePaths.stream().sorted().collect(Collectors.joining("\n\t"));
-            throw new Exception("Not all the files have been accessed. Missed:\n" + sortedAndJoined);
+            throw new Exception("Not all interchange YAML files have been accessed. Missed:\n\t" + sortedAndJoined);
         }
     }
 }
