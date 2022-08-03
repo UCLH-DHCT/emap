@@ -80,13 +80,14 @@ public class PatientAllergyFactory {
      * @throws HL7Exception if message cannot be parsed correctly.
      */
     PatientAllergy buildPatientAllergy(String sourceId, EVN evn, PatientInfoHl7 patientInfo, IAM iam) throws HL7Exception {
+
         PatientAllergy patientAllergy = new PatientAllergy();
+
         // generic information
         patientAllergy.setSourceMessageId(sourceId);
         patientAllergy.setSourceSystem(patientInfo.getSendingApplication());
         patientAllergy.setMrn(patientInfo.getMrn());
         patientAllergy.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
-        patientAllergy.setStatus(iam.getAllergyClinicalStatusCode().getCwe1_Identifier().getValueOrEmpty());
 
         switch (iam.getIam6_AllergyActionCode().getCne1_Identifier().getValueOrEmpty()){
             case "A":
@@ -100,9 +101,14 @@ public class PatientAllergyFactory {
         }
 
         // allergy specific information
+        patientAllergy.setStatus(iam.getAllergyClinicalStatusCode().getCwe1_Identifier().getValueOrEmpty());
+        var allergyId = iam.getIam7_AllergyUniqueIdentifier().getEntityIdentifier().getValueOrEmpty();
+        patientAllergy.setEpicConditionId(InterchangeValue.buildFromHl7(Long.valueOf(allergyId)));
         patientAllergy.setOnsetDate(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(iam.getIam11_OnsetDate())));
         patientAllergy.setSubType(InterchangeValue.buildFromHl7(iam.getAllergenTypeCode().getCwe1_Identifier().getValueOrEmpty()));
-        patientAllergy.setConditionName(InterchangeValue.buildFromHl7(iam.getAllergenCodeMnemonicDescription().getText().getValueOrEmpty()));
+        var allergyCode = iam.getAllergenCodeMnemonicDescription().getText().getValueOrEmpty();
+        patientAllergy.setConditionCode(allergyCode);
+        patientAllergy.setConditionName(InterchangeValue.buildFromHl7(allergyCode));
         patientAllergy.setAddedDatetime(HL7Utils.interpretLocalTime(iam.getReportedDateTime()));
         patientAllergy.setSeverity(InterchangeValue.buildFromHl7(iam.getAllergySeverityCode().getCwe1_Identifier().getValue()));
 
