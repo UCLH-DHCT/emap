@@ -518,12 +518,9 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
             missedFilePaths.add(file.getFilePathString());
         }
 
-        if (missedFilePaths.size() > 0) {
-            for (var filePathString : missedFilePaths) {
-                System.err.println(filePathString);
-            }
-
-            throw new Exception("Not all the files have been accessed. Missed: " + missedFilePaths);
+        if (!missedFilePaths.isEmpty()) {
+            String sortedAndJoined = missedFilePaths.stream().sorted().collect(Collectors.joining("\n\t"));
+            throw new Exception("Not all the files have been accessed. Missed:\n" + sortedAndJoined);
         }
     }
 }
