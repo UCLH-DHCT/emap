@@ -12,7 +12,10 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
-  status: "Active"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
   action: "DELETE"
   addedDate: "2019-06-01"
   onsetDate:
@@ -33,7 +36,10 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
-  status: "Active"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
   action: "ADD"
   addedDate: "2019-06-01"
   onsetDate:

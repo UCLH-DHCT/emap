@@ -23,7 +23,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     /**
      * Status of the condition.
      */
-    private String status;
+    private InterchangeValue<String> status = InterchangeValue.unknown();
 
     /**
      * Number of the hospital visit.
