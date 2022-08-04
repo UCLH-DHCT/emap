@@ -40,7 +40,6 @@ class TestPatientAllergies extends TestHl7MessageStream {
         patientAllergyFactory.setAllergiesProgress(serviceStart);
     }
 
-
     List<PatientAllergy> getAllAllergies(String fileName) throws Exception {
         List<? extends EmapOperationMessage> msgs = null;
         try {

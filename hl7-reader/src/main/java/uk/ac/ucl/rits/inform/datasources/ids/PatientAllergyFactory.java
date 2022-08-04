@@ -101,7 +101,8 @@ public class PatientAllergyFactory {
         }
 
         // allergy specific information
-        patientAllergy.setStatus(iam.getAllergyClinicalStatusCode().getCwe1_Identifier().getValueOrEmpty());
+        var allergyStatus = iam.getAllergyClinicalStatusCode().getCwe1_Identifier().getValueOrEmpty();
+        patientAllergy.setStatus(InterchangeValue.buildFromHl7(allergyStatus));
         var allergyId = iam.getIam7_AllergyUniqueIdentifier().getEntityIdentifier().getValueOrEmpty();
         patientAllergy.setEpicConditionId(InterchangeValue.buildFromHl7(Long.valueOf(allergyId)));
         patientAllergy.setOnsetDate(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(iam.getIam11_OnsetDate())));
