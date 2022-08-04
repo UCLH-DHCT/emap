@@ -31,10 +31,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
+
 /**
  * Utilities for interpreting HL7 messages.
  * @author Jeremy Stein
  * @author Stef Piatek
+ * @author Tom Young
  */
 public final class HL7Utils {
 
@@ -61,6 +63,7 @@ public final class HL7Utils {
         valueAsCal.setTimeZone(TimeZone.getTimeZone(LONDON_TIMEZONE));
         return valueAsCal.toInstant();
     }
+
     /**
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
