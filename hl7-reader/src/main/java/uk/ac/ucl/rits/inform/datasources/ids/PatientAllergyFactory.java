@@ -89,7 +89,7 @@ public class PatientAllergyFactory {
         patientAllergy.setMrn(patientInfo.getMrn());
         patientAllergy.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
 
-        switch (iam.getIam6_AllergyActionCode().getCne1_Identifier().getValueOrEmpty()){
+        switch (iam.getIam6_AllergyActionCode().getCne1_Identifier().getValueOrEmpty()) {
             case "A":
                 patientAllergy.setAction(ConditionAction.ADD);
             case "D":
