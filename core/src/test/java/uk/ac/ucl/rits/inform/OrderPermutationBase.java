@@ -10,7 +10,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseS
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.test.helpers.InterchangeMessageFactory;
 
 import java.util.Collection;
 
