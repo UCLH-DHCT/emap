@@ -402,9 +402,10 @@ public class PatientConditionController {
      * @param msg            patient problem message
      * @param visit          hospital visit
      * @param conditionState patient condition entity to update
+     * @throws RequiredDataMissingException if the status of the message is not defined
      */
     private void updatePatientProblem(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition,
-            PatientConditionAudit> conditionState) throws RequiredDataMissingException{
+            PatientConditionAudit> conditionState) throws RequiredDataMissingException {
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
         conditionState.assignIfDifferent(msg.getAddedDate(), condition.getAddedDate(), condition::setAddedDate);
@@ -412,10 +413,9 @@ public class PatientConditionController {
 
         if (msg.getAction().equals(ConditionAction.DELETE)) {
 
-            if (msg.getStatus().isUnknown()){
+            if (msg.getStatus().isUnknown()) {
                 throw new RequiredDataMissingException("Failed to determine if the message is a delete without a defined status");
-            }
-            else if (msg.getStatus().get().equalsIgnoreCase("active")) {
+            } else if (msg.getStatus().get().equalsIgnoreCase("active")) {
                 conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
             }
 
