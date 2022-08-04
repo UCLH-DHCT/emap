@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -131,9 +132,8 @@ public class InterchangeMessageFactory {
     public List<PatientAllergy> getPatientAllergies(final String fileName) throws IOException {
         String resourcePath = "/PatientAllergies/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
-
 
     /**
      * Build flowsheet metadata expected data from specified file.
