@@ -82,7 +82,7 @@ public class PatientProblemService {
         LocalDate problemResolved = HL7Utils.interpretDate(problemSegment.getPrb9_ActualProblemResolutionDateTime());
         patientProblem.setResolvedDate(problemResolved);
         String problemStatus = problemSegment.getPrb13_ProblemConfirmationStatus().getCwe1_Identifier().getValueOrEmpty();
-        patientProblem.setStatus(problemStatus);
+        patientProblem.setStatus(InterchangeValue.buildFromHl7(problemStatus));
         String problemId = problemSegment.getPrb4_ProblemInstanceID().getEntityIdentifier().getValueOrEmpty();
         patientProblem.setEpicConditionId(InterchangeValue.buildFromHl7(Long.valueOf(problemId)));
         DTM problemOnset = problemSegment.getPrb16_ProblemDateOfOnset();
