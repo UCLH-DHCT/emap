@@ -69,13 +69,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Process a patient allergy message
+     * Process a patient allergy message.
      * @param msg the message
      * @throws EmapOperationMessageProcessingException if message could not be processed
      */
     @Override
     @Transactional
-    public void processMessage(PatientAllergy msg) throws EmapOperationMessageProcessingException{
+    public void processMessage(PatientAllergy msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         patientStateProcessor.processMessage(msg, storedFrom);
     }

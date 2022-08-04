@@ -37,7 +37,7 @@ public class PatientSymptomController {
     public void processMessage(PatientConditionMessage msg, PatientCondition condition)
             throws EmapOperationMessageProcessingException {
 
-        if (msg instanceof PatientAllergy){
+        if (msg instanceof PatientAllergy) {
             processAllergyMessage((PatientAllergy) msg, condition);
         }
 
@@ -45,16 +45,16 @@ public class PatientSymptomController {
     }
 
     /**
-     * Process an allergy message which has reactions, treated as a symptom of a condition
+     * Process an allergy message which has reactions, treated as a symptom of a condition.
      * @param msg Patient allergy message to process
      * @param condition Patient condition entity
      */
-    private void processAllergyMessage(PatientAllergy msg, PatientCondition condition){
+    private void processAllergyMessage(PatientAllergy msg, PatientCondition condition) {
 
-        for (String reactionName : msg.getReactions()){
+        for (String reactionName : msg.getReactions()) {
 
             var symptom = new AllergenReaction(reactionName, condition);
-            if (conditionSymptomRepo.findByNameAndPatientConditionId(reactionName, condition).isEmpty()){
+            if (conditionSymptomRepo.findByNameAndPatientConditionId(reactionName, condition).isEmpty()) {
                 conditionSymptomRepo.save(symptom);
             }
         }

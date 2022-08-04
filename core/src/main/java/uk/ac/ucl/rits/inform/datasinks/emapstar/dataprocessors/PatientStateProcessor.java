@@ -38,7 +38,8 @@ public class PatientStateProcessor {
      * @param visitController            hospital visit controller
      */
     public PatientStateProcessor(
-            PatientConditionController patientConditionController, PatientSymptomController patientSymptomController, PersonController personController, VisitController visitController) {
+            PatientConditionController patientConditionController, PatientSymptomController patientSymptomController,
+            PersonController personController, VisitController visitController) {
         this.patientConditionController = patientConditionController;
         this.patientSymptomController = patientSymptomController;
         this.personController = personController;

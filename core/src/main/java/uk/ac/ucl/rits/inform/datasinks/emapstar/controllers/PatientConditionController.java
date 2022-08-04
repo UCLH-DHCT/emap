@@ -21,7 +21,6 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
-import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
@@ -75,29 +74,28 @@ public class PatientConditionController {
     }
 
     /**
-     * Process any type of patient condition message
+     * Process any type of patient condition message.
      * @param msg        message
      * @param mrn        patient id
      * @param visit      hospital visit can be null
      * @param storedFrom valid from in database
+     * @return patient condition entity
      * @throws EmapOperationMessageProcessingException if message can't be processed.
+     * @throws RequiredDataMissingException if the PatientConditionMessage is not of a supported type
      */
     public PatientCondition getOrCreateCondition(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException{
+            throws EmapOperationMessageProcessingException {
 
-        if (msg instanceof PatientProblem){
+        if (msg instanceof PatientProblem) {
             return getOrCreateProblemCondition((PatientProblem) msg, mrn, visit, storedFrom);
-        }
-        else if (msg instanceof PatientAllergy){
+        } else if (msg instanceof PatientAllergy) {
             return getOrCreateAllergyCondition((PatientAllergy) msg, mrn, visit, storedFrom);
-        }
-        else if (msg instanceof PatientInfection){
-            return getOrCreateInfectionCondition((PatientInfection)msg, mrn, visit, storedFrom);
-        }
-        else{
+        } else if (msg instanceof PatientInfection) {
+            return getOrCreateInfectionCondition((PatientInfection) msg, mrn, visit, storedFrom);
+        } else {
             logger.debug("Failed to process a {} message. Unsupported derived type", msg.getClass());
-            throw new RequiredDataMissingException("Type of the message *"+msg.getClass()+"* could not "+
-                    "be processed");
+            throw new RequiredDataMissingException("Type of the message *" + msg.getClass() + "* could not "
+                    + "be processed");
         }
     }
 
@@ -107,6 +105,7 @@ public class PatientConditionController {
      * @param mrn        patient id
      * @param visit      hospital visit can be null
      * @param storedFrom valid from in database
+     * @return patient condition entity
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     private PatientCondition getOrCreateAllergyCondition(final PatientAllergy msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
@@ -114,7 +113,7 @@ public class PatientConditionController {
 
         var conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
-        
+
         cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PROBLEM_LIST, msg.getConditionCode(),
                 msg.getUpdatedDateTime());
 
@@ -135,6 +134,7 @@ public class PatientConditionController {
      * @param mrn        patient id
      * @param visit      hospital visit can be null
      * @param storedFrom valid from in database
+     * @return patient condition entity
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     private PatientCondition getOrCreateProblemCondition(final PatientProblem msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
@@ -199,6 +199,7 @@ public class PatientConditionController {
      * @param mrn        patient id
      * @param visit      hospital visit
      * @param storedFrom valid from in database
+     * @return patient condition entity
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     private PatientCondition getOrCreateInfectionCondition(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
@@ -427,7 +428,7 @@ public class PatientConditionController {
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
 
-        if (msg.getAction().equals(ConditionAction.DELETE)){
+        if (msg.getAction().equals(ConditionAction.DELETE)) {
             conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
         }
 

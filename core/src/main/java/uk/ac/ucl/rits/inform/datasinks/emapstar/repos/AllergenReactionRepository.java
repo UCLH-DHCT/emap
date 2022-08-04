@@ -14,8 +14,9 @@ public interface AllergenReactionRepository extends CrudRepository<AllergenReact
 
     /**
      * Get patient symptom, should be unique.
-     * @param symptomName   name of symptom
-     * @return possible patient symptom
+     * @param symptomName      name of symptom
+     * @param patientCondition patient condition instance (foreign key)
+     * @return possible allergy reaction
      */
     Optional<AllergenReaction> findByNameAndPatientConditionId(String symptomName, PatientCondition patientCondition);
 
