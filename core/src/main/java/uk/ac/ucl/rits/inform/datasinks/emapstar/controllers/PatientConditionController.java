@@ -376,7 +376,7 @@ public class PatientConditionController {
         conditionState.assignInterchangeValue(msg.getEpicConditionId(), condition.getInternalId(), condition::setInternalId);
         conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
-        conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
+        conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(msg.getOnsetDate(), condition.getOnsetDate(), condition::setOnsetDate);
         conditionState.assignInterchangeValue(msg.getSeverity(), condition.getSeverity(), condition::setSeverity);
@@ -404,14 +404,21 @@ public class PatientConditionController {
      * @param conditionState patient condition entity to update
      */
     private void updatePatientProblem(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition,
-            PatientConditionAudit> conditionState) {
+            PatientConditionAudit> conditionState) throws RequiredDataMissingException{
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
         conditionState.assignIfDifferent(msg.getAddedDate(), condition.getAddedDate(), condition::setAddedDate);
         updatePatientCondition(msg, visit, conditionState);
 
-        if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equalsIgnoreCase("active")) {
-            conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
+        if (msg.getAction().equals(ConditionAction.DELETE)) {
+
+            if (msg.getStatus().isUnknown()){
+                throw new RequiredDataMissingException("Failed to determine if the message is a delete without a defined status");
+            }
+            else if (msg.getStatus().get().equalsIgnoreCase("active")) {
+                conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
+            }
+
         } else {
             conditionState.assignIfDifferent(false, condition.getIsDeleted(), condition::setIsDeleted);
         }

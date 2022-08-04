@@ -255,7 +255,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         assertTrue(aSingleConditionExists());
         assertNull(firstPatientCondition().getStatus());
 
-        hl7Tramadol.setStatus(ACTIVE);
+        hl7Tramadol.setStatus(InterchangeValue.buildFromHl7(ACTIVE));
         hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).minus(1, ChronoUnit.SECONDS));
 
         processSingleMessage(hl7Tramadol);
