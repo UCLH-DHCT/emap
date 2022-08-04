@@ -158,7 +158,7 @@ public class InterchangeMessageFactory {
 
     public List<PatientAllergy> getPatientAllergies(final String fileName) throws IOException {
         String resourcePath = "/PatientAllergies/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
         return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
