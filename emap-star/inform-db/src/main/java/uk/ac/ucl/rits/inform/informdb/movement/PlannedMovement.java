@@ -63,23 +63,23 @@ public class PlannedMovement extends TemporalCore<PlannedMovement, PlannedMoveme
     private Location locationId;
 
     /**
-     * /brief The type of planned movement event (ADMIT, TRANSFER, DISCHARGE).
+     * \brief The type of planned movement event (ADMIT, TRANSFER, DISCHARGE).
      */
     private String eventType;
 
     /**
-     * /brief The date and time that the planned movement event was made.
+     * \brief The date and time that the planned movement event was made.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant eventDatetime;
 
     /**
-     * /brief Has the planned movement been cancelled (either by a user or because a different movement has occurred).
+     * \brief Has the planned movement been cancelled (either by a user or because a different movement has occurred).
      */
     private Boolean cancelled = false;
 
     /**
-     * /brief The date and time that the planned movement was cancelled.
+     * \brief The date and time that the planned movement was cancelled.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant cancelledDatetime;
