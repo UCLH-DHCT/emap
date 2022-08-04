@@ -1,0 +1,100 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "clarity"
+  sourceMessageId: "3"
+  updatedDateTime: "2019-05-07T09:40:25Z"
+  mrn: "Bq6PQt5xSa"
+  conditionCode: "MRSA"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "MRSA"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 3
+  status: "Resolved"
+  addedDatetime: null
+  resolvedDatetime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-07T09:40:25Z"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "clarity"
+  sourceMessageId: "4"
+  updatedDateTime: "2019-05-14T08:19:11Z"
+  mrn: "xo9dzpR0Zx7J"
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "100000013"
+  conditionCode: "?COVID-19"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "?COVID-19"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 4
+  status: "Active"
+  addedDatetime: "2019-05-14T08:19:11Z"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "clarity"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "8DcEwvqa8Q3"
+  conditionCode: "Mumps"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Mumps"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  status: "Active"
+  addedDatetime: "2019-06-02T10:31:05Z"
+  resolvedDatetime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-06-08T14:22:01Z"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-05"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "clarity"
+  sourceMessageId: "2"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "suI83US"
+  conditionCode: "Varicella"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Varicella"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 2
+  status: "Deleted"
+  addedDatetime: "2019-06-08T02:05:49Z"
+  resolvedDatetime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-20"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Proin risus."

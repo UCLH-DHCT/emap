@@ -1,0 +1,17 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.ConsultRequest"
+sourceSystem: "clarity"
+sourceMessageId: "901"
+epicConsultId: 901
+mrn: "xo9dzpR0Zx7J"
+visitNumber: "100000013"
+consultationType: "CON1"
+statusChangeDatetime: "2021-11-21T07:08:49Z"
+scheduledDatetime: "2021-09-22T09:00:00Z"
+closedDueToDischarge: true
+questions:
+  "Reason for Consult?": "post-operative issues"
+  "Indication?": "here are some indications\nSomething something\nAnother thing"
+notes:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Have contacted surgery by phone\nSo and so says they can schedule time tomorrow if needs be"
