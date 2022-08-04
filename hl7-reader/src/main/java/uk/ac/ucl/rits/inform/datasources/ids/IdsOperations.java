@@ -98,9 +98,7 @@ public class IdsOperations implements AutoCloseable {
         defaultStartUnid = getFirstMessageUnidFromDate(idsConfiguration.getStartDateTime(), 1);
         endUnid = getFirstMessageUnidFromDate(idsConfiguration.getEndDatetime(), defaultStartUnid);
 
-        // Since progress is stored as the unid (the date info is purely for human convenience),
-        // there is no way to translate a future date into a unid.
-        // This feature is only intended for processing messages in the past, so that's OK.
+        // Progress is stored as the unid (the date info is purely for human convenience),
         logger.info(
                 "IDS message processing boundaries: Start date = {}, start unid = {} -->  End date = {}, end unid = {}",
                 idsConfiguration.getStartDateTime(), defaultStartUnid, idsConfiguration.getEndDatetime(), endUnid
@@ -214,9 +212,6 @@ public class IdsOperations implements AutoCloseable {
      * @throws RuntimeException if IDS is not empty
      */
     private void writeToIds(String hl7message, int id, PatientInfoHl7 patientInfoHl7) throws HL7Exception {
-        // To avoid the risk of accidentally attempting to write into the real
-        // IDS, check that the IDS was empty when we started. Emptiness strongly
-        // suggests that this is a test IDS.
         if (!getIdsEmptyOnInit()) {
             throw new RuntimeException("Cannot write into non-empty IDS, are you sure this is a test?");
         }
