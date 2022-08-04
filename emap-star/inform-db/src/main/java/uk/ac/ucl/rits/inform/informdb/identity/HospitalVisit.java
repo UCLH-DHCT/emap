@@ -156,7 +156,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
     }
 
     @Override
-    public HospitalVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new HospitalVisitAudit(this, validUntil, storedFrom);
+    public HospitalVisitAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new HospitalVisitAudit(this, validUntil, storedUntil);
     }
 }
