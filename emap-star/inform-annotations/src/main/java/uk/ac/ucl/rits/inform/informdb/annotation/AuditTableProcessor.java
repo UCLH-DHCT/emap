@@ -163,12 +163,12 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.println("\t@Override");
             out.print("\tpublic ");
             out.print(auditClassName);
-            out.println(" createAuditEntity(Instant validUntil, Instant storedFrom) {");
+            out.println(" createAuditEntity(Instant validUntil, Instant storedUntil) {");
             out.print("\t\t");
             out.print(auditClassName);
             out.println(" i = this.copy();");
             out.println("\t\ti.setValidUntil(validUntil);");
-            out.println("\t\ti.setStoredFrom(storedFrom);");
+            out.println("\t\ti.setStoredUntil(storedUntil);");
             out.println("\t\treturn i;");
             out.println("\t}");
 

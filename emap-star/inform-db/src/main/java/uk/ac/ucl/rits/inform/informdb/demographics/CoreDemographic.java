@@ -157,8 +157,8 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
     }
 
     @Override
-    public CoreDemographicAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new CoreDemographicAudit(this, validUntil, storedFrom);
+    public CoreDemographicAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new CoreDemographicAudit(this, validUntil, storedUntil);
     }
 
 }
