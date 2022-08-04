@@ -264,7 +264,7 @@ interface PIDWrap {
     // cwe c = getPID().getPid16_MaritalStatus()
 
     /**
-     * @return PID-17 Religion - or should this be PID-17.1?
+     * @return PID-17 Religion
      * @throws HL7Exception if HAPI does
      */
     default String getPatientReligion() throws HL7Exception {
