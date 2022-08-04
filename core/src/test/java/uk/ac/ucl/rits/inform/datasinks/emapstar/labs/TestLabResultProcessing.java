@@ -134,7 +134,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
         for (int i = 0; i < finalResults.size(); i++) {
             LabResult originalLab = originalResults.get(i);
             LabResult finaLab = finalResults.get(i);
-            assertEquals(originalLab.getResultLastModifiedTime(), finaLab.getResultLastModifiedTime());
+            assertEquals(originalLab.getResultLastModifiedDatetime(), finaLab.getResultLastModifiedDatetime());
         }
     }
 
@@ -325,7 +325,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
         assertEquals(finalIsolateName, isolate.getIsolateName());
         // should update the isolate time, but also the result's updated time
         assertEquals(laterTime, isolate.getValidFrom());
-        assertEquals(laterTime, isolate.getLabResultId().getResultLastModifiedTime());
+        assertEquals(laterTime, isolate.getLabResultId().getResultLastModifiedDatetime());
     }
 
     @Test
@@ -523,7 +523,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
         assertEquals(secondResultTime, newSensitivityFromUpdatedIsolate.getReportingDatetime());
 
         // non-updated entities
-        assertEquals(firstResultTime, result.getResultLastModifiedTime());
+        assertEquals(firstResultTime, result.getResultLastModifiedDatetime());
         assertEquals(firstResultTime, updatedIsolate.getValidFrom());
         assertEquals(firstResultTime, notUpdatedIsolate.getValidFrom());
         assertEquals(firstResultTime, notUpdatedSensitivityFromNotUpdatedIsolate.getReportingDatetime());
