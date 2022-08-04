@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 
@@ -31,13 +32,14 @@ class TestPatientAllergies extends TestHl7MessageStream {
     private static final String ALLERGY_SEVERITY = "High";
     private static final Instant ALLERGY_ADD = Instant.parse("2019-05-15T08:40:05Z");
     private static final Instant ALLERGY_UPDATE = Instant.parse("2019-05-15T08:40:05Z");
+    private static final ConditionAction ALLERGY_ACTION = ConditionAction.ADD;
     private static final String EPIC = "EPIC";
     @Autowired
-    PatientAllergyFactory patientAllergyFactory;
+    PatientAllergyService patientAllergyService;
 
     @BeforeEach
     private void resetInfectionProgress(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        patientAllergyFactory.setAllergiesProgress(serviceStart);
+        patientAllergyService.setAllergiesProgress(serviceStart);
     }
 
     List<PatientAllergy> getAllAllergies(String fileName) throws Exception {
@@ -73,6 +75,7 @@ class TestPatientAllergies extends TestHl7MessageStream {
         assertEquals(ALLERGY_SEVERITY, allergy.getSeverity().get());
         assertEquals(ALLERGY_ADD, allergy.getAddedDatetime());
         assertEquals(ALLERGY_UPDATE, allergy.getUpdatedDateTime());
+        assertEquals(ALLERGY_ACTION, allergy.getAction());
     }
 
     /**

@@ -29,20 +29,20 @@ import java.util.Collection;
  * @author Anika Cawthorn
  */
 @Component
-public class PatientAllergyFactory {
+public class PatientAllergyService {
     /**
      * The HL7 feed always sends entire history of patient allergies.
      * This field is used to only parse new patient allergies, from the service start date onwards.
      */
     @Setter
     private Instant allergiesProgress;
-    private static final Logger logger = LoggerFactory.getLogger(PatientAllergyFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(PatientAllergyService.class);
 
     /**
      * Setting start time and date for service to process messages from.
      * @param serviceStart when messages should be processed from.
      */
-    public PatientAllergyFactory(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
+    public PatientAllergyService(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
         allergiesProgress = serviceStart;
     }
 
@@ -92,11 +92,11 @@ public class PatientAllergyFactory {
         switch (iam.getIam6_AllergyActionCode().getCne1_Identifier().getValueOrEmpty()) {
             case "A":
                 patientAllergy.setAction(ConditionAction.ADD);
+                break;
             case "D":
                 patientAllergy.setAction(ConditionAction.DELETE);
-            case "U":
-                patientAllergy.setAction(ConditionAction.UPDATE);
-            default:
+                break;
+            default: // Also covers "U"
                 patientAllergy.setAction(ConditionAction.UPDATE);
         }
 
