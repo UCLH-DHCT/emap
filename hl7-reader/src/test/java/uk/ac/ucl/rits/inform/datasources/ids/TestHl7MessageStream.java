@@ -43,18 +43,6 @@ public abstract class TestHl7MessageStream {
     }
 
     /**
-     * processSingleMessage is preferred.
-     * @param resourceFileName filename containing the HL7 message
-     * @return interchange messages
-     * @throws Exception if message malformed
-     */
-    protected Collection<LabOrderMsg> processSingleWinPathOruR01(String resourceFileName) throws Exception {
-        String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
-        ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
-        return LabFunnel.buildMessages("42", hl7Msg, OrderCodingSystem.WIN_PATH);
-    }
-
-    /**
      * Convert HL7 message to one or more Interchange messages, determining the correct type.
      * @param resourceFileName filename containing the HL7 message
      * @return interchange messages
