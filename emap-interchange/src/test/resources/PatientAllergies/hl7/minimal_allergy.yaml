@@ -21,4 +21,4 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
-  action: "UPDATE"
+  action: "ADD"
