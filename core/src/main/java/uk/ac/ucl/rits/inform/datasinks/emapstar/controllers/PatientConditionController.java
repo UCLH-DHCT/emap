@@ -212,7 +212,7 @@ public class PatientConditionController {
                 msg.getUpdatedDateTime());
         deletePreviousInfectionOrClearInfectionTypesCache(msg, storedFrom);
 
-        var patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType.getEntity(), storedFrom);
+        var patientCondition = getOrCreatePatientInfection(msg, mrn, conditionType.getEntity(), storedFrom);
 
         if (this.conditionShouldBeUpdated(msg, patientCondition)) {
             updatePatientInfection(msg, visit, patientCondition);
@@ -256,7 +256,7 @@ public class PatientConditionController {
     }
 
     /**
-     * Get or create existing patient condition entity.
+     * Get or create existing patient condition entity from a patient infection message.
      * @param msg           patient infection or allergy message
      * @param mrn           patient identifier
      * @param conditionType condition type referred to in message
@@ -264,8 +264,8 @@ public class PatientConditionController {
      * @return observation entity wrapped in RowState
      * @throws RequiredDataMissingException if no patient infection Id in hoover data or unrecognised source system
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
-            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientInfection(
+            PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
             throws RequiredDataMissingException {
         Optional<PatientCondition> patientCondition;
         final Long epicConditionId;
@@ -301,8 +301,8 @@ public class PatientConditionController {
      * @param storedFrom    time that emap-core started processing the message
      * @return observation entity wrapped in RowState
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientProblem(
-            PatientProblem msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
+            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
         Instant updatedTime = msg.getUpdatedDateTime();
 
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndInternalId(
