@@ -109,7 +109,6 @@ public class PatientConditionController {
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     private PatientCondition getOrCreateAllergyCondition(final PatientAllergy msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
-    @Transactional
             throws EmapOperationMessageProcessingException {
 
         var conditionType = getOrCreateConditionType(
