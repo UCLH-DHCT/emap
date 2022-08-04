@@ -7,7 +7,7 @@
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "Backache"
+    value: "Backache"
   epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -23,3 +23,25 @@
     status: "SAVE"
     value: "2019-05-31"
   resolvedDate: "2019-06-08"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "clarity"
+  mrn: "suI83US"
+  status: "Deleted"
+  conditionCode: "J45.9"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    value: "Asthma"
+    status: "SAVE"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  onsetTime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    value: "2019-03-20"
+    status: "SAVE"
+  action: "ADD"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    value: 2
+    status: "SAVE"
+  addedDate: "2019-06-08"
+  resolvedDate: null
+
