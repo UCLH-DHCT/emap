@@ -62,7 +62,7 @@ public class IdsOperations implements AutoCloseable {
     private final AdtMessageFactory adtMessageFactory;
     private final OrderAndResultService orderAndResultService;
     private final PatientStatusService patientStatusService;
-    private final PatientAllergyFactory patientAllergyFactory;
+    private final PatientAllergyService patientAllergyFactory;
     private final PatientProblemService patientProblemService;
     private final IdsProgressRepository idsProgressRepository;
     private final boolean idsEmptyOnInit;
@@ -83,7 +83,7 @@ public class IdsOperations implements AutoCloseable {
             AdtMessageFactory adtMessageFactory,
             OrderAndResultService orderAndResultService,
             PatientStatusService patientStatusService,
-            PatientAllergyFactory patientAllergyFactory,
+            PatientAllergyService patientAllergyFactory,
             PatientProblemService patientProblemService,
             IdsProgressRepository idsProgressRepository) {
         this.patientStatusService = patientStatusService;
