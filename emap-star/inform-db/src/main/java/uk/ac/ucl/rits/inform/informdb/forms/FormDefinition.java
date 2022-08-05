@@ -44,7 +44,6 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     private String internalId;
 
     /**
-     *
      * \brief A string name for this form, as used by the source system.
      *
      * LQF .2
