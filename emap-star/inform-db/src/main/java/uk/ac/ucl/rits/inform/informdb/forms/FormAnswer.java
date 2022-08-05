@@ -37,14 +37,14 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
      * \brief Metadata for this answer - ie. what was the question?
      */
     @ManyToOne
-    @JoinColumn(name = "formQuestionId")
+    @JoinColumn(name = "formQuestionId", nullable = false)
     private FormQuestion formQuestionId;
 
     /**
      * \brief The instance of a filled-in form that this answer belongs to.
      */
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "formId")
+    @JoinColumn(name = "formId", nullable = false)
     private Form formId;
 
     /**
