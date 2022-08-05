@@ -29,7 +29,10 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
   mrn: "suI83US"
-  status: "Deleted"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Deleted"
   conditionCode: "J45.9"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
