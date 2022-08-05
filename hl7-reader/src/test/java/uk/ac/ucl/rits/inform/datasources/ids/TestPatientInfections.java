@@ -33,11 +33,11 @@ class TestPatientInfections extends TestHl7MessageStream {
     private static final Instant MUMPS_UPDATE = Instant.parse("2019-06-07T11:32:00Z");
     private static final String EPIC = "EPIC";
     @Autowired
-    PatientStatusService patientStatusService;
+    PatientInfectionFactory patientInfectionFactory;
 
     @BeforeEach
     private void resetInfectionProgress(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        patientStatusService.setInfectionProgress(serviceStart);
+        patientInfectionFactory.setInfectionProgress(serviceStart);
     }
 
 
