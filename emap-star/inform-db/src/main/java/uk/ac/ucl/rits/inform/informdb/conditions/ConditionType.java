@@ -53,7 +53,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private String name;
 
     /**
-     * \brief Subtype of the condition e.g. an allergy to food
+     * \brief Subtype of the condition e.g. an allergy to food. Only populated in the context of allergies.
      */
     private String subType;
 
