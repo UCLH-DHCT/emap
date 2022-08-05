@@ -9,8 +9,6 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PRB;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.ConditionAction;
@@ -23,8 +21,7 @@ import java.util.Collection;
 
 @Component
 @NoArgsConstructor
-public class PatientProblemService {
-    private static final Logger logger = LoggerFactory.getLogger(PatientProblemService.class);
+public class PatientProblemFactory {
 
     /**
      * Build patient problems from message.

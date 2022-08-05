@@ -40,7 +40,7 @@ public class TestPatientProblems extends TestHl7MessageStream {
             "- Blood cultures negative";
     private static final InterchangeValue<Long> EPIC_ID = InterchangeValue.buildFromHl7(1333555L);
     @Autowired
-    PatientProblemService patientProblemService;
+    PatientProblemFactory patientProblemFactory;
 
     List<PatientProblem> getAllProblems(String fileName) throws Exception {
         var msgs = processSingleMessage(String.format(FILE_TEMPLATE, fileName));

@@ -61,9 +61,9 @@ public class IdsOperations implements AutoCloseable {
     private SessionFactory idsFactory;
     private final AdtMessageFactory adtMessageFactory;
     private final OrderAndResultService orderAndResultService;
-    private final PatientStatusService patientStatusService;
-    private final PatientAllergyService patientAllergyFactory;
-    private final PatientProblemService patientProblemService;
+    private final PatientInfectionFactory patientInfectionFactory;
+    private final PatientAllergyFactory patientAllergyFactory;
+    private final PatientProblemFactory patientProblemFactory;
     private final IdsProgressRepository idsProgressRepository;
     private final boolean idsEmptyOnInit;
     private final Integer defaultStartUnid;
@@ -73,8 +73,8 @@ public class IdsOperations implements AutoCloseable {
      * @param idsConfiguration      configuration of interaction with IDS
      * @param adtMessageFactory     builds ADT messages
      * @param orderAndResultService orchestrates processing of messages for orders and results
-     * @param patientStatusService  orchestrates processing of messages with patient status
-     * @param patientProblemService orchestrates processing of messages with patient problems
+     * @param patientInfectionFactory  orchestrates processing of messages with patient status
+     * @param patientProblemFactory orchestrates processing of messages with patient problems
      * @param patientAllergyFactory orchestrates processing of messages with patient allergies
      * @param idsProgressRepository interaction with ids progress table (stored in the star database)
      */
@@ -82,15 +82,15 @@ public class IdsOperations implements AutoCloseable {
             IdsConfiguration idsConfiguration,
             AdtMessageFactory adtMessageFactory,
             OrderAndResultService orderAndResultService,
-            PatientStatusService patientStatusService,
-            PatientAllergyService patientAllergyFactory,
-            PatientProblemService patientProblemService,
+            PatientInfectionFactory patientInfectionFactory,
+            PatientAllergyFactory patientAllergyFactory,
+            PatientProblemFactory patientProblemFactory,
             IdsProgressRepository idsProgressRepository) {
-        this.patientStatusService = patientStatusService;
+        this.patientInfectionFactory = patientInfectionFactory;
         this.patientAllergyFactory = patientAllergyFactory;
         this.adtMessageFactory = adtMessageFactory;
         this.orderAndResultService = orderAndResultService;
-        this.patientProblemService = patientProblemService;
+        this.patientProblemFactory = patientProblemFactory;
         this.idsProgressRepository = idsProgressRepository;
         idsFactory = idsConfiguration.getSessionFactory();
         idsEmptyOnInit = getIdsIsEmpty();
@@ -425,7 +425,7 @@ public class IdsOperations implements AutoCloseable {
                 }
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
                 if ("A05".equals(triggerEvent)) {
-                    messages.addAll(patientStatusService.buildPatientInfections(sourceId, (ADT_A05) msgFromIds));
+                    messages.addAll(patientInfectionFactory.buildPatientInfections(sourceId, (ADT_A05) msgFromIds));
                 } else if ("A60".equals(triggerEvent)) {
                     messages.addAll(patientAllergyFactory.buildPatientAllergies(sourceId, (ADT_A60) msgFromIds));
                 }
@@ -459,7 +459,7 @@ public class IdsOperations implements AutoCloseable {
             case "PPR":
                 if ("PC1".equals(triggerEvent) || "PC2".equals(triggerEvent) || "PC3".equals(triggerEvent)) {
                     logger.trace("Parsing Problem list");
-                    messages.addAll(patientProblemService.buildPatientProblems(sourceId, (PPR_PC1) msgFromIds));
+                    messages.addAll(patientProblemFactory.buildPatientProblems(sourceId, (PPR_PC1) msgFromIds));
                     logger.trace("After parsing problem list {}", messages);
                 } else {
                     logErrorConstructingFromType(messageType, triggerEvent);

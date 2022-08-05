@@ -10,8 +10,6 @@ import ca.uhn.hl7v2.model.v26.segment.IAM;
 import ca.uhn.hl7v2.model.v26.message.ADT_A60;
 
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,24 +23,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Service to parse HL7 allergy message (i.e. messages with type ADT^A60).
+ * Factory to generate allergy interchange messages from HL7 (i.e. messages with type ADT^A60).
  * @author Anika Cawthorn
+ * @author Tom Young
  */
 @Component
-public class PatientAllergyService {
+public class PatientAllergyFactory {
     /**
      * The HL7 feed always sends entire history of patient allergies.
      * This field is used to only parse new patient allergies, from the service start date onwards.
      */
     @Setter
     private Instant allergiesProgress;
-    private static final Logger logger = LoggerFactory.getLogger(PatientAllergyService.class);
 
     /**
      * Setting start time and date for service to process messages from.
      * @param serviceStart when messages should be processed from.
      */
-    public PatientAllergyService(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
+    public PatientAllergyFactory(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
         allergiesProgress = serviceStart;
     }
 
@@ -52,7 +50,7 @@ public class PatientAllergyService {
      * @param sourceId message sourceId
      * @param msg      hl7 message
      * @return list of patient infections
-     * @throws HL7Exception
+     * @throws HL7Exception if message cannot be parsed correctly
      */
     Collection<PatientAllergy> buildPatientAllergies(String sourceId, ADT_A60 msg) throws HL7Exception {
         MSH msh = msg.getMSH();
@@ -65,7 +63,11 @@ public class PatientAllergyService {
         for (int i = 0; i < reps; i++) {
             IAM allergySegment = msg.getIAM(i);
             PatientAllergy patientAllergy = buildPatientAllergy(sourceId, evn, patientInfo, allergySegment);
-            addNewAllergyAndUpdateProgress(patientAllergy, allergies);
+
+            if (PatientStatusService.shouldUpdateProgressAndAddMessage(patientAllergy, allergiesProgress)) {
+                allergiesProgress = patientAllergy.getAddedDatetime();
+                allergies.add(patientAllergy);
+            }
         }
         return allergies;
     }
@@ -79,7 +81,7 @@ public class PatientAllergyService {
      * @return A single patient allergy representative for one of the IAM segments in the message
      * @throws HL7Exception if message cannot be parsed correctly.
      */
-    PatientAllergy buildPatientAllergy(String sourceId, EVN evn, PatientInfoHl7 patientInfo, IAM iam) throws HL7Exception {
+    private PatientAllergy buildPatientAllergy(String sourceId, EVN evn, PatientInfoHl7 patientInfo, IAM iam) throws HL7Exception {
 
         PatientAllergy patientAllergy = new PatientAllergy();
 
@@ -115,24 +117,11 @@ public class PatientAllergyService {
 
         // add reactions of which there can be multiple
         for (ST reactionCode : iam.getIam5_AllergyReactionCode()) {
-            patientAllergy.getReactions().add(reactionCode.getValueOrEmpty());
+            if (!reactionCode.isEmpty()) {
+                patientAllergy.getReactions().add(reactionCode.getValue());
+            }
         }
         return patientAllergy;
     }
 
-    /**
-     * Adding allergy if it has an added datetime and adjusting the progress time stamp so that only allergies thereafter
-     * will be added to the collection.
-     * @param patientAllergy Interchange message with patient allergy information.
-     * @param allergies Collection of potentially other allergies that this new allergy will be added to.
-     */
-    private void addNewAllergyAndUpdateProgress(PatientAllergy patientAllergy, Collection<PatientAllergy> allergies) {
-        Instant addedTime = patientAllergy.getAddedDatetime();
-        if (addedTime == null || addedTime.isBefore(allergiesProgress)) {
-            logger.debug("Allergy processing skipped as current allergy added is {} and progress is {}", addedTime, allergiesProgress);
-            return;
-        }
-        allergies.add(patientAllergy);
-        allergiesProgress = addedTime;
-    }
 }

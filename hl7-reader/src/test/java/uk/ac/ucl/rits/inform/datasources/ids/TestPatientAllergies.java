@@ -35,11 +35,11 @@ class TestPatientAllergies extends TestHl7MessageStream {
     private static final ConditionAction ALLERGY_ACTION = ConditionAction.ADD;
     private static final String EPIC = "EPIC";
     @Autowired
-    PatientAllergyService patientAllergyService;
+    PatientAllergyFactory patientAllergyFactory;
 
     @BeforeEach
     private void resetInfectionProgress(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        patientAllergyService.setAllergiesProgress(serviceStart);
+        patientAllergyFactory.setAllergiesProgress(serviceStart);
     }
 
     List<PatientAllergy> getAllAllergies(String fileName) throws Exception {

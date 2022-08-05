@@ -492,22 +492,16 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testPatientInfection() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt")
-                .stream()
-                .filter(msg -> msg instanceof PatientInfection)
-                .findFirst().orElseThrow();
+        var messageFromHl7 = processSingleMessageFirstOfType("PatientInfection/a05.txt", PatientInfection.class);
         PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
         assertEquals(expected, messageFromHl7);
     }
 
     @Test
     public void testPatientAllergy() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientAllergies/minimal_allergy.txt")
-                .stream()
-                .filter(msg -> msg instanceof PatientAllergy)
-                .findFirst().orElseThrow();
+        var messageFromHl7 = processSingleMessageFirstOfType("PatientAllergies/minimal_allergy.txt", PatientAllergy.class);
         PatientAllergy expected = interchangeFactory.getPatientAllergies("hl7/minimal_allergy.yaml").get(0);
-        Assertions.assertEquals(expected, messageFromHl7);
+        assertEquals(expected, messageFromHl7);
     }
 
     @Test
@@ -518,15 +512,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         for (String fileName : fileNames) {
             log.info("Testing file {}", fileName);
             String hl7FileName = String.format("ProblemList/end_to_end/%s.txt", fileName);
-            EmapOperationMessage messageFromHl7 = processSingleMessage(hl7FileName).stream()
-                    .filter(msg -> msg instanceof PatientProblem)
-                    .findFirst().orElseThrow();
-
+            EmapOperationMessage messageFromHl7 = processSingleMessageFirstOfType(hl7FileName, PatientProblem.class);
             String interchangeFileName = String.format("hl7/%s.yaml", fileName);
             PatientProblem expected = interchangeFactory.getPatientProblems(interchangeFileName).stream().findFirst().orElseThrow();
             assertEquals(expected, messageFromHl7);
         }
-
     }
 
     /**
