@@ -331,7 +331,7 @@ public class InterchangeMessageFactory {
         return getClass().getResourceAsStream(fileStore.get(path));
     }
 
-    public void updateFileStoreWith(Class rootClass) throws URISyntaxException, IOException {
+    public void updateFileStoreWith(Class<?> rootClass) throws URISyntaxException, IOException {
         fileStore.updateFilesFromClassResources(rootClass);
     }
 
