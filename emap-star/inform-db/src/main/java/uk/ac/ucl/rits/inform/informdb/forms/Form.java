@@ -35,6 +35,9 @@ import java.util.List;
         " hospital_visit_id is not null " +
                 " OR mrn_id is not null ")
 public class Form extends TemporalCore<Form, FormAudit> {
+    /**
+     * \brief Unique identifier in EMAP for this instance of a Form.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long formId;
@@ -82,6 +85,10 @@ public class Form extends TemporalCore<Form, FormAudit> {
     @OneToMany(mappedBy = "formId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<FormAnswer> formAnswers = new ArrayList<>();
 
+    /**
+     * Add the given FormAnswer to this instance of a Form.
+     * @param formAnswer the formAnswer to add
+     */
     public void addFormAnswer(FormAnswer formAnswer) {
         formAnswers.add(formAnswer);
         formAnswer.setFormId(this);
