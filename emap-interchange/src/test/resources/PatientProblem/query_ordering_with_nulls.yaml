@@ -39,7 +39,7 @@
     value: "Asthma"
     status: "SAVE"
   updatedDateTime: "2019-06-09T01:00:05Z"
-  onsetTime:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     value: "2019-03-20"
     status: "SAVE"
