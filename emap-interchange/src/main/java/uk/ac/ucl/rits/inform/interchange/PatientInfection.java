@@ -21,7 +21,7 @@ import java.time.Instant;
 public class PatientInfection extends PatientConditionMessage implements Serializable {
 
     /**
-     * Time and date condition was added at.
+     * Time and date condition was resolved at.
      */
     private InterchangeValue<Instant> resolvedDatetime = InterchangeValue.unknown();
 
