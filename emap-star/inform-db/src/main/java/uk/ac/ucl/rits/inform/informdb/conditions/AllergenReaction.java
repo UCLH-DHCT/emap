@@ -33,7 +33,7 @@ public class AllergenReaction {
     private long conditionSymptomId;
 
     /**
-     * \brief Identifier for the ConditionType associated with this record.
+     * \brief Identifier for the PatientCondition associated with this record.
      *
      * This is a foreign key that joins the conditionSymptom table to the patientCondition table.
      */
