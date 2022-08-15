@@ -13,6 +13,7 @@ public interface PlannedMovementAuditRepository extends CrudRepository<PlannedMo
     /**
      * For testing.
      * @param hospitalVisitId id of the hospital visit
+     * @return all planned movement audits
      */
     List<PlannedMovementAudit> findAllByHospitalVisitId(long hospitalVisitId);
 }

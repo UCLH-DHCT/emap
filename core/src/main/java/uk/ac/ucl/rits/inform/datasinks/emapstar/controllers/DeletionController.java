@@ -14,7 +14,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
