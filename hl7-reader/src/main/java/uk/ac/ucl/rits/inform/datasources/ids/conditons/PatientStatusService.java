@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.conditons;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
