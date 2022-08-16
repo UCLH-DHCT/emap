@@ -72,7 +72,7 @@ def create_parser() -> Parser:
     docker_parser = subparsers.add_parser("docker", help="Run the docker instance")
     docker_parser.add_argument(
         "docker_compose_args",
-        help="Subcommands to pass to docker-compose. E,g, up, ps, down",
+        help="Subcommands to pass to docker compose. E.g, up, ps, down",
         nargs="+",
     )
 

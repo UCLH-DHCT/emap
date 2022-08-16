@@ -70,7 +70,7 @@ class DockerRunner:
     @property
     def base_docker_compose_command(self) -> str:
         return (
-            "docker-compose -f "
+            "docker compose -f "
             + " -f ".join(str(p) for p in self.docker_compose_paths)
             + f' -p {self.config["EMAP_PROJECT_NAME"]} '
         )
