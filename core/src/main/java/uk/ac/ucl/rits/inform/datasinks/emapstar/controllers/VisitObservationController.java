@@ -109,13 +109,16 @@ public class VisitObservationController {
         if (msg.getValueType() == null) {
             throw new RequiredDataMissingException("Flowsheet DataType not set");
         }
+
+        var validFrom = msg.getLastUpdatedInstant();
         VisitObservationType observationType = cache.getOrCreatePersistedObservationType(msg.getInterfaceId(),
-                msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
+                msg.getFlowsheetId(), msg.getSourceObservationType(), validFrom, storedFrom);
 
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
         if (flowsheetState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
             updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
+            updateAndSaveVisitObservationType(msg, observationType, validFrom, storedFrom);
         }
     }
 
@@ -301,6 +304,22 @@ public class VisitObservationController {
         }
         observationState.assignInterchangeValue(msg.getUnit(), observation.getUnit(), observation::setUnit);
         observationState.assignInterchangeValue(msg.getComment(), observation.getComment(), observation::setComment);
+    }
+
+    /**
+     * Update the visit observation type from a flowsheet message
+     * @param msg             Flowsheet message
+     * @param observationType Observation entity
+     * @param validFrom       Time from which information valid from
+     * @param storedFrom      Time that emap-core started processing the message
+     */
+    private void updateAndSaveVisitObservationType(Flowsheet msg, VisitObservationType observationType, Instant validFrom, Instant storedFrom){
+
+        var rowState = new RowState<>(observationType, validFrom, storedFrom, false);
+        rowState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getSourceIsRealTime(), observationType.getIsLive(), observationType::setIsLive, validFrom, storedFrom);
+
+        rowState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
     }
 
 }
