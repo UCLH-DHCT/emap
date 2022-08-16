@@ -23,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 
 public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     FlowsheetMetadata flowsheetMetadata;
@@ -74,6 +77,21 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
                 null, FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getIdInApplication());
         assertNotNull(visitObservationType.getInterfaceId());
+        assertTrue(visitObservationType.getIsLive());
+    }
+
+    /**
+     * Given no visit observation type exist.
+     * When a caboodle flowsheet message arrives
+     * Then the metadata has the isLive flag unset
+     * @throws EmapOperationMessageProcessingException should never happen
+     */
+    @Test
+    void testCreateVisitObservationTypeFromCaboodle() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetCaboodle);
+        VisitObservationType visitObservationType = visitObservationTypeRepository.find(null,
+                "38577", FLOWSHEET).orElseThrow();
+        assertFalse(visitObservationType.getIsLive());
     }
 
     /**
