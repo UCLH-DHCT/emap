@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.conditons;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
@@ -9,16 +9,15 @@ import ca.uhn.hl7v2.model.v26.segment.PV1;
 import ca.uhn.hl7v2.model.v26.segment.IAM;
 import ca.uhn.hl7v2.model.v26.message.ADT_A60;
 
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -27,22 +26,9 @@ import java.util.Collection;
  * @author Anika Cawthorn
  * @author Tom Young
  */
+@NoArgsConstructor
 @Component
 public class PatientAllergyFactory {
-    /**
-     * The HL7 feed always sends entire history of patient allergies.
-     * This field is used to only parse new patient allergies, from the service start date onwards.
-     */
-    @Setter
-    private Instant allergiesProgress;
-
-    /**
-     * Setting start time and date for service to process messages from.
-     * @param serviceStart when messages should be processed from.
-     */
-    public PatientAllergyFactory(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        allergiesProgress = serviceStart;
-    }
 
     /**
      * Build patient allergies from ADT_A60 HL7 message.
@@ -52,7 +38,7 @@ public class PatientAllergyFactory {
      * @return list of patient infections
      * @throws HL7Exception if message cannot be parsed correctly
      */
-    Collection<PatientAllergy> buildPatientAllergies(String sourceId, ADT_A60 msg) throws HL7Exception {
+    public Collection<PatientAllergy> buildPatientAllergies(String sourceId, ADT_A60 msg) throws HL7Exception {
         MSH msh = msg.getMSH();
         PID pid = msg.getPID();
         PV1 pv1 = msg.getPV1();
@@ -63,11 +49,7 @@ public class PatientAllergyFactory {
         for (int i = 0; i < reps; i++) {
             IAM allergySegment = msg.getIAM(i);
             PatientAllergy patientAllergy = buildPatientAllergy(sourceId, evn, patientInfo, allergySegment);
-
-            if (PatientStatusService.shouldUpdateProgressAndAddMessage(patientAllergy, allergiesProgress)) {
-                allergiesProgress = patientAllergy.getAddedDatetime();
-                allergies.add(patientAllergy);
-            }
+            allergies.add(patientAllergy);
         }
         return allergies;
     }
@@ -91,15 +73,20 @@ public class PatientAllergyFactory {
         patientAllergy.setMrn(patientInfo.getMrn());
         patientAllergy.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
 
-        switch (iam.getIam6_AllergyActionCode().getCne1_Identifier().getValueOrEmpty()) {
+        var allergyAction = iam.getIam6_AllergyActionCode().getCne1_Identifier().getValueOrEmpty();
+        switch (allergyAction) {
             case "A":
                 patientAllergy.setAction(ConditionAction.ADD);
                 break;
             case "D":
                 patientAllergy.setAction(ConditionAction.DELETE);
                 break;
-            default: // Also covers "U"
+            case "U":  // Is an explicit "update"
+            case "X":  // or a "no change"
                 patientAllergy.setAction(ConditionAction.UPDATE);
+                break;
+            default:
+                throw new HL7Exception("Failed to set the action from " + allergyAction);
         }
 
         // allergy specific information
@@ -123,5 +110,4 @@ public class PatientAllergyFactory {
         }
         return patientAllergy;
     }
-
 }

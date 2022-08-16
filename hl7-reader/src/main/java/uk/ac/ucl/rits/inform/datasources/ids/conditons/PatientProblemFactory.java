@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.conditons;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
@@ -10,6 +10,7 @@ import ca.uhn.hl7v2.model.v26.segment.PRB;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -31,7 +32,7 @@ public class PatientProblemFactory {
      * @return list of patient problems
      * @throws HL7Exception if a parsing problem occurs
      */
-    Collection<PatientProblem> buildPatientProblems(String sourceId, PPR_PC1 msg) throws HL7Exception {
+    public Collection<PatientProblem> buildPatientProblems(String sourceId, PPR_PC1 msg) throws HL7Exception {
         MSH msh = msg.getMSH();
         PID pid = msg.getPID();
         PV1 pv1 = msg.getPATIENT_VISIT().getPV1();
