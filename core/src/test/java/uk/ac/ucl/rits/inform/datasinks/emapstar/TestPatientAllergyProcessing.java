@@ -3,14 +3,15 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AllergenReactionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.AllergenReactionRepository;
 
 import uk.ac.ucl.rits.inform.informdb.conditions.AllergenReaction;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
+import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
@@ -77,7 +78,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         return getAllEntities(patientConditionRepository).size() == 1;
     }
 
-    private PatientCondition firstPatientCondition(){
+    private PatientCondition getFirstPatientCondition(){
         return getAllEntities(patientConditionRepository).get(0);
     }
 
@@ -99,7 +100,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         assertEquals(1, getAllEntities(conditionTypeRepository).size());
         assertEquals(1, getAllMrns().size());
 
-        PatientCondition condition = firstPatientCondition();
+        PatientCondition condition = getFirstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
         assertEquals(NUM_TRAMADOL_REACTIONS, getAllEntities(allergenReactionRepository).size());
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDatetime());
@@ -142,7 +143,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMessages.get(0));
         assertTrue(aSingleConditionExists());
 
-        PatientCondition condition = firstPatientCondition();
+        PatientCondition condition = getFirstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
         assertEquals(1, condition.getInternalId());
         assertEquals(SECOND_ALLERGEN, condition.getConditionTypeId().getInternalCode());
@@ -183,8 +184,8 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
 
     /**
      * Given that no patient allergy conditions exist
-     * When two patient allergy message arrive containing reactions
-     * Then a patient allergy conditions and symptoms are added appropriate for the messages
+     * When two patient allergy messages concerning two patients but with the same reaction are processed
+     * Then there are two saved conditions but only a single reaction
      */
     @Test
     void testMultipleAllergyMessageProcessingWithReactions() throws EmapOperationMessageProcessingException{
@@ -192,24 +193,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMessages.get(0));
         processSingleMessage(hooverMessages.get(1));
         assertEquals(2, getAllEntities(patientConditionRepository).size());
-
-        // Allergy diagnoses may not be associated with hospital visits
-        assertEquals(0, getAllEntities(hospitalVisitRepository).size());
-
-        // Get the second condition and check the data
-        var condition = patientConditionRepository.findByMrnIdMrn(THIRD_MRN).orElseThrow();
-        var conditionType = condition.getConditionTypeId();
-        assertEquals(CONDITION_TYPE, conditionType.getDataType());
-
-        System.err.println(hooverMessages.get(1).getSubType());
-        assertEquals(THIRD_ALLERGEN_SUBTYPE, conditionType.getSubType());
-        assertEquals(THIRD_ALLERGEN, conditionType.getInternalCode());
-        assertEquals(Instant.parse(THIRD_ADDED_TIME), condition.getAddedDatetime());
-        assertEquals(LocalDate.parse(THIRD_ONSET_DATE), condition.getOnsetDate());
-        assertEquals(THIRD_SEVERITY, condition.getSeverity());
-        assertEquals(ACTIVE, condition.getStatus());
-        assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
-
+        
         // Hives should only be added once to the symptom repository
         List<AllergenReaction> reactions = getAllEntities(allergenReactionRepository);
         assertEquals(3, reactions.size());
@@ -240,7 +224,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).plus(1, ChronoUnit.SECONDS));
 
         processSingleMessage(hl7Tramadol);
-        assertEquals(testComment, firstPatientCondition().getComment());
+        assertEquals(testComment, getFirstPatientCondition().getComment());
     }
 
     /**
@@ -253,13 +237,13 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
 
         processSingleMessage(hl7Tramadol);
         assertTrue(aSingleConditionExists());
-        assertNull(firstPatientCondition().getStatus());
+        assertNull(getFirstPatientCondition().getStatus());
 
         hl7Tramadol.setStatus(InterchangeValue.buildFromHl7(ACTIVE));
         hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).minus(1, ChronoUnit.SECONDS));
 
         processSingleMessage(hl7Tramadol);
-        assertNull(firstPatientCondition().getStatus());
+        assertNull(getFirstPatientCondition().getStatus());
     }
 
     /**
@@ -282,5 +266,20 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         hl7Tramadol.setReactions(List.of(new String[]{"Y"}));
         processSingleMessage(hl7Tramadol);
         assertEquals(NUM_TRAMADOL_REACTIONS+2, getAllEntities(allergenReactionRepository).size());
+    }
+
+    /**
+     * Given that a patient allergy message has a delete action
+     * When the message is processed
+     * Then the isDeleted flag on the entity is set
+     */
+    @Test
+    void testDeletingAnAllergy() throws EmapOperationMessageProcessingException{
+
+        hl7Tramadol.setAction(ConditionAction.DELETE);
+        hl7Tramadol.setUpdatedDateTime(hl7Tramadol.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
+        processSingleMessage(hl7Tramadol);
+
+        assertTrue(getFirstPatientCondition().getIsDeleted());
     }
 }
