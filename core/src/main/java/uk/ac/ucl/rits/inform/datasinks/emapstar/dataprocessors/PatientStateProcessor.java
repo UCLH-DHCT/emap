@@ -5,11 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientConditionController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientSymptomController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -26,22 +24,19 @@ import java.time.Instant;
 public class PatientStateProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PatientConditionController patientConditionController;
-    private final PatientSymptomController patientSymptomController;
     private final PersonController personController;
     private final VisitController visitController;
 
     /**
      * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
      * @param patientConditionController patient state controller
-     * @param patientSymptomController   patient symptom controller
      * @param personController           person controller
      * @param visitController            hospital visit controller
      */
     public PatientStateProcessor(
-            PatientConditionController patientConditionController, PatientSymptomController patientSymptomController,
+            PatientConditionController patientConditionController,
             PersonController personController, VisitController visitController) {
         this.patientConditionController = patientConditionController;
-        this.patientSymptomController = patientSymptomController;
         this.personController = personController;
         this.visitController = visitController;
     }
@@ -59,8 +54,7 @@ public class PatientStateProcessor {
         logger.trace("Processing {}", msg);
         Mrn mrn = getOrCreateMrn(msg, storedFrom);
         HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
-        PatientCondition condition = patientConditionController.getOrCreateCondition(msg, mrn, visit, storedFrom);
-        patientSymptomController.processMessage(msg, condition);
+        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
     }
 
     /**

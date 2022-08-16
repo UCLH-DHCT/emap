@@ -7,16 +7,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionVisitLinkRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeAuditRepository;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
-import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
-import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionVisits;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.*;
+import uk.ac.ucl.rits.inform.informdb.conditions.*;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -46,6 +39,7 @@ public class PatientConditionController {
     private final PatientConditionRepository patientConditionRepo;
     private final PatientConditionAuditRepository patientConditionAuditRepo;
     private final ConditionVisitLinkRepository conditionVisitLinkRepository;
+    private final AllergenReactionRepository allergenReactionRepo;
 
     @Resource
     private PatientConditionCache cache;
@@ -65,12 +59,14 @@ public class PatientConditionController {
      * @param patientConditionRepo      autowired PatientConditionRepository
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
      * @param conditionVisitLinkRepository autowired ConditionVisitLinkRepository
+     * @param allergenReactionRepo autowired allergenReactionRepo
      */
     public PatientConditionController(PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository
-            patientConditionAuditRepo, ConditionVisitLinkRepository conditionVisitLinkRepository) {
+            patientConditionAuditRepo, ConditionVisitLinkRepository conditionVisitLinkRepository, AllergenReactionRepository allergenReactionRepo) {
         this.patientConditionRepo = patientConditionRepo;
         this.patientConditionAuditRepo = patientConditionAuditRepo;
         this.conditionVisitLinkRepository = conditionVisitLinkRepository;
+        this.allergenReactionRepo = allergenReactionRepo;
     }
 
     /**
@@ -79,24 +75,57 @@ public class PatientConditionController {
      * @param mrn        patient id
      * @param visit      hospital visit can be null
      * @param storedFrom valid from in database
-     * @return patient condition entity
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      * @throws RequiredDataMissingException if the PatientConditionMessage is not of a supported type
      */
-    public PatientCondition getOrCreateCondition(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+    public void processMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
         if (msg instanceof PatientProblem) {
-            return getOrCreateProblemCondition((PatientProblem) msg, mrn, visit, storedFrom);
+            processMessage((PatientProblem) msg, mrn, visit, storedFrom);
         } else if (msg instanceof PatientAllergy) {
-            return getOrCreateAllergyCondition((PatientAllergy) msg, mrn, visit, storedFrom);
+            processMessage((PatientAllergy) msg, mrn, visit, storedFrom);
         } else if (msg instanceof PatientInfection) {
-            return getOrCreateInfectionCondition((PatientInfection) msg, mrn, visit, storedFrom);
+            processMessage((PatientInfection) msg, mrn, visit, storedFrom);
         } else {
             logger.debug("Failed to process a {} message. Unsupported derived type", msg.getClass());
-            throw new RequiredDataMissingException("Type of the message *" + msg.getClass() + "* could not "
-                    + "be processed");
+            throw new RequiredDataMissingException(String.format("Type of the message %s could not be processed", msg.getClass()));
         }
+    }
+
+    /**
+     * Update patient condition from patient condition message.
+     * @param msg            patient condition message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     */
+    private void updatePatientCondition(PatientConditionMessage msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) {
+
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignInterchangeValue(msg.getEpicConditionId(), condition.getInternalId(), condition::setInternalId);
+        conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
+        conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
+        conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
+        conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
+        conditionState.assignInterchangeValue(msg.getOnsetDate(), condition.getOnsetDate(), condition::setOnsetDate);
+        conditionState.assignInterchangeValue(msg.getSeverity(), condition.getSeverity(), condition::setSeverity);
+    }
+
+    /**
+     * Create minimal patient condition wrapped in RowState.
+     * @param mrn            patient identifier
+     * @param conditionType  condition type
+     * @param conditionId    identifier for condition as used in EPIC
+     * @param validFrom      hospital time that the data is true from
+     * @param storedFrom     time that emap-core started processing the message
+     * @return minimal patient condition wrapped in RowState
+     */
+    private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
+            Mrn mrn, ConditionType conditionType, Long conditionId, Instant validFrom, Instant storedFrom) {
+
+        PatientCondition patientCondition = new PatientCondition(conditionType, mrn, conditionId);
+        return new RowState<>(patientCondition, validFrom, storedFrom, true);
     }
 
     /**
@@ -105,10 +134,9 @@ public class PatientConditionController {
      * @param mrn        patient id
      * @param visit      hospital visit can be null
      * @param storedFrom valid from in database
-     * @return patient condition entity
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    private PatientCondition getOrCreateAllergyCondition(final PatientAllergy msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+    private void processMessage(final PatientAllergy msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
         var conditionType = getOrCreateConditionType(
@@ -119,13 +147,68 @@ public class PatientConditionController {
 
         var patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType.getEntity(), storedFrom);
 
-        if (this.conditionShouldBeUpdated(msg, patientCondition)) {
+        if (conditionShouldBeUpdated(msg, patientCondition)) {
             updatePatientAllergy(msg, visit, patientCondition);
         }
+
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
         savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
+        saveAllergyReactions(msg, patientCondition.getEntity());
+    }
 
-        return patientCondition.getEntity();
+    /**
+     * Get or create existing patient condition entity. Can create on the internal ID as it exists in both the hl7
+     * messages and in clarity.
+     * @param msg           patient infection message
+     * @param mrn           patient identifier
+     * @param conditionType condition type referred to in message
+     * @param storedFrom    time that emap-core started processing the message
+     * @return observation entity wrapped in RowState
+     */
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
+            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
+        Instant updatedTime = msg.getUpdatedDateTime();
+
+        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndInternalId(
+                mrn, conditionType, msg.getEpicConditionId().get());
+
+        return patientCondition
+                .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getEpicConditionId().get(), updatedTime, storedFrom));
+    }
+
+    /**
+     * Update specific patient allergy attributes from patient allergy message.
+     * @param msg            patient allergy message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     */
+    private void updatePatientAllergy(PatientAllergy msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) {
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
+
+        if (msg.getAction() == ConditionAction.DELETE) {
+            conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
+        }
+
+        updatePatientCondition(msg, visit, conditionState);
+    }
+
+    /**
+     * Save all the reactions associated with an allergy for a particular condition.
+     * @param msg Patient allergy message
+     * @param condition Patient condition entity
+     */
+    private void saveAllergyReactions(PatientAllergy msg, PatientCondition condition){
+
+        for (String reactionName : msg.getReactions()) {
+
+            var reaction = new AllergenReaction(reactionName, condition);
+            if (allergenReactionRepo.findByNameAndPatientConditionId(reactionName, condition).isEmpty()) {
+                allergenReactionRepo.save(reaction);
+            }
+        }
     }
 
     /**
@@ -134,10 +217,9 @@ public class PatientConditionController {
      * @param mrn        patient id
      * @param visit      hospital visit can be null
      * @param storedFrom valid from in database
-     * @return patient condition entity
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    private PatientCondition getOrCreateProblemCondition(final PatientProblem msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+    private void processMessage(final PatientProblem msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
         var conditionType = getOrCreateConditionType(
@@ -152,8 +234,75 @@ public class PatientConditionController {
         }
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
         savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
+    }
 
-        return patientCondition.getEntity();
+    /**
+     * Update specific patient problem attributes from patient problem message.
+     * @param msg            patient problem message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     * @throws RequiredDataMissingException if the status of the message is not defined
+     */
+    private void updatePatientProblem(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) throws RequiredDataMissingException {
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignIfDifferent(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
+        conditionState.assignIfDifferent(msg.getAddedDate(), condition.getAddedDate(), condition::setAddedDate);
+        updatePatientCondition(msg, visit, conditionState);
+
+        if (msg.getAction().equals(ConditionAction.DELETE)) {
+
+            if (msg.getStatus().isUnknown()) {
+                throw new RequiredDataMissingException("Failed to determine if the message is a delete without a defined status");
+            } else if (msg.getStatus().get().equalsIgnoreCase("active")) {
+                conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
+            }
+
+        } else {
+            conditionState.assignIfDifferent(false, condition.getIsDeleted(), condition::setIsDeleted);
+        }
+    }
+
+    /**
+     * Process patient condition message.
+     * @param msg        message
+     * @param mrn        patient id
+     * @param visit      hospital visit
+     * @param storedFrom valid from in database
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    private void processMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+            throws EmapOperationMessageProcessingException {
+
+        var conditionType = getOrCreateConditionType(
+                PatientConditionType.PATIENT_INFECTION, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
+
+        cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(),
+                msg.getUpdatedDateTime());
+        deletePreviousInfectionOrClearInfectionTypesCache(msg, storedFrom);
+
+        var patientCondition = getOrCreatePatientInfection(msg, mrn, conditionType.getEntity(), storedFrom);
+
+        if (this.conditionShouldBeUpdated(msg, patientCondition)) {
+            updatePatientInfection(msg, visit, patientCondition);
+        }
+
+        patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+    }
+
+    /**
+     * Update specific patient infection attributes from patient infection message.
+     * @param msg            patient infection message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     */
+    private void updatePatientInfection(PatientInfection msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) {
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignInterchangeValue(
+                msg.getResolvedDatetime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
+        conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
+        updatePatientCondition(msg, visit, conditionState);
     }
 
     /**
@@ -191,35 +340,6 @@ public class PatientConditionController {
                     ConditionType typeEntity = cache.createNewType(type, conditionCode, updatedDateTime, storedFrom);
                     return new RowState<>(typeEntity, updatedDateTime, storedFrom, true);
                 });
-    }
-
-    /**
-     * Process patient condition message.
-     * @param msg        message
-     * @param mrn        patient id
-     * @param visit      hospital visit
-     * @param storedFrom valid from in database
-     * @return patient condition entity
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
-     */
-    private PatientCondition getOrCreateInfectionCondition(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException {
-
-        var conditionType = getOrCreateConditionType(
-                PatientConditionType.PATIENT_INFECTION, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
-
-        cache.updateAndClearFromCache(conditionType, msg, PatientConditionType.PATIENT_ALLERGY, msg.getConditionCode(),
-                msg.getUpdatedDateTime());
-        deletePreviousInfectionOrClearInfectionTypesCache(msg, storedFrom);
-
-        var patientCondition = getOrCreatePatientInfection(msg, mrn, conditionType.getEntity(), storedFrom);
-
-        if (this.conditionShouldBeUpdated(msg, patientCondition)) {
-            updatePatientInfection(msg, visit, patientCondition);
-        }
-
-        patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
-        return patientCondition.getEntity();
     }
 
     /**
@@ -293,43 +413,6 @@ public class PatientConditionController {
     }
 
     /**
-     * Get or create existing patient condition entity. Can create on the internal ID as it exists in both the hl7
-     * messages and in clarity.
-     * @param msg           patient infection message
-     * @param mrn           patient identifier
-     * @param conditionType condition type referred to in message
-     * @param storedFrom    time that emap-core started processing the message
-     * @return observation entity wrapped in RowState
-     */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
-            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
-        Instant updatedTime = msg.getUpdatedDateTime();
-
-        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndInternalId(
-                mrn, conditionType, msg.getEpicConditionId().get());
-
-        return patientCondition
-                .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getEpicConditionId().get(), updatedTime, storedFrom));
-    }
-
-    /**
-     * Create minimal patient condition wrapped in RowState.
-     * @param mrn            patient identifier
-     * @param conditionType  condition type
-     * @param conditionId    identifier for condition as used in EPIC
-     * @param validFrom      hospital time that the data is true from
-     * @param storedFrom     time that emap-core started processing the message
-     * @return minimal patient condition wrapped in RowState
-     */
-    private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
-            Mrn mrn, ConditionType conditionType, Long conditionId, Instant validFrom, Instant storedFrom) {
-
-        PatientCondition patientCondition = new PatientCondition(conditionType, mrn, conditionId);
-        return new RowState<>(patientCondition, validFrom, storedFrom, true);
-    }
-
-    /**
      * Update message if observation has been created, or the message updated time is >= entity validFrom.
      * @param msg       patient condition message
      * @param condition row state of condition
@@ -361,85 +444,6 @@ public class PatientConditionController {
         }
 
         return this.conditionShouldBeUpdated(msg, condition);
-    }
-
-    /**
-     * Update patient condition from patient condition message.
-     * @param msg            patient condition message
-     * @param visit          hospital visit
-     * @param conditionState patient condition entity to update
-     */
-    private void updatePatientCondition(PatientConditionMessage msg, HospitalVisit visit, RowState<PatientCondition,
-            PatientConditionAudit> conditionState) {
-
-        PatientCondition condition = conditionState.getEntity();
-        conditionState.assignInterchangeValue(msg.getEpicConditionId(), condition.getInternalId(), condition::setInternalId);
-        conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
-        conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
-        conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
-        conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
-        conditionState.assignInterchangeValue(msg.getOnsetDate(), condition.getOnsetDate(), condition::setOnsetDate);
-        conditionState.assignInterchangeValue(msg.getSeverity(), condition.getSeverity(), condition::setSeverity);
-    }
-
-    /**
-     * Update specific patient infection attributes from patient infection message.
-     * @param msg            patient infection message
-     * @param visit          hospital visit
-     * @param conditionState patient condition entity to update
-     */
-    private void updatePatientInfection(PatientInfection msg, HospitalVisit visit, RowState<PatientCondition,
-            PatientConditionAudit> conditionState) {
-        PatientCondition condition = conditionState.getEntity();
-        conditionState.assignInterchangeValue(
-                msg.getResolvedDatetime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
-        conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
-        updatePatientCondition(msg, visit, conditionState);
-    }
-
-    /**
-     * Update specific patient problem attributes from patient problem message.
-     * @param msg            patient problem message
-     * @param visit          hospital visit
-     * @param conditionState patient condition entity to update
-     * @throws RequiredDataMissingException if the status of the message is not defined
-     */
-    private void updatePatientProblem(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition,
-            PatientConditionAudit> conditionState) throws RequiredDataMissingException {
-        PatientCondition condition = conditionState.getEntity();
-        conditionState.assignIfDifferent(msg.getResolvedDate(), condition.getResolutionDate(), condition::setResolutionDate);
-        conditionState.assignIfDifferent(msg.getAddedDate(), condition.getAddedDate(), condition::setAddedDate);
-        updatePatientCondition(msg, visit, conditionState);
-
-        if (msg.getAction().equals(ConditionAction.DELETE)) {
-
-            if (msg.getStatus().isUnknown()) {
-                throw new RequiredDataMissingException("Failed to determine if the message is a delete without a defined status");
-            } else if (msg.getStatus().get().equalsIgnoreCase("active")) {
-                conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
-            }
-
-        } else {
-            conditionState.assignIfDifferent(false, condition.getIsDeleted(), condition::setIsDeleted);
-        }
-    }
-
-    /**
-     * Update specific patient allergy attributes from patient allergy message.
-     * @param msg            patient allergy message
-     * @param visit          hospital visit
-     * @param conditionState patient condition entity to update
-     */
-    private void updatePatientAllergy(PatientAllergy msg, HospitalVisit visit, RowState<PatientCondition,
-            PatientConditionAudit> conditionState) {
-        PatientCondition condition = conditionState.getEntity();
-        conditionState.assignIfDifferent(msg.getAddedDatetime(), condition.getAddedDatetime(), condition::setAddedDatetime);
-
-        if (msg.getAction().equals(ConditionAction.DELETE)) {
-            conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
-        }
-
-        updatePatientCondition(msg, visit, conditionState);
     }
 }
 
