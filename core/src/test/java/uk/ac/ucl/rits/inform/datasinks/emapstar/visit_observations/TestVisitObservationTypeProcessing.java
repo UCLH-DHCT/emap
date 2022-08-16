@@ -91,7 +91,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         processSingleMessage(flowsheetCaboodle);
         VisitObservationType visitObservationType = visitObservationTypeRepository.find(null,
                 "38577", FLOWSHEET).orElseThrow();
-        assertFalse(visitObservationType.getIsLive());
+        assertTrue(visitObservationType.getIsLive());
     }
 
     /**
@@ -107,6 +107,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         assertNull(visitObservationType.getInterfaceId());
         assertNotNull(visitObservationType.getIdInApplication());
         assertMetadataFields(visitObservationType);
+        assertFalse(visitObservationType.getIsLive());
     }
 
     /**
