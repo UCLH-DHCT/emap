@@ -38,11 +38,6 @@ class TestPatientAllergies extends TestHl7MessageStream {
     @Autowired
     PatientAllergyFactory patientAllergyFactory;
 
-    @BeforeEach
-    private void resetInfectionProgress(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        patientAllergyFactory.setAllergiesProgress(serviceStart);
-    }
-
     List<PatientAllergy> getAllAllergies(String fileName) throws Exception {
         List<? extends EmapOperationMessage> msgs = null;
         try {
@@ -82,13 +77,13 @@ class TestPatientAllergies extends TestHl7MessageStream {
     /**
      * Given that ADT_A60 message processing has been activated
      * When a single HL7 message with one IAM segment but without added time arrives
-     * Then an empty collection should be generated
+     * Then one PatientAllergy instance should be present in the list
      * @throws Exception shouldn't happen
      */
     @Test
     void testAllergyNoAddTime() throws Exception {
         List<PatientAllergy> allergies = getAllAllergies("2019_05_allergy_noaddtime");
-        assertEquals(0, allergies.size());
+        assertEquals(1, allergies.size());
     }
 
     /**
@@ -116,17 +111,6 @@ class TestPatientAllergies extends TestHl7MessageStream {
     }
 
     /**
-     * Given that ADT_A60 message processing has been activated
-     * When an ADT_A60 message with a reported time earlier than the service start date arrives
-     * Then the allergy interchange message should not be added
-     */
-    @Test
-    void testNoAllergiesBeforeServiceStart() throws Exception {
-        List<PatientAllergy> allergies = getAllAllergies("earlier_allergy");
-        assertTrue(allergies.isEmpty());
-    }
-
-    /**
      * Given that allergy message processing has been activated
      * When multiple messages are processed some falling before and some after service start datetime
      * Then only those messages are transferred into Interchange messages that have a reported time after the service
@@ -140,8 +124,7 @@ class TestPatientAllergies extends TestHl7MessageStream {
     @CsvSource({
             "2019_05_allergy, 2019_05_allergy, 1", // same date as existing progress is parsed
             "2019_05_allergy, 2019_06_allergy, 1", // later date than existing progress is parsed
-            "2019_06_allergy, 2019_05_allergy, 0",  // earlier date than progress is parsed
-            "2019_06_allergy, 2019_06_allergy, 1",  // same date as existing progress is parsed
+            "2019_06_allergy, 2019_06_allergy, 1", // same date as existing progress is parsed
     })
     void earlierInfectionsSkipped(String setupFile, String testedFile, Long expectedSize) throws Exception {
         getAllAllergies(setupFile);
