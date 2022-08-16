@@ -69,7 +69,8 @@ Clone all the repositories for the specified branches:
 emap setup --init --branch test_branch
 ```
 
-> **_NOTE:_**  If a branch has not been specified the runner defaults to the _develop_ branch.
+> **Note**
+> If a branch has not been specified the runner defaults to the _develop_ branch.
 
 Run a docker `ps` command:
 ```bash
