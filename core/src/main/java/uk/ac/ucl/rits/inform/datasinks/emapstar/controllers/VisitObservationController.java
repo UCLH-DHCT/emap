@@ -118,7 +118,7 @@ public class VisitObservationController {
         if (flowsheetState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
             updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
-            updateAndSaveVisitObservationType(msg, observationType, validFrom, storedFrom);
+            setAndSaveIsLiveFlag(observationType, validFrom, storedFrom);
         }
     }
 
@@ -308,16 +308,14 @@ public class VisitObservationController {
 
     /**
      * Update the visit observation type from a flowsheet message
-     * @param msg             Flowsheet message
      * @param observationType Observation entity
      * @param validFrom       Time from which information valid from
      * @param storedFrom      Time that emap-core started processing the message
      */
-    private void updateAndSaveVisitObservationType(Flowsheet msg, VisitObservationType observationType, Instant validFrom, Instant storedFrom){
+    private void setAndSaveIsLiveFlag(VisitObservationType observationType, Instant validFrom, Instant storedFrom){
 
         var rowState = new RowState<>(observationType, validFrom, storedFrom, false);
-        rowState.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getSourceIsRealTime(), observationType.getIsLive(), observationType::setIsLive, validFrom, storedFrom);
+        rowState.assignIfDifferent(true, observationType.getIsLive(), observationType::setIsLive);
 
         rowState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
     }
