@@ -7,19 +7,24 @@ Code to initialise, update and run EMAP. Includes ability to:
 4. Update code (`git pull`)
 
 ## Usage
+
+> **Note**
+> `emap-setup` is already installed on GAE01. Activate the environment with
+> ```bash
+> source /gae/emap_setup/venv/bin/activate
+> ```
+> which may be helpful to place in your bash_profile, so it's activated on login.
+
 1. Create your working directory 
 2. Clone emap-setup into that directory
 3. Copy global-configuration-EXAMPLE.yaml as global-configuration.yaml and adjust for your own requirements
 
-> **Note**
-> On the GAEs, first download and install [miniconda](https://docs.conda.io/en/latest/miniconda.html)
-
 For example,
 
 ```bash
-git clone https://github.com/inform-health-informatics/emap-setup.git &&\
-cd emap-setup &&\
-pip install -e . -r requirements.txt  &&\
+git clone https://github.com/inform-health-informatics/emap-setup.git
+cd emap-setup
+pip install -e . -r requirements.txt
 cp global-configuration-EXAMPLE.yaml ../global-configuration.yaml
 ```
 
