@@ -307,12 +307,12 @@ public class VisitObservationController {
     }
 
     /**
-     * Update the visit observation type from a flowsheet message
+     * Update the visit observation type from a flowsheet message.
      * @param observationType Observation entity
      * @param validFrom       Time from which information valid from
      * @param storedFrom      Time that emap-core started processing the message
      */
-    private void setAndSaveIsLiveFlag(VisitObservationType observationType, Instant validFrom, Instant storedFrom){
+    private void setAndSaveIsLiveFlag(VisitObservationType observationType, Instant validFrom, Instant storedFrom) {
 
         var rowState = new RowState<>(observationType, validFrom, storedFrom, false);
         rowState.assignIfDifferent(true, observationType.getIsLive(), observationType::setIsLive);
