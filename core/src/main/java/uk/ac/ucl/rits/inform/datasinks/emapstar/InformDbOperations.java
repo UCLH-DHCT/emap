@@ -85,7 +85,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public void processMessage(PatientAllergy msg) throws EmapOperationMessageProcessingException {
 
-        if (!patientAllergyFeatureEnabled){
+        if (!patientAllergyFeatureEnabled) {
             logger.trace("Ignoring patient allergy message as features.allergies is disabled");
             return;
         }

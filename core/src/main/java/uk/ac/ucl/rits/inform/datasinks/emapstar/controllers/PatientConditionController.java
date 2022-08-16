@@ -7,9 +7,18 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.*;
-import uk.ac.ucl.rits.inform.informdb.conditions.*;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionVisitLinkRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.ConditionTypeAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.AllergenReactionRepository;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
+import uk.ac.ucl.rits.inform.informdb.conditions.AllergenReaction;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionVisits;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -200,7 +209,7 @@ public class PatientConditionController {
      * @param msg Patient allergy message
      * @param condition Patient condition entity
      */
-    private void saveAllergyReactions(PatientAllergy msg, PatientCondition condition){
+    private void saveAllergyReactions(PatientAllergy msg, PatientCondition condition) {
 
         for (String reactionName : msg.getReactions()) {
 
