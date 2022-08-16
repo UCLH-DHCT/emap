@@ -124,6 +124,7 @@ public class FlowsheetFactory {
         flowsheet.setSourceMessageId(subMessageSourceId);
         flowsheet.setSourceSystem(patientHl7.getSendingApplication());
         flowsheet.setSourceApplication(patientHl7.getSendingApplication());
+        flowsheet.setSourceIsRealTime(true);
         flowsheet.setUpdatedTime(recordedDateTime);
 
         // set information from obx
@@ -161,7 +162,6 @@ public class FlowsheetFactory {
      * @param flowsheet          flowsheet to add the values to
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
-     * @throws DataTypeException         if datetime values cannot be parsed
      * @throws HL7Exception              If value can't be decoded
      */
     private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx)
