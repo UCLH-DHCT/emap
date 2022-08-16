@@ -28,6 +28,7 @@ import java.time.Instant;
  * @author Roma Klapaukh
  * @author Stef Piatek
  * @author Anika Cawthorn
+ * @author Tom Young
  */
 @Entity
 @Data
@@ -89,6 +90,11 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private String description;
 
     /**
+     * \brief Flag for if this information is updating in real time.
+     */
+    private Boolean isLive;
+
+    /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
      */
     private String standardisedCode;
@@ -143,6 +149,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         standardisedVocabulary = other.standardisedVocabulary;
         primaryDataType = other.primaryDataType;
         creationDatetime = other.creationDatetime;
+        isLive = other.isLive;
     }
 
     @Override
