@@ -1,7 +1,10 @@
 package uk.ac.ucl.rits.inform.informdb.conditions;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,6 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 import javax.persistence.Id;
+import java.time.Instant;
 
 /**
  * \brief Reactions to allergens  that a patient can have so that it can be recognised by clinical staff.
@@ -21,8 +25,10 @@ import javax.persistence.Id;
  */
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class AllergenReaction {
+@AuditTable
+public class AllergenReaction extends TemporalCore<AllergenReaction, AllergenReactionAudit> {
     /**
      * \brief Unique identifier in EMAP for this allergenReaction record.
      * <p>
@@ -61,12 +67,18 @@ public class AllergenReaction {
      * @param other existing PatientStateType
      */
     public AllergenReaction(AllergenReaction other) {
-        this.name = other.name;
         this.allergenReactionId = other.allergenReactionId;
         this.patientConditionId = other.patientConditionId;
+        this.name = other.name;
     }
 
+    @Override
     public AllergenReaction copy() {
         return new AllergenReaction(this);
+    }
+
+    @Override
+    public AllergenReactionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new AllergenReactionAudit(this, validUntil, storedUntil);
     }
 }
