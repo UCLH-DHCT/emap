@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditio
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.ConditionTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.AllergenReactionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.AllergenReactionAuditRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.AllergenReaction;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
@@ -49,6 +50,7 @@ public class PatientConditionController {
     private final PatientConditionAuditRepository patientConditionAuditRepo;
     private final ConditionVisitLinkRepository conditionVisitLinkRepository;
     private final AllergenReactionRepository allergenReactionRepo;
+    private final AllergenReactionAuditRepository allergenReactionAuditRepo;
 
     @Resource
     private PatientConditionCache cache;
@@ -69,13 +71,16 @@ public class PatientConditionController {
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
      * @param conditionVisitLinkRepository autowired ConditionVisitLinkRepository
      * @param allergenReactionRepo autowired allergenReactionRepo
+     * @param allergenReactionAuditRepo autowired allergenReactionAuditRepo
      */
     public PatientConditionController(PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository
-            patientConditionAuditRepo, ConditionVisitLinkRepository conditionVisitLinkRepository, AllergenReactionRepository allergenReactionRepo) {
+            patientConditionAuditRepo, ConditionVisitLinkRepository conditionVisitLinkRepository,
+            AllergenReactionRepository allergenReactionRepo, AllergenReactionAuditRepository allergenReactionAuditRepo) {
         this.patientConditionRepo = patientConditionRepo;
         this.patientConditionAuditRepo = patientConditionAuditRepo;
         this.conditionVisitLinkRepository = conditionVisitLinkRepository;
         this.allergenReactionRepo = allergenReactionRepo;
+        this.allergenReactionAuditRepo = allergenReactionAuditRepo;
     }
 
     /**
@@ -162,7 +167,7 @@ public class PatientConditionController {
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
         savePatientConditionHospitalVisitLink(patientCondition.getEntity(), visit);
-        saveAllergyReactions(msg, patientCondition.getEntity());
+        saveAllergyReactions(msg, patientCondition.getEntity(), storedFrom);
     }
 
     /**
@@ -208,15 +213,23 @@ public class PatientConditionController {
      * Save all the reactions associated with an allergy for a particular condition.
      * @param msg Patient allergy message
      * @param condition Patient condition entity
+     * @param storedFrom Time at which emap core started processing this message
      */
-    private void saveAllergyReactions(PatientAllergy msg, PatientCondition condition) {
+    private void saveAllergyReactions(PatientAllergy msg, PatientCondition condition, final Instant storedFrom) {
+
+        var updatedTime = msg.getUpdatedDateTime();
+
+        // Remove all the reactions that were present before this message
+        var reactions = allergenReactionRepo.findAllByPatientConditionIdAndValidFromBefore(condition, updatedTime);
+        reactions.addAll(allergenReactionRepo.findAllByPatientConditionIdAndValidFromEquals(condition, updatedTime));
+        allergenReactionRepo.deleteAll(reactions);
 
         for (String reactionName : msg.getReactions()) {
 
             var reaction = new AllergenReaction(reactionName, condition);
-            if (allergenReactionRepo.findByNameAndPatientConditionId(reactionName, condition).isEmpty()) {
-                allergenReactionRepo.save(reaction);
-            }
+            var reactionState = new RowState<>(reaction, updatedTime, storedFrom, true);
+
+            reactionState.saveEntityOrAuditLogIfRequired(allergenReactionRepo, allergenReactionAuditRepo);
         }
     }
 

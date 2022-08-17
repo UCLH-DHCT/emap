@@ -4,20 +4,24 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.AllergenReaction;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
- * PatientSymptom repository.
+ * Allergen reaction repository.
  * @author Tom Young
  */
 public interface AllergenReactionRepository extends CrudRepository<AllergenReaction, Long> {
 
     /**
      * Get patient symptom, should be unique.
-     * @param symptomName      name of symptom
+     * @param allergenName      name of symptom
      * @param patientCondition patient condition instance (foreign key)
      * @return possible allergy reaction
      */
-    Optional<AllergenReaction> findByNameAndPatientConditionId(String symptomName, PatientCondition patientCondition);
+    Optional<AllergenReaction> findByNameAndPatientConditionId(String allergenName, PatientCondition patientCondition);
 
+    List<AllergenReaction> findAllByPatientConditionIdAndValidFromBefore(PatientCondition patientCondition, Instant time);
+    List<AllergenReaction> findAllByPatientConditionIdAndValidFromEquals(PatientCondition patientCondition, Instant time);
 }
