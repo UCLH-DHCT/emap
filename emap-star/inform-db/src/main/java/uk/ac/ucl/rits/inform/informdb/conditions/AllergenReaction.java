@@ -67,6 +67,7 @@ public class AllergenReaction extends TemporalCore<AllergenReaction, AllergenRea
      * @param other existing PatientStateType
      */
     public AllergenReaction(AllergenReaction other) {
+        super(other);
         this.allergenReactionId = other.allergenReactionId;
         this.patientConditionId = other.patientConditionId;
         this.name = other.name;
