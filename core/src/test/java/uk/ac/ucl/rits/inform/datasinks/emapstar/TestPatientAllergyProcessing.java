@@ -56,17 +56,8 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
 
     private static final String SECOND_ALLERGEN = "NUTS";
     private static final String SECOND_ALLERGEN_SUBTYPE = "Food";
-    private static final String SECOND_ONSET_DATE = "2019-05-07";
     private static final String SECOND_ALLERGY_SEVERITY = "High";
     private static final String[] SECOND_ALLERGY_REACTIONS = {"Anaphylaxis", "Hives"};
-
-    private static final String THIRD_MRN = "suI83US";
-    private static final String THIRD_ALLERGEN = "SEROTONIN REUPTAKE INHIBITORS (SSRIS)";
-    private static final String THIRD_ALLERGEN_SUBTYPE = "Drug Class";
-    private static final String THIRD_ADDED_TIME = "2019-06-08T02:05:49Z";
-    private static final String THIRD_ONSET_DATE = "2019-03-05";
-    private static final String THIRD_SEVERITY = "Medium";
-
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -198,12 +189,7 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         List<AllergenReaction> reactions = getAllEntities(allergenReactionRepository);
         assertEquals(3, reactions.size());
 
-        List<String> reactionNames = new ArrayList<>();
-        for (AllergenReaction reaction: reactions) {
-            reactionNames.add(reaction.getName());
-        }
-
-        assertTrue(reactionNames.contains("Hives"));
+        assertTrue(reactions.stream().anyMatch(r -> r.getName().equals("Hives")));
     }
 
     /**
@@ -281,5 +267,29 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Tramadol);
 
         assertTrue(getFirstPatientCondition().getIsDeleted());
+    }
+
+    /**
+     * Given there is an allergy associated with a patient
+     * When an allergy message concerning the same allergy is processed but has a new reaction
+     * Then only a single reaction is associated with the patient
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testOnlyMostRecentReactionIsPresent() throws EmapOperationMessageProcessingException{
+
+        var newReactionName = "Y";
+
+        hl7Tramadol.setReactions(List.of("X"));
+        processSingleMessage(hl7Tramadol);
+
+        hl7Tramadol.setReactions(List.of(newReactionName));
+        hl7Tramadol.setUpdatedDateTime(hl7Tramadol.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
+        processSingleMessage(hl7Tramadol);
+
+        List<AllergenReaction> reactions = getAllEntities(allergenReactionRepository);
+
+        assertEquals(1, reactions.size());
+        assertEquals(newReactionName, reactions.get(0).getName());
     }
 }
