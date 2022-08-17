@@ -233,28 +233,6 @@ public class TestPatientAllergyProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Given that a patient allergy condition exists
-     * When a new allergy message arrives that concerns the same patient and adds a new reaction
-     * Then the reaction is added to the list of associated reactions
-     */
-    @Test
-    void testUpdateReactionListHl7Message() throws EmapOperationMessageProcessingException{
-
-        processSingleMessage(hl7Tramadol);
-
-        String reactionName = "X";
-        hl7Tramadol.setReactions(List.of(new String[]{reactionName}));
-        processSingleMessage(hl7Tramadol);
-
-        assertEquals(NUM_TRAMADOL_REACTIONS+1, getAllEntities(allergenReactionRepository).size());
-        assertEquals(reactionName, getAllEntities(allergenReactionRepository).get(0).getName());
-
-        hl7Tramadol.setReactions(List.of(new String[]{"Y"}));
-        processSingleMessage(hl7Tramadol);
-        assertEquals(NUM_TRAMADOL_REACTIONS+2, getAllEntities(allergenReactionRepository).size());
-    }
-
-    /**
      * Given that a patient allergy message has a delete action
      * When the message is processed
      * Then the isDeleted flag on the entity is set
