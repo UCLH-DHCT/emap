@@ -90,9 +90,14 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private String description;
 
     /**
-     * \brief Flag for if this information is updating in real time.
+     * \brief Flag for if this row is updating in real time.
      */
-    private Boolean isLive;
+    private Boolean isRealTime;
+
+    /**
+     * \brief Flag for if this row has an associated row in vist_observation.
+     */
+    private Boolean hasVisitObservation;
 
     /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
@@ -128,7 +133,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         this.idInApplication = idInApplication;
         this.interfaceId = interfaceId;
         this.sourceObservationType = sourceObservationType;
-        this.isLive = false;
+        this.hasVisitObservation = false;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
@@ -150,7 +155,8 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         standardisedVocabulary = other.standardisedVocabulary;
         primaryDataType = other.primaryDataType;
         creationDatetime = other.creationDatetime;
-        isLive = other.isLive;
+        isRealTime = other.isRealTime;
+        hasVisitObservation = other.hasVisitObservation;
     }
 
     @Override
