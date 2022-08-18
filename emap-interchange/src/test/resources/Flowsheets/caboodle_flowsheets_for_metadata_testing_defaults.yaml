@@ -5,3 +5,5 @@ updatedTime: "2020-01-22T14:06:15Z"
 sourceSystem: "caboodle"
 sourceApplication: "caboodle"
 sourceObservationType: "flowsheet"
+sourceIsRealTime: "false"
+

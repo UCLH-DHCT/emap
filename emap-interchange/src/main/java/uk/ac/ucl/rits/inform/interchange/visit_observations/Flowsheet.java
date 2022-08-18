@@ -36,6 +36,11 @@ public class Flowsheet extends EmapOperationMessage implements ObservationType {
     private String sourceApplication = "";
 
     /**
+     * Is the source system being updated in real time?
+     */
+    private Boolean sourceIsRealTime;
+
+    /**
      * Identifier used by caboodle/EPIC for the flowsheet.
      */
     private String flowsheetId;
