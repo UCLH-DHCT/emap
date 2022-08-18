@@ -77,7 +77,9 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
                 null, FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getIdInApplication());
         assertNotNull(visitObservationType.getInterfaceId());
-        assertTrue(visitObservationType.getIsLive());
+
+        assertTrue(visitObservationType.getHasVisitObservation());
+        assertTrue(visitObservationType.getIsRealTime());
     }
 
     /**
@@ -91,7 +93,9 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         processSingleMessage(flowsheetCaboodle);
         VisitObservationType visitObservationType = visitObservationTypeRepository.find(null,
                 "38577", FLOWSHEET).orElseThrow();
-        assertTrue(visitObservationType.getIsLive());
+
+        assertTrue(visitObservationType.getHasVisitObservation());
+        assertFalse(visitObservationType.getIsRealTime());
     }
 
     /**
@@ -107,7 +111,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         assertNull(visitObservationType.getInterfaceId());
         assertNotNull(visitObservationType.getIdInApplication());
         assertMetadataFields(visitObservationType);
-        assertFalse(visitObservationType.getIsLive());
+        assertFalse(visitObservationType.getHasVisitObservation());
     }
 
     /**
