@@ -5,11 +5,16 @@ on:
     branches: [ main, master, develop ]
   pull_request:
     branches: [ main, master, develop ]
+  repository_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Event Information
+        if: github.event.action == 'Run develop test'
+        run: |
+          echo "Event '${{ github.event.action }}' received from '${{ github.event.client_payload.repository }}'"
       - name: Checkout Repo
         uses: actions/checkout@v2
         with:
