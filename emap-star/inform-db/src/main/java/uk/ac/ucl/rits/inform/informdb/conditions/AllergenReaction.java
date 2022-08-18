@@ -56,10 +56,15 @@ public class AllergenReaction extends TemporalCore<AllergenReaction, AllergenRea
      * Minimal information constructor.
      *
      * @param name       Name of the reaction, how it is referred to in the hospital.
+     * @param condition  Patient condition
+     * @param validFrom  Time at which this row was valid
+     * @param storedFrom Time at which EMAP started processing this information
      */
-    public AllergenReaction(String name, PatientCondition condition) {
+    public AllergenReaction(String name, PatientCondition condition, Instant validFrom, Instant storedFrom) {
         this.name = name;
         this.patientConditionId = condition;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     /**
