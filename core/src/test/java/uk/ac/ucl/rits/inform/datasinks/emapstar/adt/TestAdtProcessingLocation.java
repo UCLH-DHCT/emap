@@ -244,7 +244,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         assertFalse(movementAudits.isEmpty());
 
         // Ensure live lab rows are missing, and audit rows do exist
-        List<LabOrderAudit> labOrderAudits = labOrderAuditRepository.findAllByHospitalVisitIdIn(List.of(defaultHospitalVisitId));
+        var labOrderAudits = labOrderAuditRepository.findAllByHospitalVisitIdIn(List.of(defaultHospitalVisitId));
         assertEquals(2, labOrderAudits.size());
         for (var loa : labOrderAudits) {
             // shouldn't exist in live table
