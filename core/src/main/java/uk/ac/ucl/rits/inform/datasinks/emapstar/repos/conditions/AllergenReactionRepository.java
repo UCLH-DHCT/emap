@@ -22,6 +22,5 @@ public interface AllergenReactionRepository extends CrudRepository<AllergenReact
      */
     Optional<AllergenReaction> findByNameAndPatientConditionId(String allergenName, PatientCondition patientCondition);
 
-    List<AllergenReaction> findAllByPatientConditionIdAndValidFromBefore(PatientCondition patientCondition, Instant time);
-    List<AllergenReaction> findAllByPatientConditionIdAndValidFromEquals(PatientCondition patientCondition, Instant time);
+    List<AllergenReaction> findAllByPatientConditionIdAndValidFromLessThanEqual(PatientCondition patientCondition, Instant time);
 }

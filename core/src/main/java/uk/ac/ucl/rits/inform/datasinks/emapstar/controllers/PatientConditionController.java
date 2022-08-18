@@ -220,16 +220,17 @@ public class PatientConditionController {
         var updatedTime = msg.getUpdatedDateTime();
 
         // Remove all the reactions that were present before this message
-        var reactions = allergenReactionRepo.findAllByPatientConditionIdAndValidFromBefore(condition, updatedTime);
-        reactions.addAll(allergenReactionRepo.findAllByPatientConditionIdAndValidFromEquals(condition, updatedTime));
-        allergenReactionRepo.deleteAll(reactions);
+        var reactions = allergenReactionRepo.findAllByPatientConditionIdAndValidFromLessThanEqual(condition, updatedTime);
+
+        for (var reaction : reactions){
+            logger.debug("Deleting allergen reaction: {}", reaction);
+            var auditEntity = reaction.createAuditEntity(updatedTime, storedFrom);
+            allergenReactionAuditRepo.save(auditEntity);
+            allergenReactionRepo.delete(reaction);
+        }
 
         for (String reactionName : msg.getReactions()) {
-
-            var reaction = new AllergenReaction(reactionName, condition);
-            var reactionState = new RowState<>(reaction, updatedTime, storedFrom, true);
-
-            reactionState.saveEntityOrAuditLogIfRequired(allergenReactionRepo, allergenReactionAuditRepo);
+            allergenReactionRepo.save(new AllergenReaction(reactionName, condition, updatedTime, storedFrom));
         }
     }
 
