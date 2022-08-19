@@ -85,7 +85,7 @@ class ValidationRunner:
         try:
             return (
                 not getattr(self.time_window, string).is_default
-                or self.docker.config.get("dates", string) is not None
+                or self.docker.config.get("dates", string) is None
             )
 
         except KeyError:
