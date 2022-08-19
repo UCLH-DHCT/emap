@@ -118,7 +118,7 @@ public class VisitObservationController {
         if (flowsheetState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
             updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
-            updateAndSaveObservationType(msg, observationType, validFrom, storedFrom);
+            updateDataFlagsAndSaveObservationType(msg, observationType, validFrom, storedFrom);
         }
     }
 
@@ -313,11 +313,16 @@ public class VisitObservationController {
      * @param validFrom       Time from which information valid from
      * @param storedFrom      Time that emap-core started processing the message
      */
-    private void updateAndSaveObservationType(Flowsheet msg, VisitObservationType observationType, Instant validFrom, Instant storedFrom) {
+    private void updateDataFlagsAndSaveObservationType(Flowsheet msg, VisitObservationType observationType, Instant validFrom, Instant storedFrom) {
 
         var rowState = new RowState<>(observationType, validFrom, storedFrom, false);
         rowState.assignIfDifferent(true, observationType.getHasVisitObservation(), observationType::setHasVisitObservation);
-        rowState.assignIfDifferent(msg.getSourceIsRealTime(), observationType.getIsRealTime(), observationType::setIsRealTime);
+
+        // the isRealTime flag should only ever be set false -> true, not true -> false as there could be more live data
+        var isRealTime = observationType.getIsRealTime();
+        if (isRealTime == null || !isRealTime) {
+            rowState.assignIfDifferent(msg.getIsRealTime(), isRealTime, observationType::setIsRealTime);
+        }
 
         rowState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
     }

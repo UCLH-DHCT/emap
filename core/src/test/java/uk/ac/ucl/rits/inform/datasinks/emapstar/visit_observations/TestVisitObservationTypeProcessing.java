@@ -228,4 +228,22 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         assertEquals(1, vots.size());
         assertNotEquals(newDescription, vots.get(0).getDescription());
     }
+
+    /**
+     * Given a message has been processed with a realtime flag
+     * When a new message is processed with the flag set to false
+     * Then the visit observation type entity still has the isRealTime flag set to true
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testCaboodleUpdateOfHl7IsStillLive() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(flowsheetEpic);
+
+        flowsheetEpic.setIsRealTime(false);
+        processSingleMessage(flowsheetEpic);
+
+        var vot = getAllEntities(visitObservationTypeRepository).get(0);
+        assertTrue(vot.getIsRealTime());
+    }
 }
