@@ -52,6 +52,11 @@ public class IdsConfiguration {
             return idsProgress.getLastProcessedMessageDatetime();
         } else {
             logger.info("Using the service start datetime as the start datetime");
+
+            if (serviceStartDatetime == null){
+                throw new IllegalStateException("Service start time was not defined");
+            }
+
             return serviceStartDatetime;
         }
     }
