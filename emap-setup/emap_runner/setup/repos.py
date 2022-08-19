@@ -56,9 +56,7 @@ class Repository:
         """
 
         if self.local_version_exists:
-            raise EMAPRunnerException(
-                f"Cannot clone {self.name} as it already existed"
-            )
+            raise EMAPRunnerException(f"Cannot clone {self.name} as it already existed")
 
         logger.info(f"Cloning {self.name:20s} on branch {self.branch:15s}")
         try:
