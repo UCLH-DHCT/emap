@@ -124,7 +124,7 @@ public class FlowsheetFactory {
         flowsheet.setSourceMessageId(subMessageSourceId);
         flowsheet.setSourceSystem(patientHl7.getSendingApplication());
         flowsheet.setSourceApplication(patientHl7.getSendingApplication());
-        flowsheet.setSourceIsRealTime(true);
+        flowsheet.setIsRealTime(true);
         flowsheet.setUpdatedTime(recordedDateTime);
 
         // set information from obx
