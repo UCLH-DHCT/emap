@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
@@ -165,6 +166,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        patientStateProcessor.processMessage(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the PatientProblem message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(PatientProblem msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         patientStateProcessor.processMessage(msg, storedFrom);
     }
