@@ -57,7 +57,7 @@ class Repository:
 
         if self.local_version_exists:
             raise EMAPRunnerException(
-                f"Cannot clone {self.name} as it " f"already existed"
+                f"Cannot clone {self.name} as it already existed"
             )
 
         logger.info(f"Cloning {self.name:20s} on branch {self.branch:15s}")
@@ -81,6 +81,9 @@ class Repository:
         try:
 
             repo = git.Repo(self.path)
+            for remote in repo.remotes:
+                remote.fetch()
+
             repo.git.checkout(self.branch)
             repo.remotes[0].pull()
 
