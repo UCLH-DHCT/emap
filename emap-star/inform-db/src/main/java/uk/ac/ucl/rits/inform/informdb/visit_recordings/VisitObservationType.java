@@ -90,12 +90,12 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private String description;
 
     /**
-     * \brief Flag for if this row is updating in real time.
+     * \brief Does this observation type update in real time?
      */
     private Boolean isRealTime;
 
     /**
-     * \brief Flag for if this row has an associated row in vist_observation.
+     * \brief Does this observation type has an associated row in vist_observation?
      */
     private Boolean hasVisitObservation;
 
@@ -134,6 +134,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         this.interfaceId = interfaceId;
         this.sourceObservationType = sourceObservationType;
         this.hasVisitObservation = false;
+        this.isRealTime = false;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
