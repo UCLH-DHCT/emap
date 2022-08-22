@@ -44,6 +44,7 @@ public class IdsConfiguration {
     /**
      * Get start date from service start or previous progress if it exists and configured to do so.
      * @return start datetime
+     * @throws IllegalStateException if the returned serviceStartDatetime will be null
      */
     Instant getStartDateTime() {
         IdsProgress idsProgress = idsProgressRepository.findOnlyRow();
@@ -53,7 +54,7 @@ public class IdsConfiguration {
         } else {
             logger.info("Using the service start datetime as the start datetime");
 
-            if (serviceStartDatetime == null){
+            if (serviceStartDatetime == null) {
                 throw new IllegalStateException("Service start time was not defined");
             }
 
