@@ -222,7 +222,7 @@ public class PatientConditionController {
         // Remove all the reactions that were present before this message
         var reactions = allergenReactionRepo.findAllByPatientConditionIdAndValidFromLessThanEqual(condition, updatedTime);
 
-        for (var reaction : reactions){
+        for (var reaction : reactions) {
             logger.debug("Deleting allergen reaction: {}", reaction);
             var auditEntity = reaction.createAuditEntity(updatedTime, storedFrom);
             allergenReactionAuditRepo.save(auditEntity);
