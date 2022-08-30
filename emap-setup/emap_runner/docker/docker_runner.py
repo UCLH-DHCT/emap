@@ -60,10 +60,10 @@ class DockerRunner:
                 for line in p.stdout:
                     output_lines.append(line)
 
-            if p.returncode not in (0, None):
-                raise DockerRunnerException(
-                    f"Process failed with error code: {p.returncode}"
-                )
+        if p.returncode not in (0, None):
+            raise DockerRunnerException(
+                f"Process failed with error code: {p.returncode}"
+            )
 
         return None
 
