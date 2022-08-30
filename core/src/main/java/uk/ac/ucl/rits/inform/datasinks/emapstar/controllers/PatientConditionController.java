@@ -399,7 +399,7 @@ public class PatientConditionController {
     }
 
     /**
-     * Get or create existing patient condition entity from a patient infection message.
+     * Get or create existing patient condition entity from a patient infection or allergy message.
      * @param msg           patient infection or allergy message
      * @param mrn           patient identifier
      * @param conditionType condition type referred to in message
