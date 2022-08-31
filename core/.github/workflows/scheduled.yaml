@@ -18,7 +18,7 @@ jobs:
           fi
           echo "tag_exists=$tag_exists" >> $GITHUB_ENV
 
-      - uses: inform-health-informatics/Emap-Core/.github/workflows/test.yaml
+      - uses: inform-health-informatics/Emap-Core/.github/workflows/test.yaml@develop
         if: ${{ env.tag_exists }}
 
       - name: Remove tag
