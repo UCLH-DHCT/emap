@@ -29,6 +29,11 @@ public class FormQuestionMetadataMsg extends EmapOperationMessage implements Ser
     private String abbrevName;
 
     /**
+     * The question's description.
+     */
+    private String description;
+
+    /**
      * The instant that the form started existing in its present form.
      */
     private Instant validFrom;
