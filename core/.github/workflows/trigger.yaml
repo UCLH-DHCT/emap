@@ -1,0 +1,21 @@
+name: Develop trigger
+
+on:
+  push:
+    branches: ["develop"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Add requires_test tag
+        run: |
+          for repo in Emap-Core Inform-DB Emap-Interchange emap-hl7-processor
+          do
+            commit=$(
+            curl -X GET -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.GH_ACCESS_TOKEN }}" https://api.github.com/repos/inform-health-informatics/$repo/git/refs/heads/develop | awk '/sha/ { gsub(/[",]/,""); print $2}'
+            )
+            curl -X POST -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.GH_ACCESS_TOKEN }}" https://api.github.com/repos/inform-health-informatics/$repo/git/refs -d '{"ref":"refs/tags/requires_test","sha":"'"$commit"'"}'
+          done

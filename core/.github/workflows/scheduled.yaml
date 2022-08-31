@@ -1,0 +1,30 @@
+name: Develop test
+
+on:
+  push:
+    branches: ["main", "develop"]
+  schedule:
+    - cron:  '0 0 * * *'    # At midnight every day
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: See if the tag exists
+        run: |
+          exit_code=$(curl -X GET -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.GH_ACCESS_TOKEN }}" https://api.github.com/repos/inform-health-informatics/Emap-Core/git/matching-refs/tags/requires_test | grep -q requires_test; echo $?)
+          if [ "$exit_code" == "0" ]; then
+              tag_exists=true
+          fi
+          echo "tag_exists=$tag_exists" >> $GITHUB_ENV
+
+      - uses: inform-health-informatics/Emap-Core/.github/workflows/test.yaml
+        if: ${{ env.tag_exists }}
+
+      - name: Remove tag
+        if: always()  # Won't delete a non-existing tag
+        run: |
+          curl -X DELETE \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GH_ACCESS_TOKEN }}" \
+          https://api.github.com/repos/t-young31/test_a/git/refs/tags/requires_test
