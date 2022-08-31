@@ -2,7 +2,7 @@ name: Develop test
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: ["develop"]
   schedule:
     - cron:  '0 0 * * *'    # At midnight every day
 
