@@ -298,4 +298,25 @@ public class InterchangeMessageFactory {
         return formMetadataMsgs;
     }
 
+    /**
+     * Read a (partial) yaml file, and fill in the valid from if specified. This is needed
+     * because we can't predict the expected valid from time up front.
+     * @param fileName expected messages yaml file to read from
+     * @param overrideValidFrom if not null, set all returned messages to have the given valid from time
+     * @return
+     * @throws IOException
+     */
+    public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName, Instant overrideValidFrom) throws IOException {
+        String resourcePath = "/Form/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        List<FormQuestionMetadataMsg> formMsgs = mapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
+        for (var m : formMsgs) {
+            m.setSourceSystem("clarity");
+            if (overrideValidFrom != null) {
+                m.setValidFrom(overrideValidFrom);
+            }
+        }
+        return formMsgs;
+    }
+
 }
