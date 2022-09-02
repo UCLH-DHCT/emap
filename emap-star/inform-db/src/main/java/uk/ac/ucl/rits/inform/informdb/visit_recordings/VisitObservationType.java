@@ -28,6 +28,7 @@ import java.time.Instant;
  * @author Roma Klapaukh
  * @author Stef Piatek
  * @author Anika Cawthorn
+ * @author Tom Young
  */
 @Entity
 @Data
@@ -89,6 +90,16 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private String description;
 
     /**
+     * \brief Does this observation type update in real time?
+     */
+    private Boolean isRealTime;
+
+    /**
+     * \brief Does this observation type has an associated row in vist_observation?
+     */
+    private Boolean hasVisitObservation;
+
+    /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
      */
     private String standardisedCode;
@@ -122,6 +133,8 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         this.idInApplication = idInApplication;
         this.interfaceId = interfaceId;
         this.sourceObservationType = sourceObservationType;
+        this.hasVisitObservation = false;
+        this.isRealTime = false;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
@@ -143,6 +156,8 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         standardisedVocabulary = other.standardisedVocabulary;
         primaryDataType = other.primaryDataType;
         creationDatetime = other.creationDatetime;
+        isRealTime = other.isRealTime;
+        hasVisitObservation = other.hasVisitObservation;
     }
 
     @Override
