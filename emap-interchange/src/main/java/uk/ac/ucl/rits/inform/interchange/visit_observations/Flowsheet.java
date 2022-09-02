@@ -36,6 +36,12 @@ public class Flowsheet extends EmapOperationMessage implements ObservationType {
     private String sourceApplication = "";
 
     /**
+     * Is the data associated with this flowsheet being updated in real time?
+     * i.e. hl7 messages are real time but historical hoovered flowsheets are not.
+     */
+    private Boolean isRealTime = false;
+
+    /**
      * Identifier used by caboodle/EPIC for the flowsheet.
      */
     private String flowsheetId;
