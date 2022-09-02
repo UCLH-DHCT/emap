@@ -51,3 +51,29 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "1"
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "*116066"
+  mrn: "20017819"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72569
+      questionId: "UCLH#1167"
+      context: "NOTE"
+      validFrom: null
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "abcabc"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72570
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      validFrom: null
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1"
