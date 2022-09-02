@@ -1,0 +1,14 @@
+name: Set flag for delayed testing
+
+on:
+  push:
+    branches: ["develop"]
+
+jobs:
+  set_tag:
+    uses: inform-health-informatics/emap-actions/reusable_workflows/tag_repos.yaml@main
+    with:
+      repos: "Emap-Interchange Inform-DB Emap-Core emap-hl7-processor hoover"
+      branch: "develop"
+    secrets:
+      token: ${{ secrets.GH_ACCESS_TOKEN }}
