@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -19,6 +20,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
  * @author Anika Cawthorn
  */
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
@@ -49,9 +51,6 @@ public class FlowsheetMetadata extends EmapOperationMessage implements Observati
      * The data type to which this metadata message relates.
      */
     private String sourceObservationType = "flowsheet";
-
-    public FlowsheetMetadata() {
-    }
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
