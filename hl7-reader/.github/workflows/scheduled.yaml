@@ -8,7 +8,7 @@ on:
 
 jobs:
   run_scheduled_test_if_tagged:
-    uses: inform-health-informatics/emap-actions/reusable_workflows/test_if_tagged.yaml@main
+    uses: inform-health-informatics/emap-actions/.github/workflows/test_if_tagged.yaml@main
     with:
       repo: "emap-hl7-processor"
     secrets:
