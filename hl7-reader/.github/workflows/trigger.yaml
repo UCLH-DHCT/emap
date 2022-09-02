@@ -6,7 +6,7 @@ on:
 
 jobs:
   set_tag:
-    uses: inform-health-informatics/emap-actions/reusable_workflows/tag_repos.yaml@main
+    uses: inform-health-informatics/emap-actions/.github/workflows/tag_repos.yaml@main
     with:
       repos: "Emap-Interchange Inform-DB Emap-Core emap-hl7-processor hoover"
       branch: "develop"
