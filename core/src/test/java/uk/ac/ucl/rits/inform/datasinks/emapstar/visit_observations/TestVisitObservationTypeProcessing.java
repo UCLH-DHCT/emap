@@ -23,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 
 public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     FlowsheetMetadata flowsheetMetadata;
@@ -74,6 +77,25 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
                 null, FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getIdInApplication());
         assertNotNull(visitObservationType.getInterfaceId());
+
+        assertTrue(visitObservationType.getHasVisitObservation());
+        assertTrue(visitObservationType.getIsRealTime());
+    }
+
+    /**
+     * Given no visit observation type exist.
+     * When a caboodle flowsheet message arrives
+     * Then the metadata has the isLive flag unset
+     * @throws EmapOperationMessageProcessingException should never happen
+     */
+    @Test
+    void testCreateVisitObservationTypeFromCaboodle() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetCaboodle);
+        VisitObservationType visitObservationType = visitObservationTypeRepository.find(null,
+                "38577", FLOWSHEET).orElseThrow();
+
+        assertTrue(visitObservationType.getHasVisitObservation());
+        assertFalse(visitObservationType.getIsRealTime());
     }
 
     /**
@@ -89,6 +111,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         assertNull(visitObservationType.getInterfaceId());
         assertNotNull(visitObservationType.getIdInApplication());
         assertMetadataFields(visitObservationType);
+        assertFalse(visitObservationType.getHasVisitObservation());
     }
 
     /**
@@ -204,5 +227,23 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         List<VisitObservationType> vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
         assertNotEquals(newDescription, vots.get(0).getDescription());
+    }
+
+    /**
+     * Given a message has been processed with a realtime flag
+     * When a new message is processed with the flag set to false
+     * Then the visit observation type entity still has the isRealTime flag set to true
+     * @throws EmapOperationMessageProcessingException should not happen
+     */
+    @Test
+    void testCaboodleUpdateOfHl7IsStillLive() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(flowsheetEpic);
+
+        flowsheetEpic.setIsRealTime(false);
+        processSingleMessage(flowsheetEpic);
+
+        var vot = getAllEntities(visitObservationTypeRepository).get(0);
+        assertTrue(vot.getIsRealTime());
     }
 }
