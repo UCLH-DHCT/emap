@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.CascadeType;
@@ -65,6 +66,11 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     private List<FormDefinitionFormQuestion> questions = new ArrayList<>();
 
     public FormDefinition() {
+    }
+
+    public FormDefinition(TemporalFrom temporalFrom, String formSourceId) {
+        setTemporalFrom(temporalFrom);
+        this.internalId = formSourceId;
     }
 
     private FormDefinition(FormDefinition other) {

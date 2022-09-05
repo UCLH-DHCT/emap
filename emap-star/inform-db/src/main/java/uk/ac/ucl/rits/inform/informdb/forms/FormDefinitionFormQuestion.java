@@ -39,16 +39,14 @@ public class FormDefinitionFormQuestion extends TemporalCore<FormDefinitionFormQ
     @JoinColumn
     private FormQuestion formQuestionId;
 
-    public static FormDefinitionFormQuestion newLink(FormDefinition formDefinition, FormQuestion formQuestion, TemporalFrom temporalFrom) {
-        FormDefinitionFormQuestion formDefinitionFormQuestion = new FormDefinitionFormQuestion();
-        formDefinitionFormQuestion.setFormDefinitionId(formDefinition);
-        formDefinitionFormQuestion.setFormQuestionId(formQuestion);
-        formDefinitionFormQuestion.setTemporalFrom(temporalFrom);
-        formDefinition.getQuestions().add(formDefinitionFormQuestion);
-        return formDefinitionFormQuestion;
+    public FormDefinitionFormQuestion() {
     }
 
-    public FormDefinitionFormQuestion() {
+    public FormDefinitionFormQuestion(TemporalFrom temporalFrom, FormDefinition formDefinition, FormQuestion formQuestion) {
+        setTemporalFrom(temporalFrom);
+        this.formDefinitionId = formDefinition;
+        formDefinition.getQuestions().add(this);
+        this.formQuestionId = formQuestion;
     }
 
     private FormDefinitionFormQuestion(FormDefinitionFormQuestion other) {

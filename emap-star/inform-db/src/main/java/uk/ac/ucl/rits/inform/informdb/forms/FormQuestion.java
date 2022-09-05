@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
@@ -71,6 +72,11 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
     }
 
     public FormQuestion() {
+    }
+
+    public FormQuestion(TemporalFrom temporalFrom, String formQuestionId) {
+        setTemporalFrom(temporalFrom);
+        this.internalId = formQuestionId;
     }
 
     @Override
