@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.CascadeType;
@@ -88,6 +89,12 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     private Instant valueAsUtcDatetime;
 
     public FormAnswer() {
+    }
+
+    public FormAnswer(TemporalFrom temporalFrom, Form form, FormQuestion formQuestion) {
+        setTemporalFrom(temporalFrom);
+        form.addFormAnswer(this);
+        this.formQuestionId = formQuestion;
     }
 
     private FormAnswer(FormAnswer other) {

@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.Check;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -95,6 +96,11 @@ public class Form extends TemporalCore<Form, FormAudit> {
     }
 
     public Form() {}
+
+    public Form(TemporalFrom temporalFrom, FormDefinition formDefinition) {
+        setTemporalFrom(temporalFrom);
+        this.formDefinitionId = formDefinition;
+    }
 
     private Form(Form other) {
         super(other);
