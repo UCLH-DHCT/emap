@@ -74,24 +74,20 @@ public class FormController {
         RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
                 formMsg.getSourceMessageId(), storedFrom, metadataValidFrom);
 
-        Form form = new Form();
-        form.setFormDefinitionId(formDefinition.getEntity());
-        form.setStoredFrom(storedFrom);
-        form.setValidFrom(formMsg.getFirstFiledDatetime());
+        Form form = new Form(new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom), formDefinition.getEntity());
         form.setHospitalVisitId(hospitalVisit);
 
         form.setFirstFiledDatetime(formMsg.getFirstFiledDatetime());
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
             String questionId = answerMsg.getQuestionId();
             String answerStringValue = answerMsg.getStringValue().get();
-            FormAnswer formAnswer = new FormAnswer();
-            formAnswer.setStoredFrom(storedFrom);
-            formAnswer.setValidFrom(formMsg.getFirstFiledDatetime());
+            RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, metadataValidFrom);
+            FormAnswer formAnswer = new FormAnswer(
+                    new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
+                    form,
+                    formQuestion.getEntity());
             formAnswer.setValueAsString(answerStringValue);
             formAnswer.setInternalId(answerMsg.getSourceMessageId());
-            form.addFormAnswer(formAnswer);
-            RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, metadataValidFrom);
-            formAnswer.setFormQuestionId(formQuestion.getEntity());
             formAnswer = formAnswerRepository.save(formAnswer);
         }
 
@@ -103,10 +99,7 @@ public class FormController {
         if (existing.isPresent()) {
             return new RowState<>(existing.get(), validFrom, storedFrom, true);
         } else {
-            FormDefinition newFormDefinition = new FormDefinition();
-            newFormDefinition.setStoredFrom(storedFrom);
-            newFormDefinition.setValidFrom(validFrom);
-            newFormDefinition.setInternalId(formSourceId);
+            FormDefinition newFormDefinition = new FormDefinition(new TemporalFrom(validFrom, storedFrom), formSourceId);
             newFormDefinition = formDefinitionRepository.save(newFormDefinition);
             return new RowState<>(newFormDefinition, validFrom, storedFrom, true);
         }
@@ -117,10 +110,7 @@ public class FormController {
         if (existing.isPresent()) {
             return new RowState<>(existing.get(), validFrom, storedFrom, true);
         } else {
-            FormQuestion newFormQuestion = new FormQuestion();
-            newFormQuestion.setStoredFrom(storedFrom);
-            newFormQuestion.setValidFrom(validFrom);
-            newFormQuestion.setInternalId(formQuestionId);
+            FormQuestion newFormQuestion = new FormQuestion(new TemporalFrom(validFrom, storedFrom), formQuestionId);
             newFormQuestion = formQuestionRepository.save(newFormQuestion);
             return new RowState<>(newFormQuestion, validFrom, storedFrom, true);
         }
@@ -152,7 +142,7 @@ public class FormController {
             // then associate them with the form (what if they already exist?)
             RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, validFrom);
             FormQuestion formQuestionEntity = formQuestion.getEntity();
-            FormDefinitionFormQuestion.newLink(formDefinition.getEntity(), formQuestionEntity, temporalFrom);
+            new FormDefinitionFormQuestion(temporalFrom, formDefinition.getEntity(), formQuestionEntity);
         }
     }
 
