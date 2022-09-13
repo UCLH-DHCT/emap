@@ -7,7 +7,6 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -62,7 +61,7 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     @Column(columnDefinition = "text")
     private String patientFriendlyName;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "formDefinitionId")
+    @OneToMany(mappedBy = "formDefinitionId")
     private List<FormDefinitionFormQuestion> questions = new ArrayList<>();
 
     public FormDefinition() {
