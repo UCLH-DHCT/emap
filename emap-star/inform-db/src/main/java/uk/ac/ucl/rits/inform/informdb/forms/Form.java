@@ -10,7 +10,6 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -83,7 +82,7 @@ public class Form extends TemporalCore<Form, FormAudit> {
     private Instant firstFiledDatetime;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "formId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "formId", fetch = FetchType.EAGER)
     private List<FormAnswer> formAnswers = new ArrayList<>();
 
     /**
