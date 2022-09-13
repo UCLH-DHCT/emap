@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,6 +51,7 @@ public class TestFormProcessing extends MessageProcessingBase {
         Form form = formRepository.findAllByHospitalVisitIdEncounter("examplevisit").get(0);
         FormDefinition formDefinition = form.getFormDefinitionId();
         assertEquals("SomeDerivedFormInstanceIdentifier", formDefinition.getInternalId());
+        assertEquals(Instant.parse("2022-04-01T11:59:00Z"), form.getFirstFiledDatetime());
         // we don't have the name yet
         assertNull(formDefinition.getName());
         List<FormAnswer> formAnswers = form.getFormAnswers();
@@ -87,10 +89,10 @@ public class TestFormProcessing extends MessageProcessingBase {
 
         assertEquals(expectedNumQuestions, formQuestionRepository.count());
         assertEquals(expectedNumForms, formDefinitionRepository.count());
-        FormDefinition form = formDefinitionRepository.findByInternalId("2056").get();
+        FormDefinition formDefinition = formDefinitionRepository.findByInternalId("2056").get();
 
         // Make sure that questions can also be accessed via the OneToMany relationship
-        List<FormDefinitionFormQuestion> questions = form.getQuestions();
+        List<FormDefinitionFormQuestion> questions = formDefinition.getQuestions();
         assertEquals(expectedNumQuestions - orphanedQuestions, questions.size());
     }
 }

@@ -78,6 +78,7 @@ public class FormController {
         form.setHospitalVisitId(hospitalVisit);
 
         form.setFirstFiledDatetime(formMsg.getFirstFiledDatetime());
+        form = formRepository.save(form);
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
             String questionId = answerMsg.getQuestionId();
             String answerStringValue = answerMsg.getStringValue().get();
@@ -90,8 +91,6 @@ public class FormController {
             formAnswer.setInternalId(answerMsg.getSourceMessageId());
             formAnswer = formAnswerRepository.save(formAnswer);
         }
-
-        form = formRepository.save(form);
     }
 
     private RowState<FormDefinition, FormDefinitionAudit> getOrCreateFormDefinition(String formSourceId, Instant storedFrom, Instant validFrom) {
