@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 /**
  * Decides what type of order or result and sends messages to the correct class and method.
@@ -29,12 +30,13 @@ public class OrderAndResultService {
     private FlowsheetFactory flowsheetFactory;
     private ConsultFactory consultFactory;
     private AdvanceDecisionFactory advanceDecisionFactory;
+    private static final Set<String> IMG_RESULT_APPS = Set.of("IMG_RESULT", "ELR_RESULT", "IMG_ADDENDUM", "IMG_PROC_CHANGE_RESULT");
 
     /**
      * Minimal constructor for order and result service.
-     * @param flowsheetFactory          Flowsheet factory for respective messages.
-     * @param consultFactory            Consult request factory for respective messages.
-     * @param advanceDecisionFactory   Advanced decision factory for handling respective messages.
+     * @param flowsheetFactory       Flowsheet factory for respective messages.
+     * @param consultFactory         Consult request factory for respective messages.
+     * @param advanceDecisionFactory Advanced decision factory for handling respective messages.
      */
     public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory,
                                  AdvanceDecisionFactory advanceDecisionFactory) {
@@ -189,6 +191,8 @@ public class OrderAndResultService {
             return OrderCodingSystem.CONSULT_ORDER;
         } else if ("DNACPR".equals(sendingFacility.strip())) {
             return OrderCodingSystem.ADVANCED_DECISION_ORDER;
+        } else if (IMG_RESULT_APPS.contains(sendingApplication)) {
+            return OrderCodingSystem.IMAGING;
         }
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
     }
