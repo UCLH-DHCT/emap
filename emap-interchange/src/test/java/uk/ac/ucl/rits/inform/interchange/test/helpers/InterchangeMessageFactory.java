@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.interchange.FileStoreWithMonitoredAccess;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -151,6 +152,12 @@ public class InterchangeMessageFactory {
 
     public List<PatientProblem> getPatientProblems(final String fileName) throws IOException {
         String resourcePath = "/PatientProblem/" + fileName;
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
+    }
+
+    public List<PatientAllergy> getPatientAllergies(final String fileName) throws IOException {
+        String resourcePath = "/PatientAllergies/" + fileName;
         InputStream inputStream = getInputStream(resourcePath);
         return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
@@ -324,7 +331,7 @@ public class InterchangeMessageFactory {
         return getClass().getResourceAsStream(fileStore.get(path));
     }
 
-    public void updateFileStoreWith(Class rootClass) throws URISyntaxException, IOException {
+    public void updateFileStoreWith(Class<?> rootClass) throws URISyntaxException, IOException {
         fileStore.updateFilesFromClassResources(rootClass);
     }
 

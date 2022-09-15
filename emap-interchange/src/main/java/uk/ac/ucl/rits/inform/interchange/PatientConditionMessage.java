@@ -23,7 +23,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     /**
      * Status of the condition.
      */
-    private String status;
+    private InterchangeValue<String> status = InterchangeValue.unknown();
 
     /**
      * Number of the hospital visit.
@@ -46,14 +46,14 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     private Instant updatedDateTime;
 
     /**
-     * Unique Id for a condition, e.g. problem list id in clarity.
+     * Time and date condition was added at.
      */
-    private InterchangeValue<Long> conditionId = InterchangeValue.unknown();
+    private Instant addedDatetime;
 
     /**
      * Onset of condition known at...
      */
-    private InterchangeValue<LocalDate> onsetTime = InterchangeValue.unknown();
+    private InterchangeValue<LocalDate> onsetDate = InterchangeValue.unknown();
 
     /**
      * Effectively message type, i.e. whether to add, update or delete the condition.
@@ -61,7 +61,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     private ConditionAction action = ConditionAction.ADD;
 
     /**
-     * Identifier for condition as provided in HL7 messages.
+     * Identifier for condition as provided in EPIC.
      */
     private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
 
@@ -70,4 +70,22 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
      */
     private InterchangeValue<String> comment = InterchangeValue.unknown();
 
+    /**
+     * Subtype of a particular condition i.e. condition->infection->null, condition->allergy->drug where drug is
+     * the subtype of the problem.
+     */
+    private InterchangeValue<String> subType = InterchangeValue.unknown();
+
+    /**
+     * Severity of reaction patient shows when exposed to allergen...
+     */
+    private InterchangeValue<String> severity = InterchangeValue.unknown();
+
+    /**
+     * Call back to the processor so it knows what type this object is (ie. double dispatch).
+     * @param processor the processor to call back to
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    public abstract void processMessage(EmapOperationMessageProcessor processor)
+            throws EmapOperationMessageProcessingException;
 }

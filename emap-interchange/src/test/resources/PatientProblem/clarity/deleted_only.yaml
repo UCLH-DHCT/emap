@@ -16,12 +16,15 @@
     status: "SAVE"
     value: "Multiple Myeloma"
   addedDate: "2019-06-01"
-  onsetTime:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-05-31"
   action: "DELETE"
-  status: "Active"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
   visitNumber:
@@ -36,9 +39,12 @@
     status: "SAVE"
     value: "Multiple Myeloma"
   addedDate: "2019-06-01"
-  onsetTime:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-05-31"
   action: "DELETE"
-  status: "Active"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
