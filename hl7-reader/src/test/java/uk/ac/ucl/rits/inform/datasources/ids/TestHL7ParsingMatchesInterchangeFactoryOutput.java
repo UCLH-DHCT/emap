@@ -1,25 +1,24 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.test.context.ActiveProfiles;
-
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.test.helpers.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
-import uk.ac.ucl.rits.inform.interchange.test.helpers.EmapYamlMapper;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.test.helpers.EmapYamlMapper;
+import uk.ac.ucl.rits.inform.interchange.test.helpers.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
 import java.io.IOException;
@@ -195,8 +194,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     private void builtAndAssertAdtMessages
             (String hl7PathBase, String sharedBase, String[] fileNames) throws Exception {
-        String hl7PathTemplate = String.join( "/", hl7PathBase, sharedBase, "%s.txt");
-        String interchangePathTemplate = String.join( "/", sharedBase, "%s.yaml");
+        String hl7PathTemplate = String.join("/", hl7PathBase, sharedBase, "%s.txt");
+        String interchangePathTemplate = String.join("/", sharedBase, "%s.yaml");
         Collection<EmapOperationMessage> builtMessages = new ArrayList<>();
         Collection<EmapOperationMessage> expectedMessages = new ArrayList<>();
         for (String fileName : fileNames) {
@@ -462,6 +461,20 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                 String.format(interchangePathTemplate, orderFile));
 
         assertLabOrdersWithValueAsBytesEqual(List.of(builtMessage), List.of(expectedMessage));
+    }
+
+    @Test
+    void testImagingLabs() throws Exception {
+        String hl7PathTemplate = "LabOrders/imaging/%s.txt";
+        String interchangePathTemplate = "imaging/%s.yaml";
+        String orderFile = "oru_r01_imaging_result";
+        LabOrderMsg builtMessage = (LabOrderMsg) processSingleMessage(String.format(hl7PathTemplate, orderFile))
+                .stream()
+                .filter(msg -> (msg instanceof LabOrderMsg))
+                .findFirst().orElseThrow();
+        LabOrderMsg expectedMessage = interchangeFactory.getLabOrder(String.format(interchangePathTemplate, orderFile));
+
+        assertEquals(expectedMessage, builtMessage);
     }
 
     @Test

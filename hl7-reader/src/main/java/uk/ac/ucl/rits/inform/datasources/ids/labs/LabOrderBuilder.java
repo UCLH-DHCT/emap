@@ -188,11 +188,22 @@ abstract class LabOrderBuilder {
      * @throws Hl7InconsistencyException If no collection time in message
      */
     void populateObrFields(OBR obr) throws DataTypeException, Hl7InconsistencyException {
+        populateObrFields(obr, true);
+    }
+
+    /**
+     * Extract the fields found in the OBR segment, of which there is one of each per object.
+     * @param obr                    the OBR segment
+     * @param requiredCollectionTime is the collection time required for a result to be built?
+     * @throws DataTypeException         if HAPI does
+     * @throws Hl7InconsistencyException If no collection time in message
+     */
+    void populateObrFields(OBR obr, boolean requiredCollectionTime) throws DataTypeException, Hl7InconsistencyException {
         // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
         // which is the closest we get to a "collection" time.
         // This field is consistent throughout the workflow.
         Instant collectionTime = interpretLocalTime(obr.getObr7_ObservationDateTime());
-        if (collectionTime == null) {
+        if (collectionTime == null && requiredCollectionTime) {
             throw new Hl7InconsistencyException("Collection time is required but missing");
         }
         msg.setCollectionDateTime(collectionTime);
