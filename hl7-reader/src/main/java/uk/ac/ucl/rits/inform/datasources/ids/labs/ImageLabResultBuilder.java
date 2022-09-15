@@ -28,7 +28,7 @@ public class ImageLabResultBuilder extends LabResultBuilder {
     private final List<OBX> obxSegments;
     private final String resultCode;
     private boolean ignored = false;
-    private static final String CODING_SYSTEM = OrderCodingSystem.IMAGING.name();
+    private static final String CODING_SYSTEM = OrderCodingSystem.PACS.name();
     private static final Set<String> TEXT_TYPE = Set.of("TX", "ST");
 
     /**
