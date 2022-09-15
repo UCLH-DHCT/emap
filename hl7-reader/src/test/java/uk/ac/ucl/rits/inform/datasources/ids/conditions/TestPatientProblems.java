@@ -1,9 +1,11 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.conditions;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.datasources.ids.TestHl7MessageStream;
+import uk.ac.ucl.rits.inform.datasources.ids.conditons.PatientProblemFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
@@ -40,7 +42,7 @@ public class TestPatientProblems extends TestHl7MessageStream {
             "- Blood cultures negative";
     private static final InterchangeValue<Long> EPIC_ID = InterchangeValue.buildFromHl7(1333555L);
     @Autowired
-    PatientProblemService patientProblemService;
+    PatientProblemFactory patientProblemFactory;
 
     List<PatientProblem> getAllProblems(String fileName) throws Exception {
         var msgs = processSingleMessage(String.format(FILE_TEMPLATE, fileName));
@@ -122,7 +124,7 @@ public class TestPatientProblems extends TestHl7MessageStream {
 
         var problem = getAllProblems("problem_list_onset").get(0);
         assertEquals(VISIT_NUMBER, problem.getVisitNumber().get());
-        assertEquals(PROBLEM_ONSET, problem.getOnsetTime().get());
+        assertEquals(PROBLEM_ONSET, problem.getOnsetDate().get());
     }
 
     /**

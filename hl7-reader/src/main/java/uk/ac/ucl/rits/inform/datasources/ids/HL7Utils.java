@@ -70,7 +70,7 @@ public final class HL7Utils {
      * @return Local date
      * @throws DataTypeException if date cannot be parsed correctly.
      */
-    static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
+    public static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
         if (hl7Date.toString() == null) {
             return null;
         }
