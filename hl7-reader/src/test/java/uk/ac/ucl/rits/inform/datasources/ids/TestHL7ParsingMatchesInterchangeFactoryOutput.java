@@ -460,7 +460,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         LabOrderMsg expectedMessage = interchangeFactory.getLabOrder(
                 String.format(interchangePathTemplate, orderFile));
 
-        assertLabOrdersWithValueAsBytesEqual(List.of(builtMessage), List.of(expectedMessage));
+        assertLabOrdersWithValueAsBytesEqual(List.of(expectedMessage), List.of(builtMessage));
     }
 
     @Test
