@@ -12,8 +12,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
-import uk.ac.ucl.rits.inform.interchange.PatientInfection;
-import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+
 
 import java.time.Instant;
 
@@ -35,44 +34,28 @@ public class PatientStateProcessor {
      * @param visitController            hospital visit controller
      */
     public PatientStateProcessor(
-            PatientConditionController patientConditionController, PersonController personController, VisitController visitController) {
+            PatientConditionController patientConditionController,
+            PersonController personController, VisitController visitController) {
         this.patientConditionController = patientConditionController;
         this.personController = personController;
         this.visitController = visitController;
     }
 
-
     /**
-     * Process patient problem message.
+     * Process patient condition (problem/infection/allergy) message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(PatientProblem msg, final Instant storedFrom)
+    public void processMessage(PatientConditionMessage msg, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
+
         logger.trace("Processing {}", msg);
         Mrn mrn = getOrCreateMrn(msg, storedFrom);
         HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
         patientConditionController.processMessage(msg, mrn, visit, storedFrom);
     }
-
-
-    /**
-     * Process patient infection message.
-     * @param msg        message
-     * @param storedFrom Time the message started to be processed by star
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
-     */
-    @Transactional
-    public void processMessage(PatientInfection msg, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException {
-
-        Mrn mrn = getOrCreateMrn(msg, storedFrom);
-        HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
-        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
-    }
-
 
     /**
      * Get or create a hospital visit using the visitController.
@@ -110,6 +93,5 @@ public class PatientStateProcessor {
         return personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
                 msgUpdatedTime, storedFrom);
     }
-
 
 }
