@@ -37,7 +37,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private long conditionTypeId;
 
     /**
-     * \brief Problem or patient infection.
+     * \brief Problem list, patient infection or allergy
      */
     @Column(nullable = false)
     private String dataType;
@@ -45,13 +45,17 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     /**
      * \brief Code used within source system for this conditionType.
      */
-    @Column(nullable = false)
     private String internalCode;
 
     /**
      * \brief Human readable name for this conditionType.
      */
     private String name;
+
+    /**
+     * \brief Subtype of the condition e.g. an allergy to food. Only populated in the context of allergies.
+     */
+    private String subType;
 
     /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
@@ -62,7 +66,6 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
      * \brief Nomenclature or classification system used. Not yet implemented.
      */
     private String standardisedVocabulary;
-
 
     /**
      * Minimal information constructor.
@@ -90,7 +93,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
         this.name = other.name;
         this.standardisedCode = other.standardisedCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
-
+        this.subType = other.subType;
     }
 
     @Override
@@ -102,5 +105,4 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     public ConditionTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
         return new ConditionTypeAudit(this, validUntil, storedUntil);
     }
-
 }
