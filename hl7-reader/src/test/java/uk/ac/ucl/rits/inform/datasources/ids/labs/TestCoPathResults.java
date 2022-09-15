@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test Lab results derived from Winpath
+ * Test Lab results derived from CoPath
  * @author Stef Piatek
  */
 @ActiveProfiles("test")
