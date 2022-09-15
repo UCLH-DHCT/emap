@@ -4,10 +4,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
@@ -80,7 +80,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         olderMessage.setConditionName(InterchangeValue.buildFromHl7(MUMPS_INFECTION));
         olderMessage.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
         olderMessage.setResolvedDatetime(InterchangeValue.buildFromHl7(olderResolvedTime));
-        olderMessage.setOnsetTime(InterchangeValue.buildFromHl7(olderOnsetDate));
+        olderMessage.setOnsetDate(InterchangeValue.buildFromHl7(olderOnsetDate));
         processSingleMessage(olderMessage);
     }
 

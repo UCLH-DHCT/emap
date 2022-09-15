@@ -6,6 +6,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.conditions.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
@@ -326,7 +329,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
     void testDeleteActionWithDeleteOrResolvedStatus(String input) throws EmapOperationMessageProcessingException {
 
         hl7MyelomaInpatient.setAction(ConditionAction.DELETE);
-        hl7MyelomaInpatient.setStatus(input);
+        hl7MyelomaInpatient.setStatus(InterchangeValue.buildFromHl7(input));
 
         processSingleMessage(hl7MyelomaInpatient);
 
@@ -407,7 +410,7 @@ public class TestPatientProblemProcessing extends MessageProcessingBase {
         processSingleMessage(message);
 
         // Set the status to active and action to delete and process the updated message
-        assertEquals(message.getStatus(), "ACTIVE");
+        assertEquals(message.getStatus().get(), "ACTIVE");
         message.setAction(ConditionAction.DELETE);
         message.setUpdatedDateTime(message.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
         processSingleMessage(message);
