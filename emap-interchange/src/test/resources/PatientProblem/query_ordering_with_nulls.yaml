@@ -16,9 +16,12 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "1234"
-  status: "Resolved"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Resolved"
   addedDate: "2019-06-01"
-  onsetTime:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-05-31"
@@ -26,14 +29,17 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
   mrn: "suI83US"
-  status: "Deleted"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Deleted"
   conditionCode: "J45.9"
   conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     value: "Asthma"
     status: "SAVE"
   updatedDateTime: "2019-06-09T01:00:05Z"
-  onsetTime:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     value: "2019-03-20"
     status: "SAVE"
