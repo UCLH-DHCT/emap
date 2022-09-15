@@ -1,0 +1,15 @@
+name: Develop scheduled test
+
+on:
+  push:
+    branches: ["develop"]
+  schedule:
+    - cron:  '0 0 * * *'    # At midnight every day
+
+jobs:
+  run_scheduled_test_if_tagged:
+    uses: inform-health-informatics/emap-actions/.github/workflows/test_if_tagged.yaml@main
+    with:
+      repo: "Emap-Interchange"
+    secrets:
+      token: ${{ secrets.GH_ACCESS_TOKEN }}
