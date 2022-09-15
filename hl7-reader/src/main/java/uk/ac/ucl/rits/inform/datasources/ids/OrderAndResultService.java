@@ -27,9 +27,9 @@ import java.util.Set;
  */
 @Component
 public class OrderAndResultService {
-    private FlowsheetFactory flowsheetFactory;
-    private ConsultFactory consultFactory;
-    private AdvanceDecisionFactory advanceDecisionFactory;
+    private final FlowsheetFactory flowsheetFactory;
+    private final ConsultFactory consultFactory;
+    private final AdvanceDecisionFactory advanceDecisionFactory;
     private static final Set<String> IMG_RESULT_APPS = Set.of("IMG_RESULT", "ELR_RESULT", "IMG_ADDENDUM", "IMG_PROC_CHANGE_RESULT");
 
     /**
@@ -177,23 +177,37 @@ public class OrderAndResultService {
             return OrderCodingSystem.WIN_PATH;
         } else if ("CoPathPlus".equals(fillerNamespace) || "CPEAP".equals(codingSystem)) {
             return OrderCodingSystem.CO_PATH;
-        } else if ("Profiles".equals(alternativeIdentifier)) {
-            return OrderCodingSystem.BANK_MANAGER;
-        } else if ("Products".equals(alternativeIdentifier)) {
-            return OrderCodingSystem.BLOOD_PRODUCTS;
-        } else if ("BIO-CONNECT".equals(sendingApplication)) {
-            return OrderCodingSystem.BIO_CONNECT;
-        } else if ("ABL90 FLEX Plus".equals(sendingApplication)) {
-            return OrderCodingSystem.ABL90_FLEX_PLUS;
-        } else if ("Vitals".equals(sendingFacility)) {
-            return OrderCodingSystem.FLOWSHEET;
-        } else if ("Consult Orders".equals(sendingFacility)) {
-            return OrderCodingSystem.CONSULT_ORDER;
-        } else if ("DNACPR".equals(sendingFacility.strip())) {
-            return OrderCodingSystem.ADVANCED_DECISION_ORDER;
-        } else if (IMG_RESULT_APPS.contains(sendingApplication)) {
-            return OrderCodingSystem.IMAGING;
         }
+
+        switch (sendingApplication) {
+            case "BIO-CONNECT":
+                return OrderCodingSystem.BIO_CONNECT;
+            case "ABL90 FLEX Plus":
+                return OrderCodingSystem.ABL90_FLEX_PLUS;
+            default:
+                if (IMG_RESULT_APPS.contains(sendingApplication)) {
+                    return OrderCodingSystem.IMAGING;
+                }
+        }
+        // stripping for DNACPR
+        switch (sendingFacility.strip()) {
+            case "Vitals":
+                return OrderCodingSystem.FLOWSHEET;
+            case "Consult Orders":
+                return OrderCodingSystem.CONSULT_ORDER;
+            case "DNACPR":
+                return OrderCodingSystem.ADVANCED_DECISION_ORDER;
+            default:
+        }
+
+        switch (alternativeIdentifier) {
+            case "Profiles":
+                return OrderCodingSystem.BANK_MANAGER;
+            case "Products":
+                return OrderCodingSystem.BLOOD_PRODUCTS;
+            default:
+        }
+
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
     }
 
