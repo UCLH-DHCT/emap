@@ -22,6 +22,11 @@ labResultMsgs:
       "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
       status: "SAVE"
       value: "NG positioning"
+questions:
+  What is your team contact number?: "1111"
+  How can the patient travel to the department?: "Bed"
+  Mobile examination?: "No"
+  NHS or private patient?: "1 NHS Patient"
 requestedDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
