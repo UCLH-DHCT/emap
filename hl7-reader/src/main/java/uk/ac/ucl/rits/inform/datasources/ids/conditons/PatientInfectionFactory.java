@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.conditons;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.segment.EVN;
@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v26.field.Infection;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v26.message.ADT_A05;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
@@ -21,16 +22,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Component
-public class PatientStatusService {
+public class PatientInfectionFactory {
     /**
      * The HL7 feed always sends entire history of patient infections.
      * This field is used to only parse new patient infections, from the service start date onwards.
      */
     @Setter
     private Instant infectionProgress;
-    private static final Logger logger = LoggerFactory.getLogger(PatientStatusService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PatientInfectionFactory.class);
 
-    public PatientStatusService(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
+    public PatientInfectionFactory(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
         infectionProgress = serviceStart;
     }
 
@@ -42,7 +43,7 @@ public class PatientStatusService {
      * @return list of patient infections
      * @throws HL7Exception if patient infection cannot be parsed.
      */
-    Collection<PatientInfection> buildPatientInfections(String sourceId, ADT_A05 msg) throws HL7Exception {
+    public Collection<PatientInfection> buildPatientInfections(String sourceId, ADT_A05 msg) throws HL7Exception {
         MSH msh = msg.getMSH();
         PID pid = msg.getPID();
         PV1 pv1 = msg.getPV1();
@@ -52,8 +53,12 @@ public class PatientStatusService {
         Collection<PatientInfection> infections = new ArrayList<>(reps);
         for (int i = 0; i < reps; i++) {
             Infection infectionSegment = msg.getZIF().getInfection(i);
-            PatientInfection patientInfection = buildPatientInfection(sourceId, evn, patientInfo, infectionSegment);
-            addNewInfectionAndUpdateProgress(patientInfection, infections);
+            var patientInfection = buildPatientInfection(sourceId, evn, patientInfo, infectionSegment);
+
+            if (PatientStatusService.shouldUpdateProgressAndAddMessage(patientInfection, infectionProgress)) {
+                infectionProgress = patientInfection.getAddedDatetime();
+                infections.add(patientInfection);
+            }
         }
         return infections;
     }
@@ -72,15 +77,5 @@ public class PatientStatusService {
         Instant infectionResolved = HL7Utils.interpretLocalTime(infectionSegment.getInfection3ResolvedDateTime());
         patientInfection.setResolvedDatetime(InterchangeValue.buildFromHl7(infectionResolved));
         return patientInfection;
-    }
-
-    private void addNewInfectionAndUpdateProgress(PatientInfection patientInfection, Collection<PatientInfection> infections) {
-        Instant infectionAdded = patientInfection.getAddedDatetime();
-        if (infectionAdded == null || infectionAdded.isBefore(infectionProgress)) {
-            logger.debug("Infection processing skipped as current infection added is {} and progress is {}", infectionAdded, infectionProgress);
-            return;
-        }
-        infections.add(patientInfection);
-        infectionProgress = patientInfection.getAddedDatetime();
     }
 }

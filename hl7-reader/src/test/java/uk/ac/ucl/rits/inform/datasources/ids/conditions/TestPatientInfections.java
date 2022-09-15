@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.conditions;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.datasources.ids.TestHl7MessageStream;
+import uk.ac.ucl.rits.inform.datasources.ids.conditons.PatientInfectionFactory;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
@@ -33,11 +35,11 @@ class TestPatientInfections extends TestHl7MessageStream {
     private static final Instant MUMPS_UPDATE = Instant.parse("2019-06-07T11:32:00Z");
     private static final String EPIC = "EPIC";
     @Autowired
-    PatientStatusService patientStatusService;
+    PatientInfectionFactory patientInfectionFactory;
 
     @BeforeEach
     private void resetInfectionProgress(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        patientStatusService.setInfectionProgress(serviceStart);
+        patientInfectionFactory.setInfectionProgress(serviceStart);
     }
 
 

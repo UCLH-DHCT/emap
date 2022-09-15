@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.test.helpers.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.test.helpers.EmapYamlMapper;
@@ -491,11 +492,15 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testPatientInfection() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt")
-                .stream()
-                .filter(msg -> msg instanceof PatientInfection)
-                .findFirst().orElseThrow();
+        var messageFromHl7 = processSingleMessageFirstOfType("PatientInfection/a05.txt", PatientInfection.class);
         PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
+        assertEquals(expected, messageFromHl7);
+    }
+
+    @Test
+    public void testPatientAllergy() throws Exception {
+        var messageFromHl7 = processSingleMessageFirstOfType("PatientAllergies/minimal_allergy.txt", PatientAllergy.class);
+        PatientAllergy expected = interchangeFactory.getPatientAllergies("hl7/minimal_allergy.yaml").get(0);
         assertEquals(expected, messageFromHl7);
     }
 
@@ -507,15 +512,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         for (String fileName : fileNames) {
             log.info("Testing file {}", fileName);
             String hl7FileName = String.format("ProblemList/end_to_end/%s.txt", fileName);
-            EmapOperationMessage messageFromHl7 = processSingleMessage(hl7FileName).stream()
-                    .filter(msg -> msg instanceof PatientProblem)
-                    .findFirst().orElseThrow();
-
+            EmapOperationMessage messageFromHl7 = processSingleMessageFirstOfType(hl7FileName, PatientProblem.class);
             String interchangeFileName = String.format("hl7/%s.yaml", fileName);
             PatientProblem expected = interchangeFactory.getPatientProblems(interchangeFileName).stream().findFirst().orElseThrow();
             assertEquals(expected, messageFromHl7);
         }
-
     }
 
     /**

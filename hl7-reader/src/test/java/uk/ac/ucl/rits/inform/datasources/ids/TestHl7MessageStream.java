@@ -75,6 +75,17 @@ public abstract class TestHl7MessageStream {
         return processSingleMessage(resourceFileName).stream().filter(msg -> !(msg instanceof AdtMessage)).collect(Collectors.toList());
     }
 
+
+    /**
+     * Process a single HL7 message into multiple interchange messages and find the first one of a particular type.
+     * @param resourceFileName filename containing the HL7 message
+     * @return interchange messages
+     * @throws Exception if message malformed
+     */
+    public EmapOperationMessage processSingleMessageFirstOfType(String resourceFileName, Class<?> type) throws Exception {
+        return processSingleMessage(resourceFileName).stream().filter(type::isInstance).findFirst().orElseThrow();
+    }
+
     /**
      * Process multiple lab order HL7 messages within one text file
      * @param resourceFileName filename containing the HL7 message
