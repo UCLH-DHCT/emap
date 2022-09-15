@@ -83,7 +83,7 @@ public final class LabFunnel {
                 return BankManagerLabBuilder.build(idsUnid, oruR01);
             case BIO_CONNECT:
                 return BioConnectLabBuilder.build(idsUnid, oruR01);
-            case IMAGING:
+            case PACS:
                 return ImageLabBuilder.build(idsUnid, oruR01);
             default:
                 throw new Hl7MessageIgnoredException("Coding system for ORU^R01 not recognised");

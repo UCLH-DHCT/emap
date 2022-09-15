@@ -186,7 +186,7 @@ public class OrderAndResultService {
                 return OrderCodingSystem.ABL90_FLEX_PLUS;
             default:
                 if (IMG_RESULT_APPS.contains(sendingApplication)) {
-                    return OrderCodingSystem.IMAGING;
+                    return OrderCodingSystem.PACS;
                 }
         }
         // stripping for DNACPR

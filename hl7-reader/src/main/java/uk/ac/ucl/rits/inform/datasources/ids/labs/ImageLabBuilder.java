@@ -82,7 +82,7 @@ public final class ImageLabBuilder extends LabOrderBuilder {
      */
     private ImageLabBuilder(
             String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, PatientInfoHl7 patientHl7) throws HL7Exception, Hl7InconsistencyException {
-        super(ALLOWED_OC_IDS, OrderCodingSystem.IMAGING);
+        super(ALLOWED_OC_IDS, OrderCodingSystem.PACS);
         OBR obr = obs.getOBR();
         List<NTE> notes = obs.getNTEAll();
         setOrderInformation(subMessageSourceId, patientHl7, obr, obs.getORC(), notes);
