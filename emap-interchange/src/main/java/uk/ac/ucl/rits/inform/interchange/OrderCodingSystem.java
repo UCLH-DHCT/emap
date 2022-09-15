@@ -25,9 +25,9 @@ public enum OrderCodingSystem {
      */
     BANK_MANAGER,
     /**
-     * Imaging labs.
+     * Picture Archiving and Communication Systems, AKA Imaging labs.
      */
-    IMAGING,
+    PACS,
 
     /**
      * Bank manager Blood Products.
