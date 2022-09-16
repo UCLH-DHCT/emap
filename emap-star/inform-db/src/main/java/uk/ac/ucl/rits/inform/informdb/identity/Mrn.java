@@ -66,6 +66,8 @@ public class Mrn implements Serializable {
      */
     private String nhsNumber;
 
+    private boolean researchOptOut;
+
     /**
      * \brief The system from which this MRN was initially discovered.
      */
