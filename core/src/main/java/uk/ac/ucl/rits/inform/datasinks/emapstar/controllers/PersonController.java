@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
+import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
@@ -24,7 +25,9 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -32,7 +35,7 @@ import java.util.List;
  */
 @Component
 public class PersonController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
@@ -55,6 +58,29 @@ public class PersonController {
         this.mrnToLiveAuditRepo = mrnToLiveAuditRepo;
         this.coreDemographicRepo = coreDemographicRepo;
         this.coreDemographicAuditRepo = coreDemographicAuditRepo;
+    }
+
+    /**
+     * Update existing Mrns or create new Mrn with research opt out set to true.
+     * @param msg        research opt out message
+     * @param storedFrom time that star started processing the message
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
+     */
+    public void updateOrCreateWithResearchOptOut(ResearchOptOut msg, Instant storedFrom) throws RequiredDataMissingException {
+        Collection<Mrn> mrns = new HashSet<>(
+                getMrnsOrCreateOne(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getEarliestOptOut(), storedFrom)
+        );
+        var nonLiveMrns = mrns.stream()
+                .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
+                .map(MrnToLive::getMrnId).collect(Collectors.toSet());
+        mrns.addAll(nonLiveMrns);
+        mrns.forEach(this::addOptOutAndSave);
+    }
+
+    private void addOptOutAndSave(Mrn mrn) {
+        logger.trace("Adding opt out to {}", mrn);
+        mrn.setResearchOptOut(true);
+        mrnRepo.save(mrn);
     }
 
     /**
@@ -90,6 +116,11 @@ public class PersonController {
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
                 .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, validFrom, storedFrom, mrnToLive));
+
+        boolean anyResearchOptOut = originalMrns.stream().anyMatch(Mrn::isResearchOptOut);
+        if (anyResearchOptOut) {
+            originalMrns.forEach(this::addOptOutAndSave);
+        }
     }
 
     /**
