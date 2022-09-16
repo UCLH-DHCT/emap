@@ -142,7 +142,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private String comment;
 
     /**
-     * \brief Description of how severe this condition is
+     * \brief Description of how severe this condition is.
      */
     private String severity;
 
