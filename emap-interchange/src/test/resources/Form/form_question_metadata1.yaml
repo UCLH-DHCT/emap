@@ -1,0 +1,6 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg"
+  sourceMessageId: "UCLH#1205"
+  validFrom: "2022-01-01T13:00:00Z"
+  name: "ICU Discussion"
+  abbrevName: "ICU Discussion"
+  internalDataType: "Boolean"

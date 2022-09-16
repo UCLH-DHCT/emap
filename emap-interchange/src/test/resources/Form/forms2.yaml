@@ -1,0 +1,20 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "SmartForm1234"
+  firstFiledDatetime: "2022-04-01T11:59:00Z"
+  mrn: "examplemrn"
+  visitNumber: "examplevisit"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: "567765"
+      questionId: "UCLH#123"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value:  "Right arm"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: "567766"
+      questionId: "UCLH#345"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "DELETE"
