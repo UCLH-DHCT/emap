@@ -64,7 +64,7 @@ public class TestFormProcessing extends MessageProcessingBase {
 
     @Test
     @Sql("/populate_db.sql")
-    public void metadataTestStartingPopulated() throws EmapOperationMessageProcessingException {
+    public void metadataTestStartingPopulated() throws EmapOperationMessageProcessingException, IOException {
         // STARTING_NUM_QUESTIONS questions in initial DB state, message contains 31 questions
         // of which 3 are new. 1 of initial DB state is missing from message, which means that
         // it should be unlinked from the form, but not deleted itself.
@@ -73,7 +73,7 @@ public class TestFormProcessing extends MessageProcessingBase {
     }
 
     @Test
-    public void metadataTestStartingBlank() throws  EmapOperationMessageProcessingException {
+    public void metadataTestStartingBlank() throws EmapOperationMessageProcessingException, IOException {
         // Empty initial state, so this is a test of adding only.
         // The 31 questions and 1 form in the message should be added.
         _processMetadata(31, 0, 1);
@@ -83,12 +83,13 @@ public class TestFormProcessing extends MessageProcessingBase {
      * Process a test FormMsg and perform some basic checks.
      */
     private Form _processForm() throws IOException, EmapOperationMessageProcessingException {
-        FormMsg formMsg = messageFactory.getFormMsgTemp();
-        processSingleMessage(formMsg);
+        List<FormMsg> formMsgs = messageFactory.getFormMsgs("forms2.yaml");
+        processMessages(formMsgs);
+
         assertEquals(1, formRepository.count());
         Form form = formRepository.findAllByHospitalVisitIdEncounter("examplevisit").get(0);
         FormDefinition formDefinition = form.getFormDefinitionId();
-        assertEquals("SomeDerivedFormInstanceIdentifier", formDefinition.getInternalId());
+        assertEquals("2022-04-01T11:59:00Z_examplemrn_SmartForm1234", formDefinition.getInternalId());
         assertEquals(Instant.parse("2022-04-01T11:59:00Z"), form.getFirstFiledDatetime());
         List<FormAnswer> formAnswers = form.getFormAnswers();
         assertEquals(2, formAnswers.size());
@@ -99,10 +100,10 @@ public class TestFormProcessing extends MessageProcessingBase {
     /**
      * Process test FormMetadataMsg and FormQuestionMetadataMsg messages, and perform some basic checks.
      */
-    private void _processMetadata(final long expectedNumQuestions, final long orphanedQuestions, final long expectedNumFormDefinitions) throws EmapOperationMessageProcessingException {
-        FormMetadataMsg formMetadataMsg = messageFactory.getFormMetadataMsg();
-        List<FormQuestionMetadataMsg> formQuestionMetadataMsg = messageFactory.getFormQuestionMetadataMsg();
-        processSingleMessage(formMetadataMsg);
+    private void _processMetadata(final long expectedNumQuestions, final long orphanedQuestions, final long expectedNumFormDefinitions) throws EmapOperationMessageProcessingException, IOException {
+        List<FormMetadataMsg> formMetadataMsgs = messageFactory.getFormMetadataMsg("form_metadata1.yaml");
+        List<FormQuestionMetadataMsg> formQuestionMetadataMsg = messageFactory.getFormQuestionMetadataMsg("form_question_metadata1.yaml");
+        processMessages(formMetadataMsgs);
         processMessages(formQuestionMetadataMsg);
 
         assertEquals(expectedNumQuestions, formQuestionRepository.count());
