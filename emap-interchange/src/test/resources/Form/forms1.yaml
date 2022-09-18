@@ -23,6 +23,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "1"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: true
 
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
       sourceMessageId: 72566
@@ -33,6 +37,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "0"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: false
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
       sourceMessageId: 72567
       questionId: "UCLH#1207"
@@ -42,6 +50,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "0"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: false
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
       sourceMessageId: 72568
       questionId: "UCLH#1208"
@@ -51,6 +63,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "1"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: true
 
 - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
   sourceSystem: "ids"
@@ -73,7 +89,89 @@
       questionId: "UCLH#1205"
       context: "NOTE"
       validFrom: null
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: true
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "1"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72571
+      questionId: "FAKE#0001"
+      context: "NOTE"
+      validFrom: null
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: false
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72573
+      questionId: "FAKE#0003"
+      context: "NOTE"
+      validFrom: null
+      dateValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2021-02-04"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2021-02-04"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72574
+      questionId: "FAKE#0004"
+      context: "NOTE"
+      validFrom: null
+      utcDatetimeValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2020-04-05T01:02:00.00Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2020-04-05T01:02:00.00Z"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72575
+      questionId: "FAKE#0005"
+      context: "NOTE"
+      validFrom: null
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 1.01
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1.01"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72576
+      questionId: "FAKE#0006"
+      context: "NOTE"
+      validFrom: null
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: -0.01
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "-0.01"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72577
+      questionId: "FAKE#0007"
+      context: "NOTE"
+      validFrom: null
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"

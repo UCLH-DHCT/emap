@@ -5,6 +5,7 @@ import lombok.Data;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * An instance of an answered question (Eg. SDE), which will always be nested in a Form.
@@ -50,6 +51,11 @@ public class FormAnswerMsg {
      * UTC timestamp value.
      */
     private InterchangeValue<Instant> utcDatetimeValue = InterchangeValue.unknown();
+
+    /**
+     * Date value.
+     */
+    private InterchangeValue<LocalDate> dateValue = InterchangeValue.unknown();
 
     /**
      * Boolean value.

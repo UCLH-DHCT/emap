@@ -27,6 +27,16 @@ public enum ValueType {
      */
     TIME("temporal/time"),
     /**
+     * Datetime value.
+     * (Doesn't exist as mime type so custom type used)
+     */
+    INSTANT("temporal/utcinstant"),
+    /**
+     * Boolean value.
+     * (Doesn't exist as mime type so custom type used)
+     */
+    BOOLEAN("numeric/boolean"),
+    /**
      * PDF value.
      */
     PDF("application/pdf"),
