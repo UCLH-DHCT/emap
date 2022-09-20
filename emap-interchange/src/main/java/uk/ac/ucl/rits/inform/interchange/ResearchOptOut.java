@@ -25,9 +25,9 @@ public class ResearchOptOut extends EmapOperationMessage {
      */
     private String mrn;
     /**
-     * The earliest time that the opt-out could have been created.
+     * The datetime that the patient was last updated in EPIC, defaulting to the first day of 2019.
      */
-    private Instant earliestOptOut;
+    private Instant lastUpdated;
 
     /**
      * Messages must call back out to the processor (double dispatch).
