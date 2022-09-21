@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * \brief Stores the value assigned to a particular instance of an answered form question.
@@ -88,6 +89,12 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant valueAsDatetime;
 
+    /**
+     * \brief Current value of the form if it's a date, else null.
+     * .
+     */
+    private LocalDate valueAsDate;
+
     public FormAnswer() {
     }
 
@@ -108,6 +115,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
         this.valueAsNumber = other.valueAsNumber;
         this.valueAsBoolean = other.valueAsBoolean;
         this.valueAsDatetime = other.valueAsDatetime;
+        this.valueAsDate = other.valueAsDate;
     }
 
     @Override
