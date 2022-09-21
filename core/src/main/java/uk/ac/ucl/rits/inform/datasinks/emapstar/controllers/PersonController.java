@@ -23,9 +23,9 @@ import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,14 +67,10 @@ public class PersonController {
      * @throws RequiredDataMissingException If MRN and NHS number are both null
      */
     public void updateOrCreateWithResearchOptOut(ResearchOptOut msg, Instant storedFrom) throws RequiredDataMissingException {
-        Collection<Mrn> mrns = new HashSet<>(
-                getMrnsOrCreateOne(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getEarliestOptOut(), storedFrom)
-        );
-        var nonLiveMrns = mrns.stream()
-                .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
+        Mrn liveMrn = getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getLastUpdated(), storedFrom);
+        var allMrns = mrnToLiveRepo.getAllByLiveMrnIdEquals(liveMrn).stream()
                 .map(MrnToLive::getMrnId).collect(Collectors.toSet());
-        mrns.addAll(nonLiveMrns);
-        mrns.forEach(this::addOptOutAndSave);
+        allMrns.forEach(this::addOptOutAndSave);
     }
 
     private void addOptOutAndSave(Mrn mrn) {
@@ -84,7 +80,7 @@ public class PersonController {
     }
 
     /**
-     * Merge MRN from the message's pervious MRN into the surviving MRN.
+     * Merge MRN from the message's previous MRN into the surviving MRN.
      * @param msg          Merge message
      * @param survivingMrn live MRN to merge into
      * @param storedFrom   when the message has been read by emap core
@@ -117,9 +113,18 @@ public class PersonController {
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
                 .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, validFrom, storedFrom, mrnToLive));
 
-        boolean anyResearchOptOut = originalMrns.stream().anyMatch(Mrn::isResearchOptOut);
+        Collection<Mrn> originalAndSurvivingMrns = new ArrayList<>(originalMrns.size() + 1);
+        originalAndSurvivingMrns.add(survivingMrn);
+        originalAndSurvivingMrns.addAll(originalMrns);
+
+        Collection<Mrn> allMrns = originalAndSurvivingMrns.stream()
+                .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
+                .map(MrnToLive::getMrnId)
+                .collect(Collectors.toSet());
+
+        boolean anyResearchOptOut = allMrns.stream().anyMatch(Mrn::isResearchOptOut);
         if (anyResearchOptOut) {
-            originalMrns.forEach(this::addOptOutAndSave);
+            allMrns.forEach(this::addOptOutAndSave);
         }
     }
 
