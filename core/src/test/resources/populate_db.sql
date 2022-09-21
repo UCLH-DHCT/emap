@@ -1,20 +1,21 @@
 -- Add mrn
 
-INSERT INTO public.mrn (mrn_id, mrn, nhs_number, source_system, stored_from) VALUES
-    (1001, '40800000', '9999999999', 'EPIC', '2010-09-01 11:04:04'),
-    (1002, '60600000', '1111111111', 'caboodle', '2010-09-03 10:05:04'),
-    (1003, '30700000', null, 'EPIC', '2010-09-10 16:01:05'),
+INSERT INTO public.mrn (mrn_id, mrn, nhs_number, source_system, stored_from, research_opt_out) VALUES
+    (1001, '40800000', '9999999999', 'EPIC', '2010-09-01 11:04:04', true),
+    -- 1002 merged with 1003, 1003 surviving
+    (1002, '60600000', '1111111111', 'caboodle', '2010-09-03 10:05:04', false),
+    (1003, '30700000', null, 'EPIC', '2010-09-10 16:01:05', false),
 -- change patient identifiers testing
     -- previous MRN matches
-    (1004, null, '222222222', 'another', '2010-09-10 17:02:08'),
-    (1005, '50100010', '222222222', 'EPIC', '2010-09-10 18:02:08'),
-    (1006, '50100012', null, 'another', '2010-09-10 18:02:08'),
+    (1004, null, '222222222', 'another', '2010-09-10 17:02:08', false),
+    (1005, '50100010', '222222222', 'EPIC', '2010-09-10 18:02:08', false),
+    (1006, '50100012', null, 'another', '2010-09-10 18:02:08', false),
     -- surviving MRN matches
-    (1007, '51111111', null, 'EPIC', '2010-09-10 19:02:08'),
-    (1008, null, '111222223', 'another', '2010-09-10 19:02:08'),
+    (1007, '51111111', null, 'EPIC', '2010-09-10 19:02:08', false),
+    (1008, null, '111222223', 'another', '2010-09-10 19:02:08', false),
     -- unrelated MRNs
-    (1009, null, '997372627', 'another', '2010-09-10 19:02:08'),
-    (1010, '707070700',  null, 'EPIC', '2010-09-10 19:02:08');
+    (1009, null, '997372627', 'another', '2010-09-10 19:02:08', false),
+    (1010, '707070700',  null, 'EPIC', '2010-09-10 19:02:08', false);
 
 -- Add mrn_to_live
 
