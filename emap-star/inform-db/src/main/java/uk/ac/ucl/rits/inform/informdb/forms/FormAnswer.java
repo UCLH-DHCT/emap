@@ -63,10 +63,11 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
 
     /**
      * \brief Current value of the SDE - may be a multi-line string concatenated together.
+     * If not of type String, this field will still contain the string representation of the value.
      * HLV 50.
      */
     @Column(columnDefinition = "text")
-    private String valueAsString;
+    private String valueAsText;
 
     /**
      * \brief Current value of the SDE if it's numerical, else null.
@@ -81,11 +82,11 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     private Boolean valueAsBoolean;
 
     /**
-     * \brief Current value of the SDE if it's a UTC instant, else null.
+     * \brief Current value of the SDE if it's a timestamp, else null.
      * HLV 50, influenced by HLV 60.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant valueAsUtcDatetime;
+    private Instant valueAsDatetime;
 
     public FormAnswer() {
     }
@@ -103,10 +104,10 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
         this.formId = other.formId;
         this.internalId = other.internalId;
         this.context = other.context;
-        this.valueAsString = other.valueAsString;
+        this.valueAsText = other.valueAsText;
         this.valueAsNumber = other.valueAsNumber;
         this.valueAsBoolean = other.valueAsBoolean;
-        this.valueAsUtcDatetime = other.valueAsUtcDatetime;
+        this.valueAsDatetime = other.valueAsDatetime;
     }
 
     @Override
