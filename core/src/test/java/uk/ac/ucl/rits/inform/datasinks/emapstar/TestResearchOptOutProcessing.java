@@ -80,7 +80,7 @@ class TestResearchOptOutProcessing extends MessageProcessingBase {
      * When a merge message is processed for the patient,
      * Then both the retired and the surviving patient should be marked as opted out.
      * <p>
-     * The output should be the same if the surviving or retiriing patient has opted out before the merge.
+     * The output should be the same if the surviving or retiring patient has opted out before the merge.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @ParameterizedTest
