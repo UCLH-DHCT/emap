@@ -87,7 +87,7 @@ public class FormController {
                     new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
                     form,
                     formQuestion.getEntity());
-            formAnswer.setValueAsString(answerStringValue);
+            formAnswer.setValueAsText(answerStringValue);
             formAnswer.setInternalId(answerMsg.getSourceMessageId());
             formAnswer = formAnswerRepository.save(formAnswer);
         }
