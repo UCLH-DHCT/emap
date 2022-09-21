@@ -26,9 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class TestResearchOptOutProcessing extends MessageProcessingBase {
     @Autowired
-    MrnRepository mrnRepository;
+    private MrnRepository mrnRepository;
     @Autowired
-    MrnToLiveRepository mrnToLiveRepository;
+    private MrnToLiveRepository mrnToLiveRepository;
 
     private List<ResearchOptOut> optOutMessages;
     private MergePatient mergeMessage;
