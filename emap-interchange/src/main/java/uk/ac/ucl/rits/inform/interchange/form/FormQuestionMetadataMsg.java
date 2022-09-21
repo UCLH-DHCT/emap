@@ -39,12 +39,6 @@ public class FormQuestionMetadataMsg extends EmapOperationMessage implements Ser
     private Instant validFrom;
 
     /**
-     * How the source system describes the data type of an expected answer to this question.
-     * Epic stores the possible values in the ZC_DATA_TYPE table.
-     */
-    private String internalDataType;
-
-    /**
      * Messages must call back out to the processor (double dispatch).
      *
      * @param processor the Emap processor
