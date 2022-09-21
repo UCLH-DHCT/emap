@@ -203,7 +203,7 @@ VALUES
 
 -- Instances of an answered question (SDE)
 INSERT INTO public.form_answer (
-    form_answer_id, stored_from, valid_from, context, value_as_string, value_as_boolean, value_as_utc_datetime, form_id, form_question_id)
+    form_answer_id, stored_from, valid_from, context, value_as_text, value_as_boolean, value_as_datetime, form_id, form_question_id)
 VALUES
     --(230001, '2020-01-01 13:00:00', '2020-01-01 10:32:00', 'Sometimes', NULL, NULL, 210001, 220001)
 (230001, '2022-01-31 04:00:00.000', '2022-01-25 01:46:30.000', 'NOTE', '0', FALSE, NULL, 210001, 220002),
