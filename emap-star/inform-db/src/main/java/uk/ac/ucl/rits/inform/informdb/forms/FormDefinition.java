@@ -61,9 +61,6 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     @Column(columnDefinition = "text")
     private String patientFriendlyName;
 
-    @OneToMany(mappedBy = "formDefinitionId")
-    private List<FormDefinitionFormQuestion> questions = new ArrayList<>();
-
     public FormDefinition() {
     }
 
