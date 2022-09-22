@@ -12,7 +12,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormRepository;
 import uk.ac.ucl.rits.inform.informdb.forms.Form;
 import uk.ac.ucl.rits.inform.informdb.forms.FormAnswer;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinition;
-import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionFormQuestion;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
@@ -109,14 +108,5 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertEquals(expectedNumQuestions, formQuestionRepository.count());
         assertEquals(expectedNumFormDefinitions, formDefinitionRepository.count());
         FormDefinition formDefinition = formDefinitionRepository.findByInternalId("2056").get();
-
-        // Make sure that questions can also be accessed via the OneToMany relationship
-        // Disable this check as we probably are going to delete FormDefinitionFormQuestion altogether.
-        // I think it currently fails in any case where the form definition
-        // already existed but the list of questions needs updating.
-        /*
-        List<FormDefinitionFormQuestion> questions = formDefinition.getQuestions();
-        assertEquals(expectedNumQuestions - orphanedQuestions, questions.size());
-         */
     }
 }
