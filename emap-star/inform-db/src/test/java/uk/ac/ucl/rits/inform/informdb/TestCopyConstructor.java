@@ -30,14 +30,14 @@ public class TestCopyConstructor {
     private static final List<Integer> INTEGERS = Arrays.asList(0,  1,   2,   3,   4,   5,   6,   7,   8,   9,   10);
     private static final List<String> BASE_CLASS_NAMES = Arrays.asList(
             "java.lang.Boolean",
-            "java.time.Instant",
             "java.lang.Double",
-            "long",
             "java.lang.Long",
             "java.lang.String",
-            "uk.ac.ucl.rits.inform.informdb.TemporalFrom",
+            "java.time.Instant",
             "java.time.LocalDate",
-            "java.util.List"
+            "java.util.List",
+            "long",
+            "uk.ac.ucl.rits.inform.informdb.TemporalFrom"
     );
 
     private Integer index = 0;
