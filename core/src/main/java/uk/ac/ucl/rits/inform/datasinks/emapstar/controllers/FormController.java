@@ -72,7 +72,7 @@ public class FormController {
 
         // get existing or create a new, minimal, metadata entry
         RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
-                formMsg.getSourceMessageId(), storedFrom, metadataValidFrom);
+                formMsg.getFormId(), storedFrom, metadataValidFrom);
 
         Form form = new Form(new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom), formDefinition.getEntity());
         form.setHospitalVisitId(hospitalVisit);
