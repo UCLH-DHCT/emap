@@ -52,6 +52,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
      * \brief A unique ID for this form answer that can be used to track back to the source system.
      * .
      */
+    @Column(nullable = false, unique = true)
     private String internalId;
 
     /**

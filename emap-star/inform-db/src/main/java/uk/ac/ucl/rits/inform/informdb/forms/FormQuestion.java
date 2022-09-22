@@ -42,6 +42,7 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
      * \brief Name of the concept (ie. the "Question")
      * .
      */
+    @Column(nullable = false)
     private String conceptName;
 
     /**
