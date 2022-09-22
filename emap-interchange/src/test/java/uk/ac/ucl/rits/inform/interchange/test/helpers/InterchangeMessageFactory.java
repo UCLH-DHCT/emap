@@ -1,40 +1,58 @@
-package uk.ac.ucl.rits.inform.interchange;
+package uk.ac.ucl.rits.inform.interchange.test.helpers;
+
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
+import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
+import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
+import uk.ac.ucl.rits.inform.interchange.FileStoreWithMonitoredAccess;
+import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
+import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
-import uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg;
-import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
 
 /**
  * Builds interchange messages from yaml files.
  * Allows for easier setup for integration testing in hl7 sources and emap star
  */
+@NoArgsConstructor
 public class InterchangeMessageFactory {
-    private final ObjectMapper mapper;
+    public FileStoreWithMonitoredAccess fileStore = null;
 
-    public InterchangeMessageFactory() {
-        mapper = new ObjectMapper(new YAMLFactory());
-        // Finds modules so instants can be parsed correctly
-        mapper.findAndRegisterModules();
+    private static final String sourceId = "0000000042";
+
+    /**
+     * Create a message factory with monitored files, enabling the resources accessible to this class to be
+     * queried for if they have, or not, been accessed
+     * @return Interchange message factory
+     * @throws URISyntaxException If the file store cannot be created
+     * @throws IOException If the file store cannot be created
+     */
+    public static InterchangeMessageFactory withMonitoredFiles() throws URISyntaxException, IOException {
+        var factory = new InterchangeMessageFactory();
+        factory.fileStore = new FileStoreWithMonitoredAccess();
+
+        return factory;
     }
 
     /**
@@ -45,11 +63,10 @@ public class InterchangeMessageFactory {
      */
     public <T extends AdtMessage> T getAdtMessage(final String fileName) throws IOException {
         String resourcePath = "/AdtMessages/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        InputStream inputStream = getInputStream(resourcePath);
 
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
-
 
     /**
      * @param fileName filename within the ConsultRequest folder
@@ -57,8 +74,8 @@ public class InterchangeMessageFactory {
      * @throws IOException if the file doesn't exist
      */
     public ConsultRequest getConsult(final String fileName) throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultRequest/%s", fileName));
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(String.format("/ConsultRequest/%s", fileName));
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     /**
@@ -67,8 +84,8 @@ public class InterchangeMessageFactory {
      * @throws IOException if the file doesn't exist
      */
     public ConsultMetadata getConsultMetadata(final String fileName) throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultMetadata/%s", fileName));
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(String.format("/ConsultMetadata/%s", fileName));
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     /**
@@ -77,10 +94,9 @@ public class InterchangeMessageFactory {
      * @throws IOException if the file doesn't exist
      */
     public AdvanceDecisionMessage getAdvanceDecision(final String fileName) throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream(String.format("/AdvanceDecision/%s", fileName));
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(String.format("/AdvanceDecision/%s", fileName));
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
-
 
     /**
      * Builds lab orders from yaml file given, overriding default values for lab orders and lab results
@@ -93,17 +109,29 @@ public class InterchangeMessageFactory {
      */
     public List<LabOrderMsg> getLabOrders(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/LabOrders/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<LabOrderMsg> labOrderMsgs = mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        List<LabOrderMsg> labOrderMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (LabOrderMsg order : labOrderMsgs) {
-            String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
+            String sourceMessageId = sourceMessageIdWithCount(sourceMessagePrefix, count);
             updateLabOrderAndResults(order, sourceMessageId, resourcePath.replace(".yaml", ""));
             updateLabIsolates(order, resourcePath.replace(".yaml", "_micro"));
             count++;
         }
 
         return labOrderMsgs;
+    }
+
+    private static String sourceMessageIdWithCount(String sourceMessagePrefix, int count) {
+        return String.format("%s_%02d", sourceMessagePrefix, count);
+    }
+
+
+    /**
+     * Overloaded getLabOrders method with the a default message prefix
+     */
+    public List<LabOrderMsg> getLabOrders(final String fileName) throws IOException {
+        return getLabOrders(fileName, sourceId);
     }
 
     /**
@@ -114,14 +142,26 @@ public class InterchangeMessageFactory {
      */
     public LabOrderMsg getLabOrder(final String filePath) throws IOException {
         String resourcePath = String.format("/LabOrders/%s", filePath);
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     public List<PatientInfection> getPatientInfections(final String fileName) throws IOException {
         String resourcePath = "/PatientInfection/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
+    }
+
+    public List<PatientProblem> getPatientProblems(final String fileName) throws IOException {
+        String resourcePath = "/PatientProblem/" + fileName;
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
+    }
+
+    public List<PatientAllergy> getPatientAllergies(final String fileName) throws IOException {
+        String resourcePath = "/PatientAllergies/" + fileName;
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     /**
@@ -131,11 +171,9 @@ public class InterchangeMessageFactory {
      * @throws IOException if reading failed
      */
     public List<FlowsheetMetadata> getFlowsheetMetadata(final String fileName) throws IOException {
-        List<FlowsheetMetadata> flowsheetMetadata = new ArrayList<>();
         String resourcePath = "/FlowsheetMetadata/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        flowsheetMetadata = mapper.readValue(inputStream, new TypeReference<>() {});
-        return flowsheetMetadata;
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     /**
@@ -146,13 +184,13 @@ public class InterchangeMessageFactory {
      */
     public LocationMetadata getLocationMetadata(final String fileName) throws IOException {
         String resourcePath = "/LocationMetadata/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     public List<LabMetadataMsg> getLabMetadataMsgs(final String fileName) throws IOException {
-        InputStream resourceAsStream = getClass().getResourceAsStream("/LabsMetadata/" + fileName);
-        return mapper.readValue(resourceAsStream, new TypeReference<>() {});
+        InputStream resourceAsStream = getInputStream("/LabsMetadata/" + fileName);
+        return EmapYamlMapper.readValue(resourceAsStream, new TypeReference<>() {});
     }
 
     /**
@@ -164,21 +202,28 @@ public class InterchangeMessageFactory {
      */
     public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/Flowsheets/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<Flowsheet> flowsheets = mapper.readValue(inputStream, new TypeReference<>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        List<Flowsheet> flowsheets = EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (Flowsheet flowsheet : flowsheets) {
-            String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
+            String sourceMessageId = sourceMessageIdWithCount(sourceMessagePrefix, count);
             flowsheet.setSourceMessageId(sourceMessageId);
 
             // update order with yaml data
-            ObjectReader orderReader = mapper.readerForUpdating(flowsheet);
+            ObjectReader orderReader = EmapYamlMapper.readerForUpdating(flowsheet);
             String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
-            orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+            orderReader.readValue(getInputStream(orderDefaultPath));
 
             count++;
         }
         return flowsheets;
+    }
+
+    /**
+     * Overloaded getFlowsheets method with the a default message prefix
+     */
+    public List<Flowsheet> getFlowsheets(final String fileName) throws IOException {
+        return getFlowsheets(fileName, sourceId);
     }
 
     /**
@@ -211,8 +256,8 @@ public class InterchangeMessageFactory {
             }
 
             // update result with yaml data
-            ObjectReader resultReader = mapper.readerForUpdating(result);
-            resultReader.readValue(getClass().getResourceAsStream(resultDefaultPath));
+            ObjectReader resultReader = EmapYamlMapper.readerForUpdating(result);
+            resultReader.readValue(getInputStream(resultDefaultPath));
         }
     }
 
@@ -226,9 +271,9 @@ public class InterchangeMessageFactory {
     private void updateLabOrderAndResults(LabOrderMsg order, final String sourceMessageId, final String resourcePathPrefix) throws IOException {
         order.setSourceMessageId(sourceMessageId);
         // update order with yaml data
-        ObjectReader orderReader = mapper.readerForUpdating(order);
+        ObjectReader orderReader = EmapYamlMapper.readerForUpdating(order);
         String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
-        order = orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+        order = orderReader.readValue(getInputStream(orderDefaultPath));
         String epicOrderNumber = order.getEpicCareOrderNumber().isSave() ? order.getEpicCareOrderNumber().get() : null;
         updateLabResults(order.getLabResultMsgs(), resourcePathPrefix, order.getStatusChangeTime(), epicOrderNumber);
 
@@ -257,26 +302,26 @@ public class InterchangeMessageFactory {
             return;
         }
         // update order with yaml data
-        ObjectReader orderReader = mapper.readerForUpdating(isolateMsg);
+        ObjectReader orderReader = EmapYamlMapper.readerForUpdating(isolateMsg);
         String isolateDefaultPath = resourcePathPrefix + "_isolate_defaults.yaml";
-        isolateMsg = orderReader.readValue(getClass().getResourceAsStream(isolateDefaultPath));
+        isolateMsg = orderReader.readValue(getInputStream(isolateDefaultPath));
         updateLabResults(isolateMsg.getSensitivities(), resourcePathPrefix);
     }
 
     public LabOrderMsg buildLabOrderOverridingDefaults(String defaultsFile, String overridingFile) throws IOException {
         String defaultsPath = String.format("/LabOrders/%s", defaultsFile);
         String overridingPath = String.format("/LabOrders/%s", overridingFile);
-        InputStream inputStream = getClass().getResourceAsStream(defaultsPath);
-        LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<>() {});
-        ObjectReader orderReader = mapper.readerForUpdating(defaults);
+        InputStream inputStream = getInputStream(defaultsPath);
+        LabOrderMsg defaults = EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
+        ObjectReader orderReader = EmapYamlMapper.readerForUpdating(defaults);
 
-        return orderReader.readValue(getClass().getResourceAsStream(overridingPath));
+        return orderReader.readValue(getInputStream(overridingPath));
     }
 
     public List<FormMsg> getFormMsgs(final String fileName) throws IOException {
         String resourcePath = "/Form/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<FormMsg> formMsgs = mapper.readValue(inputStream, new TypeReference<List<FormMsg>>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        List<FormMsg> formMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormMsg>>() {});
         for (FormMsg msg : formMsgs) {
             // derived source Id, so generate programmatically here
             msg.setSourceMessageId(String.format("%s_%s_%s", msg.getFirstFiledDatetime(), msg.getMrn(), msg.getFormId()));
@@ -286,15 +331,15 @@ public class InterchangeMessageFactory {
 
     public List<FormMetadataMsg> getFormMetadataMsg(final String fileName) throws IOException {
         String resourcePath = "/Form/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<FormMetadataMsg> formMetadataMsgs = mapper.readValue(inputStream, new TypeReference<List<FormMetadataMsg>>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        List<FormMetadataMsg> formMetadataMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormMetadataMsg>>() {});
         return formMetadataMsgs;
     }
 
     public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName) throws IOException {
         String resourcePath = "/Form/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<FormQuestionMetadataMsg> formMetadataMsgs = mapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        List<FormQuestionMetadataMsg> formMetadataMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
         return formMetadataMsgs;
     }
 
@@ -308,8 +353,8 @@ public class InterchangeMessageFactory {
      */
     public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName, Instant overrideValidFrom) throws IOException {
         String resourcePath = "/Form/" + fileName;
-        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<FormQuestionMetadataMsg> formMsgs = mapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
+        InputStream inputStream = getInputStream(resourcePath);
+        List<FormQuestionMetadataMsg> formMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
         for (var m : formMsgs) {
             m.setSourceSystem("clarity");
             if (overrideValidFrom != null) {
@@ -319,4 +364,26 @@ public class InterchangeMessageFactory {
         return formMsgs;
     }
 
+    /**
+     * Get the input stream for a path while monitoring the access if required
+     * @param path path as a string
+     * @return Input stream
+     * @throws IOException if the file does not exist in the resource file store
+     */
+    InputStream getInputStream(String path) throws IOException {
+
+        if (fileStore == null){
+            return getClass().getResourceAsStream(path);
+        }
+
+        return getClass().getResourceAsStream(fileStore.get(path));
+    }
+
+    public void updateFileStoreWith(Class<?> rootClass) throws URISyntaxException, IOException {
+        fileStore.updateFilesFromClassResources(rootClass);
+    }
+
+    public FileStoreWithMonitoredAccess getFileStore(){
+        return fileStore;
+    }
 }
