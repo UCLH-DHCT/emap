@@ -1,0 +1,53 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "clarity"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-01T00:00:00Z"
+  mrn: "8DcEwvqa8Q3"
+  conditionCode: "M54.9"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Backache"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "1234"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Resolved"
+  addedDate: "2019-06-01"
+  onsetDate:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-31"
+  resolvedDate: "2019-06-08"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "clarity"
+  mrn: "suI83US"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Deleted"
+  conditionCode: "J45.9"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    value: "Asthma"
+    status: "SAVE"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  onsetDate:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    value: "2019-03-20"
+    status: "SAVE"
+  action: "ADD"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    value: 2
+    status: "SAVE"
+  addedDate: "2019-06-08"
+  resolvedDate: null
+

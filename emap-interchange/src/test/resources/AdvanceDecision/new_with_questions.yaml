@@ -10,5 +10,5 @@ advanceDecisionTypeName: "DNACPR"
 advanceCareCode: "COD4"
 questions:
   "Decision communicated to nurse in charge?": "Yes"
-  "Name of Nurse in Charge?": "Full Name"
   "Review date?": "Indefinite"
+  "Name of Nurse in Charge?": "Full Name"

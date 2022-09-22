@@ -1,5 +1,55 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "clarity"
+  sourceMessageId: "3"
+  updatedDateTime: "2019-05-07T09:40:25Z"
+  mrn: "Bq6PQt5xSa"
+  conditionCode: "MRSA"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "MRSA"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 3
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Resolved"
+  addedDatetime: null
+  resolvedDatetime:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-07T09:40:25Z"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "clarity"
+  sourceMessageId: "4"
+  updatedDateTime: "2019-05-14T08:19:11Z"
+  mrn: "xo9dzpR0Zx7J"
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "100000013"
+  conditionCode: "?COVID-19"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "?COVID-19"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 4
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
+  addedDatetime: "2019-05-14T08:19:11Z"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "clarity"
   sourceMessageId: "1"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"

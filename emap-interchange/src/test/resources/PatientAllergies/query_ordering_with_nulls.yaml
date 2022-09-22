@@ -1,31 +1,35 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
   sourceSystem: "clarity"
   sourceMessageId: "3"
-  updatedDateTime: "2019-05-07T09:40:25Z"
+  updatedDateTime: "2019-05-10T09:40:25Z"
   mrn: "Bq6PQt5xSa"
-  infectionCode: "MRSA"
-  infectionName:
+  subType:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "MRSA"
-  epicInfectionId:
+    value: "DRUG INGREDI"
+  conditionCode: "TRAMADOL"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "TRAMADOL"
+  epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 3
+  addedDatetime: "2019-05-10T09:40:25Z"
+  onsetDate:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-07"
+  severity:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "High"
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "Resolved"
-  infectionAdded: null
-  infectionResolved:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-05-07T09:40:25Z"
-  comment:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "IGNORE"
-    value: null
-- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+    value: "Active"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
   sourceSystem: "clarity"
   sourceMessageId: "4"
   updatedDateTime: "2019-05-14T08:19:11Z"
@@ -34,79 +38,92 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "100000013"
-  infectionCode: "?COVID-19"
-  infectionName:
+  subType:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "?COVID-19"
-  epicInfectionId:
+    value: "DRUG INGREDI"
+  conditionCode: "CO-TRIMOXAZOLE (TRIMETHOPRIM AND SULFAMETHOXAZOLE)"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "CO-TRIMOXAZOLE (TRIMETHOPRIM AND SULFAMETHOXAZOLE)"
+  epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 4
-  status:
+  addedDatetime: "2019-05-14T08:19:11Z"
+  severity:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "Active"
-  infectionAdded: "2019-05-14T08:19:11Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "clarity"
-  sourceMessageId: "1"
-  updatedDateTime: "2019-06-09T01:00:05Z"
-  mrn: "8DcEwvqa8Q3"
-  infectionCode: "Mumps"
-  infectionName:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value:  "Mumps"
-  epicInfectionId:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: 1
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Active"
-  infectionAdded: "2019-06-02T10:31:05Z"
-  infectionResolved:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-06-08T14:22:01Z"
-  infectionOnset:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-03-05"
-  comment:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "IGNORE"
-    value: null
-- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "clarity"
-  sourceMessageId: "2"
-  updatedDateTime: "2019-06-09T01:00:05Z"
-  mrn: "suI83US"
-  infectionCode: "Varicella"
-  infectionName:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value:  "Varicella"
-  epicInfectionId:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: 2
+    value: "Low"
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Deleted"
-  infectionAdded: "2019-06-08T02:05:49Z"
-  infectionResolved:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "IGNORE"
-    value: null
-  infectionOnset:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-03-20"
-  comment:
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
+  sourceSystem: "clarity"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "8DcEwvqa8Q3"
+  subType:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "Proin risus."
+    value: "Food"
+  conditionCode: "NUTS"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "NUTS"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  addedDatetime: "2019-06-08T10:31:05Z"
+  onsetDate:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-05"
+  severity:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "High"
+  reactions:
+    - "Anaphylaxis"
+    - "Hives"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
+  sourceSystem: "clarity"
+  sourceMessageId: "2"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "suI83US"
+  subType:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Drug Class"
+  conditionCode: "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 2
+  addedDatetime: "2019-06-08T02:05:49Z"
+  onsetDate:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-05"
+  severity:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Medium"
+  reactions:
+    - "Hives"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
