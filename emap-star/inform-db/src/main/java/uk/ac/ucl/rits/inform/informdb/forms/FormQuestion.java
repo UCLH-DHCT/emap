@@ -42,6 +42,7 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
      * \brief Smart Data Element name (ie. the "Question")
      * HLX .2
      */
+    @Column(nullable = false)
     private String conceptName;
 
     /**

@@ -52,6 +52,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
      * \brief A unique ID for this form answer that can be used to track back to the source system.
      * For an Epic SDE this would be the HLV ID (HLV .1)
      */
+    @Column(nullable = false, unique = true)
     private String internalId;
 
     /**
