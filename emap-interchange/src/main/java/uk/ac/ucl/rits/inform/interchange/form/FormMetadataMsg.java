@@ -35,13 +35,6 @@ public class FormMetadataMsg extends EmapOperationMessage implements Serializabl
     private Instant validFrom;
 
     /**
-     * A list of IDs representing questions contained in this form, in the order
-     * in which they appear, if known.
-     * The ID corresponds to the sourceMessageId of FormQuestionMetadataMsg.
-     */
-    private List<String> questionIds = new ArrayList<>();
-
-    /**
      * Messages must call back out to the processor (double dispatch).
      *
      * @param processor the Emap processor
