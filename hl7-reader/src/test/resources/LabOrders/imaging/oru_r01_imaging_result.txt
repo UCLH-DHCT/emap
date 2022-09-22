@@ -21,7 +21,7 @@ OBX|9|ST|&GDT|1|||||||F|||||10021679^BEN^BIG
 OBX|10|ST|&GDT|1|Findings: ||||||F|||||10021679^BEN^BIG
 OBX|11|ST|&GDT|1|||||||F|||||10021679^BEN^BIG
 OBX|12|ST|&GDT|1|Tip of the NG tube is not included on the original film. The study was repeated. Satisfactory position of the NG tube.||||||F|||||10021679^BEN^BIG
-OBX|18|ST|&GDT|1|Signed by:||||||F|||||10021679^BEN^BIG
-OBX|19|ST|&GDT|1|Panda ORANGE||||||F|||||10021679^BEN^BIG
-OBX|20|ST|&GDT|1|16/1/22||||||F|||||10021679^BEN^BIG
+OBX|13|ST|&GDT|1|Signed by:||||||F|||||10021679^BEN^BIG
+OBX|14|ST|&GDT|1|Panda ORANGE||||||F|||||10021679^BEN^BIG
+OBX|15|ST|&GDT|1|16/1/22||||||F|||||10021679^BEN^BIG
 ZDS|1.2.840.114350.2.525.2.798268.2.154412111.1^EPIC^APPLICATION^DICOM
