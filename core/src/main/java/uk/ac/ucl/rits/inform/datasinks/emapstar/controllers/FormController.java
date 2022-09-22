@@ -14,7 +14,6 @@ import uk.ac.ucl.rits.inform.informdb.forms.Form;
 import uk.ac.ucl.rits.inform.informdb.forms.FormAnswer;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinition;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionAudit;
-import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionFormQuestion;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestion;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestionAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -134,15 +133,6 @@ public class FormController {
                 formMetadataMsg.getFormPatientFriendlyName(),
                 formDefinition.getEntity().getPatientFriendlyName(),
                 formDefinition.getEntity()::setPatientFriendlyName);
-
-        for (String questionId : formMetadataMsg.getQuestionIds()) {
-            // We only have the question IDs at this point
-            // so ensure that at minimum a placeholder entry exists for the questions,
-            // then associate them with the form (what if they already exist?)
-            RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, validFrom);
-            FormQuestion formQuestionEntity = formQuestion.getEntity();
-            new FormDefinitionFormQuestion(temporalFrom, formDefinition.getEntity(), formQuestionEntity);
-        }
     }
 
     /**
