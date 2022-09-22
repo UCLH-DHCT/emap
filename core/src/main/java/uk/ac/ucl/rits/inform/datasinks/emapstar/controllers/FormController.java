@@ -80,15 +80,32 @@ public class FormController {
         form = formRepository.save(form);
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
             String questionId = answerMsg.getQuestionId();
-            String answerStringValue = answerMsg.getStringValue().get();
             RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, metadataValidFrom);
             FormAnswer formAnswer = new FormAnswer(
                     new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
                     form,
                     formQuestion.getEntity());
-            formAnswer.setValueAsText(answerStringValue);
+            setValuesForAllTypes(formAnswer, answerMsg);
             formAnswer.setInternalId(answerMsg.getSourceMessageId());
             formAnswer = formAnswerRepository.save(formAnswer);
+        }
+    }
+
+    private void setValuesForAllTypes(FormAnswer formAnswer, FormAnswerMsg answerMsg) {
+        if (answerMsg.getStringValue().isSave()) {
+            formAnswer.setValueAsText(answerMsg.getStringValue().get());
+        }
+        if (answerMsg.getBooleanValue().isSave()) {
+            formAnswer.setValueAsBoolean(answerMsg.getBooleanValue().get());
+        }
+        if (answerMsg.getDateValue().isSave()) {
+            formAnswer.setValueAsDate(answerMsg.getDateValue().get());
+        }
+        if (answerMsg.getUtcDatetimeValue().isSave()) {
+            formAnswer.setValueAsDatetime(answerMsg.getUtcDatetimeValue().get());
+        }
+        if (answerMsg.getNumericValue().isSave()) {
+            formAnswer.setValueAsNumber(answerMsg.getNumericValue().get());
         }
     }
 
