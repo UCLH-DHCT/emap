@@ -18,6 +18,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Check;
 
 import lombok.Data;
+import org.hibernate.annotations.ColumnDefault;
 
 /**
  * \brief This represents the association of Medical Resource Number (MRN) to
@@ -66,7 +67,8 @@ public class Mrn implements Serializable {
      */
     private String nhsNumber;
 
-    private boolean researchOptOut = false;
+    @ColumnDefault("false")
+    private boolean researchOptOut;
 
     /**
      * \brief The system from which this MRN was initially discovered.
