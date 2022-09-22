@@ -10,8 +10,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
