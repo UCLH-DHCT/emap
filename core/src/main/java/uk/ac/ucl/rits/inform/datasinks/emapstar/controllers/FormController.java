@@ -166,8 +166,12 @@ public class FormController {
                 formQuestion.getEntity().getConceptName(),
                 formQuestion.getEntity()::setConceptName);
         formQuestion.assignIfDifferent(
-                formQuestionMetadataMsg.getSourceMessageId(),
-                formQuestion.getEntity().getInternalId(),
-                formQuestion.getEntity()::setInternalId);
+                formQuestionMetadataMsg.getAbbrevName(),
+                formQuestion.getEntity().getConceptAbbrevName(),
+                formQuestion.getEntity()::setConceptAbbrevName);
+        formQuestion.assignIfDifferent(
+                formQuestionMetadataMsg.getDescription(),
+                formQuestion.getEntity().getDescription(),
+                formQuestion.getEntity()::setDescription);
     }
 }

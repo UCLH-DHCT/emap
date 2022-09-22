@@ -11,4 +11,6 @@ public interface FormRepository extends CrudRepository<Form, Long> {
     List<Form> findAllByHospitalVisitIdEncounter(String encounter);
     List<Form> findAllByHospitalVisitId(HospitalVisit hospitalVisit);
     List<Form> findAllByMrnId(Mrn mrn);
+
+    Form findSingleByHospitalVisitIdEncounter(String encounter);
 }
