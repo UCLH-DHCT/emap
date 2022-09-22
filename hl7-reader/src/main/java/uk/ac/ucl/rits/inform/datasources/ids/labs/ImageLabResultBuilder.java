@@ -119,15 +119,12 @@ public class ImageLabResultBuilder extends LabResultBuilder {
      * @param observationIdAndSubId observation and subId joined together
      * @param delimiter             delimiter between subId observations
      * @return StringJoiner of all observation lines
-     * @throws Hl7InconsistencyException if observationId and subId change, or multi-line result
+     * @throws Hl7InconsistencyException if  multi-line result
      * @throws HL7Exception              If value can't be encoded from hl7
      */
     private String incrementallyBuildValue(String observationIdAndSubId, String delimiter) throws Hl7InconsistencyException, HL7Exception {
         StringJoiner value = new StringJoiner(delimiter);
         for (OBX obx : obxSegments) {
-            if (!observationIdAndSubId.equals(getObservationIdAndSubId(obx))) {
-                throw new Hl7InconsistencyException("ObservationId and subId should not change within a type");
-            }
             if (obx.getObx5_ObservationValueReps() > 1) {
                 // If find this in real data, inspect and see if we need to join the observation values by "^"
                 throw new Hl7InconsistencyException("OBX not expected to have multiple-line results");
