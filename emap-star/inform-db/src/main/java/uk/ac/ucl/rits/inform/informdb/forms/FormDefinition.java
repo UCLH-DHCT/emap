@@ -50,7 +50,6 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
      * CL_QFORM.FORM_NAME
      * Eg. "UCLH TEP ADVANCED"
      */
-    @Column(nullable = false)
     private String name;
 
     /**
