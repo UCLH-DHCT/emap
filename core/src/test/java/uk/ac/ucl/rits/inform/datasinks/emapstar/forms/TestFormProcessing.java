@@ -60,6 +60,7 @@ public class TestFormProcessing extends MessageProcessingBase {
 
         // pick just one form instance to inspect in more detail
         Map<String, FormAnswer> answersByIdPreMetadata = getAnswersByConceptId("*116066");
+        assertEquals(Instant.parse("2018-11-01T15:39:15Z"), answersByIdPreMetadata.get("UCLH#1167").getFormId().getFirstFiledDatetime());
         Set<String> expectedQuestions = Set.of("UCLH#1167", "UCLH#1205", "FAKE#0001", "FAKE#0003", "FAKE#0004", "FAKE#0005", "FAKE#0006", "FAKE#0007");
         assertEquals(expectedQuestions, answersByIdPreMetadata.keySet());
 
@@ -106,7 +107,8 @@ public class TestFormProcessing extends MessageProcessingBase {
                 questionsByIdPostMetadata.get("UCLH#1205").getDescription());
 
         FormDefinition formDefAfterMetadata  = formDefinitionRepository.findByInternalId("2056").get();
-        assertEquals("UCLH TEP ADVANCED", formDefAfterMetadata.getName());
+        assertEquals("UCLH ADVANCED TEP", formDefAfterMetadata.getName());
+        assertEquals("tep patient friendly name", formDefAfterMetadata.getPatientFriendlyName());
     }
 
     @Test
@@ -141,7 +143,6 @@ public class TestFormProcessing extends MessageProcessingBase {
         Form form = formRepository.findSingleByHospitalVisitIdEncounter(visitId);
         FormDefinition formDefinition = form.getFormDefinitionId();
         assertEquals("2056", formDefinition.getInternalId());
-        assertEquals(Instant.parse("2018-11-02T16:39:15Z"), form.getFirstFiledDatetime());
         Map<String, FormAnswer> answersById = form.getFormAnswers().stream().collect(Collectors.toUnmodifiableMap(
                 fa -> fa.getFormQuestionId().getInternalId(), Function.identity()));
         return answersById;
