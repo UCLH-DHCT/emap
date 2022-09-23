@@ -91,7 +91,7 @@ public class FlowsheetFactory {
                     Flowsheet flowsheet = buildFlowsheet(subMessageSourceId, observation, msh, pid, pv1, recordedDateTime);
                     flowsheets.add(flowsheet);
                 } catch (Hl7InconsistencyException e) {
-                    FlowsheetFactory.logger.error("Flowsheet could not be parsed for msg {}", subMessageSourceId, e);
+                    logger.error("Flowsheet could not be parsed for msg {}\n {}", subMessageSourceId, e.getMessage());
                 }
             }
         }
