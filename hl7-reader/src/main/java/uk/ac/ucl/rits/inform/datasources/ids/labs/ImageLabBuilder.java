@@ -24,12 +24,11 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Build Imaging Lab Orders with results.
@@ -89,21 +88,11 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         setOrderInformation(subMessageSourceId, patientHl7, obr, obs.getORC(), notes);
 
 
-        Map<String, List<OBX>> obxByIdentifier = groupObxByIdentifier(obs);
-        int maximumReportObxId = getObxIdBeforeOpinionResults(obs, obxByIdentifier);
-        int minimumReportObxId = getFirstObxIdOfLastSubId(obs, maximumReportObxId);
+        Map<String, List<OBX>> obxByIdentifier = getLatestValidResultByIdentifier(obs);
 
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (Map.Entry<String, List<OBX>> entries : obxByIdentifier.entrySet()) {
-            List<OBX> obxToBuildWith = entries.getValue();
-            if (!obxToBuildWith.get(0).getObx4_ObservationSubID().isEmpty()) {
-                obxToBuildWith = filterBetweenSubIds(obxToBuildWith, minimumReportObxId, maximumReportObxId);
-            }
-            if (obxToBuildWith.isEmpty()) {
-                continue;
-            }
-
-            ImageLabResultBuilder labResult = new ImageLabResultBuilder(entries.getKey(), obxToBuildWith, obr);
+            ImageLabResultBuilder labResult = new ImageLabResultBuilder(entries.getKey(), entries.getValue(), obr);
             try {
                 labResult.constructMsg();
                 if (!labResult.isIgnored()) {
@@ -117,17 +106,39 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     }
 
     /**
+     * Group OBX segments by identifier, and return the latest result before an IMP (OBX of opinion) segment.
+     * <p>
+     * We receive multiple OBX segments for the same identifier, but EPIC only keeps the latest result, unless there's an IMP segment.
      * @param obs observations
      * @return OBX segments grouped by their identifier (using primitive identifier as a fallback)
      * @throws HL7Exception if HAPI does
      */
-    private static Map<String, List<OBX>> groupObxByIdentifier(ORU_R01_ORDER_OBSERVATION obs) throws HL7Exception {
-        return obs.getOBSERVATIONAll().stream()
-                .map(ORU_R01_OBSERVATION::getOBX)
-                .collect(groupingBy(ImageLabBuilder::getIdentifierTypeOrEmpty));
+    private Map<String, List<OBX>> getLatestValidResultByIdentifier(ORU_R01_ORDER_OBSERVATION obs) throws HL7Exception {
+        List<OBX> obxSegments = obs.getOBSERVATIONAll().stream().map(ORU_R01_OBSERVATION::getOBX).collect(Collectors.toList());
+
+        Map<String, List<OBX>> obxByIdentifier = new HashMap<>(obs.getOBSERVATIONAll().size());
+        String previousIdentifier = null;
+        String previousSubId = null;
+        for (OBX obx : obxSegments) {
+            String identifier = getIdentifierTypeOrEmpty(obx);
+            String subId = obx.getObx4_ObservationSubID().getValueOrEmpty();
+            if ("IMP".equals(identifier)) {
+                // stop processing if we encounter an IMP
+                break;
+            }
+            if (!identifier.equals(previousIdentifier) || !subId.equals(previousSubId)) {
+                // Newer data for the identifier, so replace existing data if it exists
+                obxByIdentifier.put(identifier, new ArrayList<>(obs.getOBSERVATIONAll().size()));
+            }
+            obxByIdentifier.get(identifier).add(obx);
+            // update previous tracing identifier data
+            previousIdentifier = identifier;
+            previousSubId = subId;
+        }
+        return obxByIdentifier;
     }
 
-    private static String getIdentifierTypeOrEmpty(OBX obx) {
+    private String getIdentifierTypeOrEmpty(OBX obx) {
         String identifier = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
         if (!identifier.isEmpty()) {
             return identifier;
@@ -139,58 +150,6 @@ public final class ImageLabBuilder extends LabOrderBuilder {
             logger.error("Could not parse OBX identifier type", e);
             return "";
         }
-    }
-
-    /**
-     * Epic doesn't add any results after an opinion section, so we'll do the same. Find the last OBX ID before the opinion.
-     * @param obs             observations
-     * @param obxByIdentifier OBX segments grouped by their identifier
-     * @return the last OBX ID before the opinion
-     */
-    private static int getObxIdBeforeOpinionResults(ORU_R01_ORDER_OBSERVATION obs, Map<String, List<OBX>> obxByIdentifier) {
-        int maximumSubId = obs.getOBSERVATIONReps();
-        if (obxByIdentifier.containsKey("IMP")) {
-            String impObxId = obxByIdentifier.get("IMP").get(0).getObx1_SetIDOBX().getValue();
-            maximumSubId = Integer.parseInt(impObxId);
-        }
-        return maximumSubId;
-    }
-
-    /**
-     * When there are multiple sub-ids for a result, we should only parse the last one. Find the first OBX ID after filtering to maximum OBX id.
-     * @param obs                observations
-     * @param maximumReportObxId the last OBX ID before the opinion
-     * @return the first OBX ID to parse as a text result
-     * @throws HL7Exception if HAPI does
-     */
-    private static int getFirstObxIdOfLastSubId(ORU_R01_ORDER_OBSERVATION obs, int maximumReportObxId) throws HL7Exception {
-        Map<Integer, List<OBX>> filteredObxBySubId = obs.getOBSERVATIONAll().stream().filter(obx -> {
-                    String currentObxId = obx.getOBX().getObx1_SetIDOBX().getValue();
-                    return Integer.parseInt(currentObxId) <= maximumReportObxId;
-                }).map(ORU_R01_OBSERVATION::getOBX)
-                .filter(obx -> !obx.getObx4_ObservationSubID().getValueOrEmpty().isEmpty())
-                .collect(groupingBy(obx -> Integer.parseInt(obx.getObx4_ObservationSubID().getValueOrEmpty())));
-
-        String minimumReportObxId = filteredObxBySubId.entrySet()
-                .stream()
-                .max(Map.Entry.comparingByKey()).orElseThrow()
-                .getValue().stream().findFirst().orElseThrow()
-                .getObx1_SetIDOBX().getValue();
-        return Integer.parseInt(minimumReportObxId);
-    }
-
-    /**
-     * For text results, filter OBX segments to only include those between the minimum and maximum OBX IDs.
-     * @param obxSegments           OBX segments to filter
-     * @param minimumReportObxSubId the smallest OBX ID to keep
-     * @param maximumReportObxSubId the largest OBX ID to keep
-     * @return filtered OBX segments
-     */
-    private static List<OBX> filterBetweenSubIds(Collection<OBX> obxSegments, int minimumReportObxSubId, int maximumReportObxSubId) {
-        return obxSegments.stream().filter(obx -> {
-            int subId = Integer.parseInt(obx.getObx1_SetIDOBX().getValue());
-            return minimumReportObxSubId <= subId && subId <= maximumReportObxSubId;
-        }).collect(Collectors.toList());
     }
 
     /**
