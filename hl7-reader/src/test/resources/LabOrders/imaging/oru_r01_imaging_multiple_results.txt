@@ -9,15 +9,17 @@ NTE|1||Mobile examination?=No
 NTE|2||How can the patient travel to the department?=Bed
 NTE|3||What is your team contact number?=1111
 NTE|4||NHS or private patient?=1 NHS Patient
-OBX|1|ST|&GDT|1|This is a summary report. The complete report is available in the patient's medical record. If you cannot access the medical record, please contact the sending organisation for a detailed fax or copy.||||||F|||||10021679^BEN^BIG
-OBX|2|ST|&GDT|1|||||||F|||||10021679^BEN^BIG
-OBX|3|ST|INDICATIONS^Clinical indications:||NG positioning||||||F|||20220116165458|||||||||||||||QST
-OBX|4|ST|&GDT|2|Study Date: 16/1/22||||||F|||||10021679^BEN^BIG
-OBX|5|ST|&GDT|2|more data||||||F|||||10021679^BEN^BIG
-OBX|6|ST|&GDT|2|end of report||||||F|||||10021679^BEN^BIG
-OBX|7|ST|&IMP|2|||||||F|||||10021679^BEN^BIG
-OBX|8|ST|&IMP|2|OPINION:||||||F|||||10021679^BEN^BIG
-OBX|9|ST|&IMP|3|An actionable alert has been placed on the report and the referring clinician emailed.||||||F|||||10021679^BEN^BIG
-OBX|10|ST|&GDT|3|Signed by:||||||F|||||10021679^BEN^BIG
-OBX|11|ST|&GDT|3|Panda ORANGE||||||F|||||10021679^BEN^BIG
+OBX|1|ST|INDICATIONS^Clinical indications:||NG positioning||||||F|||20220116165458|||||||||||||||QST
+OBX|2|ST|&ADT|1|--------||||||F|||||10021679^BEN^BIG
+OBX|3|ST|&ADT|2|report about an MDT summary ||||||F|||||10021679^BEN^BIG
+OBX|4|ST|&GDT|3|This is a summary report. The complete report is available in the patient's medical record. If you cannot access the medical record, please contact the sending organisation for a detailed fax or copy.||||||F|||||10021679^BEN^BIG
+OBX|5|ST|&GDT|3|||||||F|||||10021679^BEN^BIG
+OBX|6|ST|&GDT|4|Study Date: 16/1/22||||||F|||||10021679^BEN^BIG
+OBX|7|ST|&GDT|4|more data||||||F|||||10021679^BEN^BIG
+OBX|8|ST|&GDT|4|end of report||||||F|||||10021679^BEN^BIG
+OBX|9|ST|&IMP|4|||||||F|||||10021679^BEN^BIG
+OBX|10|ST|&IMP|4|OPINION:||||||F|||||10021679^BEN^BIG
+OBX|11|ST|&IMP|5|An actionable alert has been placed on the report and the referring clinician emailed.||||||F|||||10021679^BEN^BIG
+OBX|12|ST|&GDT|5|Signed by:||||||F|||||10021679^BEN^BIG
+OBX|13|ST|&GDT|5|Panda ORANGE||||||F|||||10021679^BEN^BIG
 ZDS|1.2.840.114350.2.525.2.798268.2.154412111.1^EPIC^APPLICATION^DICOM
