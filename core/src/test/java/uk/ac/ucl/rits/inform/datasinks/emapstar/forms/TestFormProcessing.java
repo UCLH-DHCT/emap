@@ -114,21 +114,20 @@ public class TestFormProcessing extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     public void metadataTestStartingPopulated() throws EmapOperationMessageProcessingException, IOException {
-        // STARTING_NUM_QUESTIONS questions in initial DB state, message contains 0 questions
-        // of which 0 are new.
-        // No new form definitions are added.
+        // STARTING_NUM_QUESTIONS questions in initial DB state, metadata messages contain 29 questions
+        // of which 0 are new, 2 form definitions of which 1 is new.
         _processMetadata();
         assertEquals(STARTING_NUM_QUESTIONS + 0, formQuestionRepository.count());
-        assertEquals(STARTING_NUM_FORMS, formDefinitionRepository.count());
+        assertEquals(STARTING_NUM_FORMS + 1, formDefinitionRepository.count());
     }
 
     @Test
     public void metadataTestStartingBlank() throws EmapOperationMessageProcessingException, IOException {
         // Empty initial state, so this is a test of adding only.
-        // The 31 questions and 1 form in the message should be added.
+        // The 29 questions and 2 form definitions in the message should be added.
         _processMetadata();
-        assertEquals(31, formQuestionRepository.count());
-        assertEquals(1, formDefinitionRepository.count());
+        assertEquals(29, formQuestionRepository.count());
+        assertEquals(2, formDefinitionRepository.count());
     }
 
     /**
