@@ -12,7 +12,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
-
+import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 
 import java.time.Instant;
 
@@ -58,10 +58,21 @@ public class PatientStateProcessor {
     }
 
     /**
+     * Update or create patient with research opt out flag set to true.
+     * @param msg        research opt out
+     * @param storedFrom time that star started processing the message
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
+     */
+    @Transactional
+    public void processMessage(ResearchOptOut msg, final Instant storedFrom) throws RequiredDataMissingException {
+        personController.updateOrCreateWithResearchOptOut(msg, storedFrom);
+    }
+
+    /**
      * Get or create a hospital visit using the visitController.
-     * @param msg          Patient condition message
-     * @param mrn          MRN
-     * @param storedFrom   Instant at which the message started being processed
+     * @param msg        Patient condition message
+     * @param mrn        MRN
+     * @param storedFrom Instant at which the message started being processed
      * @return HospitalVisit
      * @throws RequiredDataMissingException
      */
@@ -80,8 +91,8 @@ public class PatientStateProcessor {
 
     /**
      * Get or create an MRN id associated with a patient.
-     * @param msg          Patient condition message
-     * @param storedFrom   Instant at which the message started being processed
+     * @param msg        Patient condition message
+     * @param storedFrom Instant at which the message started being processed
      * @return HospitalVisit
      * @throws RequiredDataMissingException
      */

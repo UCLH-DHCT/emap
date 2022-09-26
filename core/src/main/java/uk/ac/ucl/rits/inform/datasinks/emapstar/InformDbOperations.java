@@ -23,6 +23,7 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
+import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
@@ -176,6 +177,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public void processMessage(CancelPendingTransfer msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.processPendingAdt(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the ResearchOptOut msg to process.
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(ResearchOptOut msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        patientStateProcessor.processMessage(msg, storedFrom);
     }
 
     @Override
