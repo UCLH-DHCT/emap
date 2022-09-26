@@ -17,14 +17,17 @@ import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
+import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -32,7 +35,7 @@ import java.util.List;
  */
 @Component
 public class PersonController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
@@ -58,7 +61,26 @@ public class PersonController {
     }
 
     /**
-     * Merge MRN from the message's pervious MRN into the surviving MRN.
+     * Update existing Mrns or create new Mrn with research opt out set to true.
+     * @param msg        research opt out message
+     * @param storedFrom time that star started processing the message
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
+     */
+    public void updateOrCreateWithResearchOptOut(ResearchOptOut msg, Instant storedFrom) throws RequiredDataMissingException {
+        Mrn liveMrn = getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getLastUpdated(), storedFrom);
+        var allMrns = mrnToLiveRepo.getAllByLiveMrnIdEquals(liveMrn).stream()
+                .map(MrnToLive::getMrnId).collect(Collectors.toSet());
+        allMrns.forEach(this::addOptOutAndSave);
+    }
+
+    private void addOptOutAndSave(Mrn mrn) {
+        logger.trace("Adding opt out to {}", mrn);
+        mrn.setResearchOptOut(true);
+        mrnRepo.save(mrn);
+    }
+
+    /**
+     * Merge MRN from the message's previous MRN into the surviving MRN.
      * @param msg          Merge message
      * @param survivingMrn live MRN to merge into
      * @param storedFrom   when the message has been read by emap core
@@ -90,6 +112,20 @@ public class PersonController {
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
                 .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, validFrom, storedFrom, mrnToLive));
+
+        Collection<Mrn> originalAndSurvivingMrns = new ArrayList<>(originalMrns.size() + 1);
+        originalAndSurvivingMrns.add(survivingMrn);
+        originalAndSurvivingMrns.addAll(originalMrns);
+
+        Collection<Mrn> allMrns = originalAndSurvivingMrns.stream()
+                .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
+                .map(MrnToLive::getMrnId)
+                .collect(Collectors.toSet());
+
+        boolean anyResearchOptOut = allMrns.stream().anyMatch(Mrn::isResearchOptOut);
+        if (anyResearchOptOut) {
+            allMrns.forEach(this::addOptOutAndSave);
+        }
     }
 
     /**
