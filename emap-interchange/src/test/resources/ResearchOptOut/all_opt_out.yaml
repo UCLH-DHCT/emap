@@ -1,0 +1,25 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.ResearchOptOut"
+  mrn:
+  nhsNumber: "5555555555"
+  lastUpdated: "2019-01-01T00:00:00Z"
+  sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.ResearchOptOut"
+  mrn: "idontexist"
+  nhsNumber:
+  lastUpdated: "2019-01-01T00:00:00Z"
+  sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.ResearchOptOut"
+  mrn: "60600000"
+  nhsNumber: "1111111111"
+  lastUpdated: "2019-04-10T09:00:00Z"
+  sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.ResearchOptOut"
+  mrn:
+  nhsNumber: "4000011112"
+  lastUpdated: "2022-01-10T10:00:00Z"
+  sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.ResearchOptOut"
+  mrn: "Y26533918"
+  nhsNumber:
+  lastUpdated: "2022-01-11T10:00:00Z"
+  sourceSystem: "caboodle"
