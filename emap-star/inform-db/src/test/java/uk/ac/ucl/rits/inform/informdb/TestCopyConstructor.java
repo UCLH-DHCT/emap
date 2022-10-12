@@ -27,17 +27,18 @@ import static uk.ac.ucl.rits.inform.informdb.DBTestUtils.findAllEntities;
 public class TestCopyConstructor {
 
     private static final List<String> STRINGS = Arrays.asList("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K");
-    private static final List<Integer> INTEGERS = Arrays.asList(0,  1,   2,   3,   4,   5,   6,   7,   8,   9,   10);
+    private static final List<Integer> INTEGERS = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     private static final List<String> BASE_CLASS_NAMES = Arrays.asList(
+            "boolean",
             "java.lang.Boolean",
-            "java.time.Instant",
             "java.lang.Double",
-            "long",
             "java.lang.Long",
             "java.lang.String",
-            "uk.ac.ucl.rits.inform.informdb.TemporalFrom",
+            "java.time.Instant",
             "java.time.LocalDate",
-            "java.util.List"
+            "java.util.List",
+            "long",
+            "uk.ac.ucl.rits.inform.informdb.TemporalFrom"
     );
 
     private Integer index = 0;
@@ -46,7 +47,7 @@ public class TestCopyConstructor {
      * Given a class, when a copy constructor is present, then it should copy the correct fields.
      */
     @TestFactory
-    Stream<DynamicTest> testsForClassesHavingCorrectCopyConstructor(){
+    Stream<DynamicTest> testsForClassesHavingCorrectCopyConstructor() {
 
         AtomicReference<Stream<DynamicTest>> tests = new AtomicReference<>(Stream.empty());
 
@@ -62,14 +63,14 @@ public class TestCopyConstructor {
      * Stream of tests on all fields being identical when copied, for a class which has a copy constructor.
      * @param entity Class entity
      */
-    Stream<DynamicTest> testsForCorrectlyCopiedFields(Class<?> entity){
+    Stream<DynamicTest> testsForCorrectlyCopiedFields(Class<?> entity) {
 
         Stream.Builder<DynamicTest> testStreamBuilder = Stream.builder();
 
         Object instance = newInstance(entity.getName());
         Object instanceCopy = copyOf(entity, instance);
 
-        for (Method getMethod: getterMethodsOf(entity)){
+        for (Method getMethod : getterMethodsOf(entity)) {
 
             String testName = entity.getName() + ": " + getMethod.getName();
             DynamicTest test = DynamicTest.dynamicTest(testName,
@@ -87,7 +88,7 @@ public class TestCopyConstructor {
      * these out.
      * @param entity Class entity
      */
-    List<Method> getterMethodsOf(Class<?> entity){
+    List<Method> getterMethodsOf(Class<?> entity) {
 
         boolean isAuditTable = Arrays.stream(entity.getDeclaredAnnotations())
                 .anyMatch(a -> a.annotationType().equals(AuditTable.class));
@@ -103,7 +104,7 @@ public class TestCopyConstructor {
         return Arrays.stream(entity.getDeclaredConstructors()).anyMatch(c -> isCopyConstructorOf(c, entity));
     }
 
-    boolean isNotCoreClass(Class<?> entity){
+    boolean isNotCoreClass(Class<?> entity) {
         return !entity.getName().endsWith("Core");
     }
 
@@ -111,15 +112,15 @@ public class TestCopyConstructor {
      * Increment the internal counter as to cycle through the string and integer types. This allows different string
      * fields to be set with different values (up to a maximum of 11) as to be able to check copy constructors which
      * have the following error:
-     *
-     *      X(other){
-     *         this.a = other.b;
-     *         this.b = other.a;
-     *      }
-     *
+     * <p>
+     * X(other){
+     * this.a = other.b;
+     * this.b = other.a;
+     * }
+     * <p>
      * where both a and b are strings.
      */
-    void incrementIndex(){
+    void incrementIndex() {
         index = (index + 1) % Collections.min(Arrays.asList(STRINGS.size(), INTEGERS.size()));
     }
 
@@ -140,13 +141,13 @@ public class TestCopyConstructor {
     /**
      * Get an instance from a class entity using the default no args constructor
      */
-    Object defaultConstructedInstance(Class<?> entity){
+    Object defaultConstructedInstance(Class<?> entity) {
 
         try {
             return entity.getConstructor().newInstance();
 
         } catch (InvocationTargetException | InstantiationException
-                | IllegalAccessException | NoSuchMethodException e) {
+                 | IllegalAccessException | NoSuchMethodException e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to generate an instance of " + entity.getName());
         }
@@ -155,7 +156,7 @@ public class TestCopyConstructor {
     /**
      * Get all the setter methods of a class that probably have corresponding getters
      */
-    List<Method> setterMethodsOf(Class<?> entity){
+    List<Method> setterMethodsOf(Class<?> entity) {
 
         return Arrays.stream(entity.getMethods())
                 .filter(m -> m.getName().startsWith("set"))
@@ -166,9 +167,10 @@ public class TestCopyConstructor {
     /**
      * Create a new instance of a base/primitive type/class
      */
-    Object newBaseInstance(String className){
-        switch (className){
+    Object newBaseInstance(String className) {
+        switch (className) {
             case "java.lang.Boolean":
+            case "boolean":
                 return true;
             case "java.time.Instant":
                 return Instant.now();
@@ -192,15 +194,14 @@ public class TestCopyConstructor {
 
     /**
      * Create a new instance of a class given a name of it
-     *
      * @param className Name of a class
      * @return Instance of the class
      */
-    Object newInstance(String className){
+    Object newInstance(String className) {
 
         incrementIndex();
 
-        if (BASE_CLASS_NAMES.contains(className)){
+        if (BASE_CLASS_NAMES.contains(className)) {
             return newBaseInstance(className);
         }
 
@@ -215,12 +216,12 @@ public class TestCopyConstructor {
      * Given an instance of a class that corresponds to a particular entity set all the fields/attributes with
      * default values which may require instanciating new instances of wither base classes (e.g. integers or strings,
      * or recursively calling newInstance and setting fields of those parameters)
-     * @param entity Class entity
+     * @param entity   Class entity
      * @param instance Class instance
      */
-    void setAllFieldsOf(Class<?> entity, Object instance){
+    void setAllFieldsOf(Class<?> entity, Object instance) {
 
-        for (Method method : setterMethodsOf(entity)){
+        for (Method method : setterMethodsOf(entity)) {
 
             Object[] params = Arrays.stream(method.getParameterTypes())
                     .map(p -> newInstance(p.getName()))
@@ -244,10 +245,10 @@ public class TestCopyConstructor {
 
     /**
      * Create a copy of a class instance given its entity and current instance by invoking the copy constructor
-     * @param entity Class entity
+     * @param entity   Class entity
      * @param instance Class instance
      */
-    Object copyOf(Class<?> entity, Object instance){
+    Object copyOf(Class<?> entity, Object instance) {
 
         Method copyMethod = Arrays.stream(entity.getMethods())
                 .filter(m -> m.getName().equals("copy"))

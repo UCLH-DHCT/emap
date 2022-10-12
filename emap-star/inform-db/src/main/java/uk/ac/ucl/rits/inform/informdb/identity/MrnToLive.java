@@ -45,7 +45,7 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
     private Long mrnToLiveId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the Mrn associated with this record, can be merged into another Mrn.
      * <p>
      * This is a foreign key that joins the mrnToLive table to the Mrn table.
      */
@@ -53,10 +53,8 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
-    ///////////// NOT SURE OF DIFFERENCE
-
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the live Mrn that should be used (e.g. surviving Mrn after a merge).
      * <p>
      * This is a foreign key that joins the mrnToLive table to the Mrn table.
      */
