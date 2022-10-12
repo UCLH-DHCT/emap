@@ -37,7 +37,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private long conditionTypeId;
 
     /**
-     * \brief Problem list, patient infection or allergy
+     * \brief Problem list, patient infection or allergy.
      */
     @Column(nullable = false)
     private String dataType;
