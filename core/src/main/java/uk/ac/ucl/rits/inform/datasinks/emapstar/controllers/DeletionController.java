@@ -102,11 +102,17 @@ public class DeletionController {
      */
     private void deletePlannedMovements(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
         plannedMovementRepo.findAllByHospitalVisitId(visit)
-                .forEach(plannedMovement -> deletePlannedMovement(invalidationTime, deletionTime, plannedMovement));
+                .forEach(plannedMovement -> deletePlannedMovement(plannedMovement, invalidationTime, deletionTime));
     }
 
-    private void deletePlannedMovement(Instant validUntil, Instant storedUntil, PlannedMovement plannedMovement) {
-        plannedMovementAuditRepo.save(plannedMovement.createAuditEntity(validUntil, storedUntil));
+    /**
+     * Audit and delete a planned movement.
+     * @param plannedMovement Planned movement to delete
+     * @param deletionTime    Hospital time that the planned movement was deleted at
+     * @param storedUntil     Time that emap-core started processing the message.
+     */
+    private void deletePlannedMovement(PlannedMovement plannedMovement, Instant deletionTime, Instant storedUntil) {
+        plannedMovementAuditRepo.save(plannedMovement.createAuditEntity(deletionTime, storedUntil));
         plannedMovementRepo.delete(plannedMovement);
     }
 
