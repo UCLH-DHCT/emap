@@ -109,13 +109,16 @@ public class VisitObservationController {
         if (msg.getValueType() == null) {
             throw new RequiredDataMissingException("Flowsheet DataType not set");
         }
+
+        var validFrom = msg.getLastUpdatedInstant();
         VisitObservationType observationType = cache.getOrCreatePersistedObservationType(msg.getInterfaceId(),
-                msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
+                msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), validFrom, storedFrom);
 
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
         if (flowsheetState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
             updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
+            updateDataFlagsAndSaveObservationType(msg, observationType, validFrom, storedFrom);
         }
     }
 
@@ -303,6 +306,26 @@ public class VisitObservationController {
         observationState.assignInterchangeValue(msg.getComment(), observation.getComment(), observation::setComment);
     }
 
+    /**
+     * Update the visit observation type from a flowsheet message.
+     * @param msg             Flowsheet message
+     * @param observationType Observation entity
+     * @param validFrom       Time from which information valid from
+     * @param storedFrom      Time that emap-core started processing the message
+     */
+    private void updateDataFlagsAndSaveObservationType(Flowsheet msg, VisitObservationType observationType, Instant validFrom, Instant storedFrom) {
+
+        var rowState = new RowState<>(observationType, validFrom, storedFrom, false);
+        rowState.assignIfDifferent(true, observationType.getHasVisitObservation(), observationType::setHasVisitObservation);
+
+        // the isRealTime flag should only ever be set false -> true, not true -> false as there could be more live data
+        var isRealTime = observationType.getIsRealTime();
+        if (isRealTime == null || !isRealTime) {
+            rowState.assignIfDifferent(msg.getIsRealTime(), isRealTime, observationType::setIsRealTime);
+        }
+
+        rowState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+    }
 }
 
 
