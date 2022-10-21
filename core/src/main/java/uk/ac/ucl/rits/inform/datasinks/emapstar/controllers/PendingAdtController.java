@@ -28,7 +28,7 @@ import java.util.Optional;
 public class PendingAdtController {
     private final Logger logger = LoggerFactory.getLogger(PendingAdtController.class);
     private LocationController locationController;
-    private PlannedMovementRepository plannedMovementRepo;
+    private final PlannedMovementRepository plannedMovementRepo;
     private final PlannedMovementAuditRepository plannedMovementAuditRepo;
 
     /**
