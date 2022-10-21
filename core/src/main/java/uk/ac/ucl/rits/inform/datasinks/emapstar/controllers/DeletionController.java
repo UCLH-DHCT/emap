@@ -5,6 +5,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestAuditRe
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
@@ -12,11 +14,11 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
+import uk.ac.ucl.rits.inform.informdb.movement.PlannedMovement;
 
 import java.time.Instant;
 import java.util.List;
@@ -39,6 +41,8 @@ public class DeletionController {
     private final ConsultationRequestAuditRepository consultationRequestAuditRepo;
     private final HospitalVisitRepository hospitalVisitRepo;
     private final HospitalVisitAuditRepository hospitalVisitAuditRepo;
+    private final PlannedMovementRepository plannedMovementRepo;
+    private final PlannedMovementAuditRepository plannedMovementAuditRepo;
 
     /**
      * Deletion controller needs access to pretty much every repo in order to do cascading deletes.
@@ -50,13 +54,16 @@ public class DeletionController {
      * @param consultationRequestAuditRepo consultation request audit repo
      * @param hospitalVisitRepo            hospital visit repo
      * @param hospitalVisitAuditRepo       hospital visit audit repo
+     * @param plannedMovementRepo          planned movement repo
+     * @param plannedMovementAuditRepo     planned movement audit repo
      */
     @SuppressWarnings("checkstyle:parameternumber")
     public DeletionController(
             LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo,
             LabResultRepository labResultRepo, LabResultAuditRepository labResultAuditRepo,
             ConsultationRequestRepository consultationRequestRepo, ConsultationRequestAuditRepository consultationRequestAuditRepo,
-            HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo
+            HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo,
+            PlannedMovementRepository plannedMovementRepo, PlannedMovementAuditRepository plannedMovementAuditRepo
     ) {
         this.labOrderRepo = labOrderRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
@@ -66,6 +73,8 @@ public class DeletionController {
         this.consultationRequestAuditRepo = consultationRequestAuditRepo;
         this.hospitalVisitRepo = hospitalVisitRepo;
         this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;
+        this.plannedMovementRepo = plannedMovementRepo;
+        this.plannedMovementAuditRepo = plannedMovementAuditRepo;
     }
 
     /**
@@ -76,12 +85,35 @@ public class DeletionController {
      */
     public void deleteVisitsAndDependentEntities(Iterable<HospitalVisit> visits, Instant invalidationTime, Instant deletionTime) {
         for (HospitalVisit visit : visits) {
+            deletePlannedMovements(visit, invalidationTime, deletionTime);
             deleteLabOrdersForVisit(visit, invalidationTime, deletionTime);
             deleteConsultRequestsForVisit(visit, invalidationTime, deletionTime);
 
-            hospitalVisitAuditRepo.save(new HospitalVisitAudit(visit, invalidationTime, deletionTime));
+            hospitalVisitAuditRepo.save(visit.createAuditEntity(invalidationTime, deletionTime));
             hospitalVisitRepo.delete(visit);
         }
+    }
+
+    /**
+     * Delete planned movements from a delete patient information message.
+     * @param visit            Hospital visit that should have their planned movements deleted
+     * @param invalidationTime Time of the delete information message
+     * @param deletionTime     time that emap-core started processing the message.
+     */
+    private void deletePlannedMovements(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        plannedMovementRepo.findAllByHospitalVisitId(visit)
+                .forEach(plannedMovement -> deletePlannedMovement(plannedMovement, invalidationTime, deletionTime));
+    }
+
+    /**
+     * Audit and delete a planned movement.
+     * @param plannedMovement Planned movement to delete
+     * @param deletionTime    Hospital time that the planned movement was deleted at
+     * @param storedUntil     Time that emap-core started processing the message.
+     */
+    private void deletePlannedMovement(PlannedMovement plannedMovement, Instant deletionTime, Instant storedUntil) {
+        plannedMovementAuditRepo.save(plannedMovement.createAuditEntity(deletionTime, storedUntil));
+        plannedMovementRepo.delete(plannedMovement);
     }
 
     private void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
