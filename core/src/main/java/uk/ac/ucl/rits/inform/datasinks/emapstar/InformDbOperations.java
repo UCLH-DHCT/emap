@@ -1,6 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +22,8 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
+import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
@@ -40,6 +45,8 @@ import java.time.Instant;
 @Component
 @EntityScan({"uk.ac.ucl.rits.inform.datasinks.emapstar.repos", "uk.ac.ucl.rits.inform.informdb"})
 public class InformDbOperations implements EmapOperationMessageProcessor {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     @Autowired
     private AdtProcessor adtProcessor;
     @Autowired
@@ -55,6 +62,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private AdvanceDecisionProcessor advanceDecisionProcessor;
 
+    @Value("${features.allergies:false}")
+    private boolean patientAllergyFeatureEnabled;
+
     /**
      * Process a lab order message.
      * @param labOrderMsg the message
@@ -67,6 +77,23 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         labProcessor.processMessage(labOrderMsg, storedFrom);
     }
 
+    /**
+     * Process a patient allergy message.
+     * @param msg the message
+     * @throws EmapOperationMessageProcessingException if message could not be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(PatientAllergy msg) throws EmapOperationMessageProcessingException {
+
+        if (!patientAllergyFeatureEnabled) {
+            logger.trace("Ignoring patient allergy message as features.allergies is disabled");
+            return;
+        }
+
+        Instant storedFrom = Instant.now();
+        patientStateProcessor.processMessage(msg, storedFrom);
+    }
 
     /**
      * @param msg the ADT message to process
@@ -150,6 +177,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public void processMessage(CancelPendingTransfer msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.processPendingAdt(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the ResearchOptOut msg to process.
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(ResearchOptOut msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        patientStateProcessor.processMessage(msg, storedFrom);
     }
 
     @Override
