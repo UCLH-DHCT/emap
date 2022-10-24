@@ -31,9 +31,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-@Check(constraints =
-        " hospital_visit_id is not null " +
-                " OR mrn_id is not null ")
+@Check(constraints = " hospital_visit_id is not null "
+        + " OR mrn_id is not null ")
 public class Form extends TemporalCore<Form, FormAudit> {
     /**
      * \brief Unique identifier in EMAP for this instance of a Form.
@@ -70,7 +69,7 @@ public class Form extends TemporalCore<Form, FormAudit> {
     /**
      * We don't currently bring in Notes, so there is no other table to join to.
      * If we do in future, this field would be migrated to a foreign key field.
-     *
+     * <p>
      * \brief NOTE ID if this Form is attached to a note, otherwise null.
      */
     private String noteId;
@@ -96,6 +95,11 @@ public class Form extends TemporalCore<Form, FormAudit> {
 
     public Form() {}
 
+    /**
+     * Create a new Form.
+     * @param temporalFrom   validity of the form
+     * @param formDefinition definition of the form
+     */
     public Form(TemporalFrom temporalFrom, FormDefinition formDefinition) {
         setTemporalFrom(temporalFrom);
         this.formDefinitionId = formDefinition;

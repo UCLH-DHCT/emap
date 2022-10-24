@@ -99,6 +99,12 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     public FormAnswer() {
     }
 
+    /**
+     * \brief Create a new form answer.
+     * @param temporalFrom Validity of this form answer.
+     * @param form         The form that this answer belongs to.
+     * @param formQuestion The question that this answer is for.
+     */
     public FormAnswer(TemporalFrom temporalFrom, Form form, FormQuestion formQuestion) {
         setTemporalFrom(temporalFrom);
         form.addFormAnswer(this);
