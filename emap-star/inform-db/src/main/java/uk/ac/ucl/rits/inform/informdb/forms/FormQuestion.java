@@ -51,7 +51,7 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
     private String conceptAbbrevName;
 
     /**
-     * \brief String description of a question, where available
+     * \brief String description of a question, where available.
      */
     private String description;
 
@@ -74,6 +74,11 @@ public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> 
     public FormQuestion() {
     }
 
+    /**
+     * \brief Create a new FormQuestion with the given values.
+     * @param temporalFrom   The validity period of this FormQuestion.
+     * @param formQuestionId The internal identifier of this FormQuestion.
+     */
     public FormQuestion(TemporalFrom temporalFrom, String formQuestionId) {
         setTemporalFrom(temporalFrom);
         this.internalId = formQuestionId;
