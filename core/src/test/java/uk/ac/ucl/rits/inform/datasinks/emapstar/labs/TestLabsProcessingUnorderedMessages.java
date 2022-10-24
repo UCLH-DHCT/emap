@@ -231,8 +231,5 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
             // direct in order it'll be null, otherwise should have 01 NW value
             assertEquals(Instant.parse("2020-11-09T15:03:00Z"), labOrder.getRequestDatetime());
         }
-        assertEquals(3, questionRepository.count());
     }
-
-
 }
