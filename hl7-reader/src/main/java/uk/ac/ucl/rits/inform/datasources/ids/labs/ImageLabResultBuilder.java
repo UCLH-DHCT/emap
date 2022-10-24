@@ -30,7 +30,8 @@ public class ImageLabResultBuilder extends LabResultBuilder {
     private boolean ignored = false;
     private static final String CODING_SYSTEM = OrderCodingSystem.PACS.name();
     private static final Set<String> TEXT_TYPE = Set.of("TX", "ST");
-    private static final String TEST_RESULT_CODE = "GDT";
+    private static final String TEXT_RESULT_CODE = "GDT";
+    private static final String ALLOWED_NON_TEXT_CODE = "INDICATIONS";
 
     /**
      * @param resultCode  code for the result type, if empty then this is the text report
@@ -85,25 +86,30 @@ public class ImageLabResultBuilder extends LabResultBuilder {
             throw new Hl7InconsistencyException(String.format("Imaging OBX type not recognised '%s'", dataType));
         }
 
-        if (TEST_RESULT_CODE.equals(resultCode)) {
+        if (isAllowedTextResult()) {
             setMimeTypeAndTestCode(valueType);
             String observationIdAndSubId = getObservationIdAndSubId(getObx());
             String value = incrementallyBuildValue(observationIdAndSubId, delimiter);
             setValueOrIgnored(dataType, value);
-        } else if (isNonTextReportObx()) {
+        } else if (isNonTextReport()) {
             if (obxSegments.size() != 1) {
                 throw new Hl7InconsistencyException(String.format("Imaging OBX should only have a single result, %d were found", obxSegments.size()));
             }
             setStringValueAndMimeType(obxSegments.get(0));
+        } else {
+            ignored = true;
         }
     }
 
+    private boolean isAllowedTextResult() {
+        return TEXT_RESULT_CODE.equals(resultCode);
+    }
+
     /**
-     * @return true if the obx type is a simple result, not an ignored report type like IMP.
-     * @throws HL7Exception if there is an error getting the value from the hl7
+     * @return true if this is an allowed non-text result.
      */
-    private boolean isNonTextReportObx() throws HL7Exception {
-        return getObx().getObx4_ObservationSubID().isEmpty();
+    private boolean isNonTextReport() {
+        return ALLOWED_NON_TEXT_CODE.equals(resultCode);
     }
 
     private void setMimeTypeAndTestCode(ValueType valueType) {

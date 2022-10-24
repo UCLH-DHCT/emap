@@ -10,6 +10,8 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,19 +38,22 @@ class TestImagingLabs {
     }
 
     /**
-     * Given that an imaging messages has multiple `&GDT` results with an opinion `&IMP` section
+     * Given that an imaging messages has multiple `&GDT` results, `&ADT` and `INDICATIONS` with an opinion `&IMP` section
      * When the message is parsed
-     * The last `&GDT` set of results should be returned as the report text
+     * The last `&GDT` set of results should be returned as the report text, and only the `INDICATIONS` should be returned as results
      */
     @Test
     void testMultipleResultsWithOpinion() throws Exception {
         LabOrderMsg labOrder = getLabOrder("oru_r01_imaging_multiple_results");
+        // Check the result types
+        List<String> resultTypes = labOrder.getLabResultMsgs().stream().map(LabResultMsg::getTestItemLocalCode).collect(Collectors.toList());
+        assertEquals(List.of("TEXT", "INDICATIONS"), resultTypes);
+        // Check the report text is from &GDT
         String textResult = labOrder.getLabResultMsgs().stream()
                 .filter(result -> "TEXT".equals(result.getTestItemLocalCode()))
                 .map(LabResultMsg::getStringValue)
                 .map(InterchangeValue::get)
                 .findFirst().orElseThrow();
-
         assertEquals("Study Date: 16/1/22\nmore data\nend of report", textResult);
     }
 
