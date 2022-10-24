@@ -42,7 +42,6 @@ public class LabOrderController {
     private final LabOrderRepository labOrderRepo;
     private final LabResultRepository labResultRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
-    private final QuestionController questionController;
 
 
     /**
@@ -52,19 +51,17 @@ public class LabOrderController {
      * @param labOrderRepo       repository for LabOrder
      * @param labResultRepo      repository for LabResult
      * @param labOrderAuditRepo  repository for LabOrderAudit
-     * @param questionController controller for Question tables
      */
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
             LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabResultRepository labResultRepo,
-            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController) {
+            LabOrderAuditRepository labOrderAuditRepo) {
         this.labBatteryRepo = labBatteryRepo;
         this.labSampleRepo = labSampleRepo;
         this.labSampleAuditRepo = labSampleAuditRepo;
         this.labOrderRepo = labOrderRepo;
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
-        this.questionController = questionController;
         createCoPathBattery();
     }
 
@@ -127,8 +124,6 @@ public class LabOrderController {
             Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
     ) throws MessageCancelledException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
-        questionController.processQuestions(msg.getQuestions(), ParentTableType.LAB_SAMPLE.toString(),
-                labSample.getLabSampleId(), validFrom, storedFrom);
         return updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
     }
 

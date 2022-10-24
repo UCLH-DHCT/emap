@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
@@ -67,6 +68,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
      * @throws Exception shouldn't happen
      */
     @Test
+    @Disabled("Removed lab order processing for Questions and answers")
     void testLabQuestionsAdded() throws Exception {
         processSingleMessage(labOrderMsg);
         assertEquals(3, questionRepo.count());
@@ -91,6 +93,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
      * @throws Exception shouldn't happen
      */
     @Test
+    @Disabled("Removed lab order processing for Questions and answers")
     void testLabQuestionAnswerUpdatedIfNewer() throws Exception {
         // process original message
         processSingleMessage(labOrderMsg);
@@ -111,6 +114,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
     }
 
     @Test
+    @Disabled("Removed lab order processing for Questions and answers")
     void testLabQuestionAnswerNotUpdatedIfOlder() throws Exception {
         // process original message
         processSingleMessage(labOrderMsg);
@@ -146,6 +150,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
      * @throws Exception shouldn't happen
      */
     @Test
+    @Disabled("Removed lab order processing for Questions and answers")
     void testLabQuestionsNotDeleted() throws Exception {
         // process original message
         processSingleMessage(labOrderMsg);
