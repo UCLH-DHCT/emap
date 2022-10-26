@@ -12,10 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * \brief Form metadata, in other words, data that doesn't
@@ -45,7 +42,7 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
 
     /**
      * \brief A string name for this form, as used by the source system.
-     *
+     * <p>
      * .
      * .
      * Eg. "UCLH TEP ADVANCED"
@@ -64,6 +61,11 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     public FormDefinition() {
     }
 
+    /**
+     * \brief Create a new form definition.
+     * @param temporalFrom The validity information for this form definition.
+     * @param formSourceId The source system that this form definition comes from.
+     */
     public FormDefinition(TemporalFrom temporalFrom, String formSourceId) {
         setTemporalFrom(temporalFrom);
         this.internalId = formSourceId;
