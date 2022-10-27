@@ -1,5 +1,8 @@
 package uk.ac.ucl.rits.inform.interchange.lab;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Lab result status values.
  * @author Stef Piatek
@@ -43,6 +46,8 @@ public enum LabResultStatus {
     UNKNOWN("");
 
     final String labCode;
+    private static final Logger log = LoggerFactory.getLogger(LabResultStatus.class);
+
 
     LabResultStatus(String labCode) {
         this.labCode = labCode;
@@ -52,7 +57,7 @@ public enum LabResultStatus {
      * Find LabResultStatus by hl7 code.
      * @param labCode lab code to search from
      * @return LabResultStatus matching hl7 code
-     * @throws IllegalArgumentException if Lab result status is now known
+     * @throws IllegalArgumentException if Lab result status  now known
      */
     public static LabResultStatus findByHl7Code(String labCode) {
         for (LabResultStatus labResultStatus : values()) {
@@ -60,7 +65,8 @@ public enum LabResultStatus {
                 return labResultStatus;
             }
         }
-        throw new IllegalArgumentException(String.format("Lab result status '%s' is not a known type", labCode));
+        log.error("Unknown lab result status: {}", labCode);
+        return UNKNOWN;
     }
 
 }
