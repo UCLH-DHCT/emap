@@ -18,8 +18,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
+    <java.version>11</java.version>
     <checkstyle.version>9.3</checkstyle.version>
     <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
     <hapi.version>2.3</hapi.version>
@@ -208,6 +207,9 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
+            <source>${java.version}</source>
+            <target>${java.version}</target>
+            <release>${java.version}</release>
             <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
         </plugin>
