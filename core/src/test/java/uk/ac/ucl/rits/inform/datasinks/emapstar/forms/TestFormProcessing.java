@@ -6,13 +6,17 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormQuestionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormQuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormRepository;
 import uk.ac.ucl.rits.inform.informdb.forms.Form;
 import uk.ac.ucl.rits.inform.informdb.forms.FormAnswer;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinition;
+import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionAudit;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestion;
+import uk.ac.ucl.rits.inform.informdb.forms.FormQuestionAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
@@ -43,6 +47,10 @@ public class TestFormProcessing extends MessageProcessingBase {
     private FormDefinitionRepository formDefinitionRepository;
     @Autowired
     private FormQuestionRepository formQuestionRepository;
+    @Autowired
+    private FormDefinitionAuditRepository formDefinitionAuditRepository;
+    @Autowired
+    private FormQuestionAuditRepository formQuestionAuditRepository;
 
     // Counts for initialised test DB (populate_db.sql)
     private final long STARTING_NUM_QUESTIONS = 29;
@@ -57,6 +65,9 @@ public class TestFormProcessing extends MessageProcessingBase {
         // implied from forms above (13 answers for 11 distinct questions)
         assertEquals(11, formQuestionRepository.count());
         assertEquals(1, formDefinitionRepository.count());
+        // no updates yet
+        assertEquals(0, formQuestionAuditRepository.count());
+        assertEquals(0, formDefinitionAuditRepository.count());
 
         // pick just one form instance to inspect in more detail
         Map<String, FormAnswer> answersByIdPreMetadata = getAnswersByConceptId("*116066");
@@ -81,7 +92,7 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertEquals(1.01, answersByIdPreMetadata.get("FAKE#0005").getValueAsNumber());
 
         // all question concept names should be unknown because there was no metadata in the form data
-        for (var fa : answersByIdPreMetadata.values()) {
+        for (FormAnswer fa : answersByIdPreMetadata.values()) {
             assertNull(fa.getFormQuestionId().getConceptName());
         }
         // pick any question to reach the form definition
@@ -96,7 +107,9 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertEquals(39, formQuestionRepository.count());
         assertEquals(2, formDefinitionRepository.count());
 
-        // also check the audit repos
+        // some audit rows should have been created due to the updates
+        assertEquals(1, formQuestionAuditRepository.count());
+        assertEquals(1, formDefinitionAuditRepository.count());
 
         // re-fetch and check some of the metadata
         Map<String, FormQuestion> questionsByIdPostMetadata = formQuestionRepository.findAllByInternalIdIn(expectedQuestions).stream().collect(
@@ -139,10 +152,12 @@ public class TestFormProcessing extends MessageProcessingBase {
     }
 
     private Map<String, FormAnswer> getAnswersByConceptId(String visitId) {
-        Form form = formRepository.findSingleByHospitalVisitIdEncounter(visitId);
-        FormDefinition formDefinition = form.getFormDefinitionId();
+        List<Form> forms = formRepository.findAllByHospitalVisitIdEncounter(visitId);
+        assertEquals(1, forms.size());
+        Form onlyForm = forms.get(0);
+        FormDefinition formDefinition = onlyForm.getFormDefinitionId();
         assertEquals("2056", formDefinition.getInternalId());
-        Map<String, FormAnswer> answersById = form.getFormAnswers().stream().collect(Collectors.toUnmodifiableMap(
+        Map<String, FormAnswer> answersById = onlyForm.getFormAnswers().stream().collect(Collectors.toUnmodifiableMap(
                 fa -> fa.getFormQuestionId().getInternalId(), Function.identity()));
         return answersById;
     }

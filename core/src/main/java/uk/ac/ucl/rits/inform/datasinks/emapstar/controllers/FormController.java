@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormQuestionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormQuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormRepository;
 import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
@@ -36,23 +38,31 @@ public class FormController {
     private final FormRepository formRepository;
     private final FormAnswerRepository formAnswerRepository;
     private final FormDefinitionRepository formDefinitionRepository;
+    private final FormDefinitionAuditRepository formDefinitionAuditRepository;
     private final FormQuestionRepository formQuestionRepository;
+    private final FormQuestionAuditRepository formQuestionAuditRepository;
 
     /**
      * @param formRepository
      * @param formAnswerRepository
      * @param formDefinitionRepository
+     * @param formDefinitionAuditRepository
      * @param formQuestionRepository
+     * @param formQuestionAuditRepository
      */
     public FormController(
             FormRepository formRepository,
             FormAnswerRepository formAnswerRepository,
             FormDefinitionRepository formDefinitionRepository,
-            FormQuestionRepository formQuestionRepository) {
+            FormDefinitionAuditRepository formDefinitionAuditRepository,
+            FormQuestionRepository formQuestionRepository,
+            FormQuestionAuditRepository formQuestionAuditRepository) {
         this.formRepository = formRepository;
         this.formAnswerRepository = formAnswerRepository;
         this.formDefinitionRepository = formDefinitionRepository;
+        this.formDefinitionAuditRepository = formDefinitionAuditRepository;
         this.formQuestionRepository = formQuestionRepository;
+        this.formQuestionAuditRepository = formQuestionAuditRepository;
     }
 
     /**
@@ -112,7 +122,7 @@ public class FormController {
     private RowState<FormDefinition, FormDefinitionAudit> getOrCreateFormDefinition(String formSourceId, Instant storedFrom, Instant validFrom) {
         Optional<FormDefinition> existing = formDefinitionRepository.findByInternalId(formSourceId);
         if (existing.isPresent()) {
-            return new RowState<>(existing.get(), validFrom, storedFrom, true);
+            return new RowState<>(existing.get(), validFrom, storedFrom, false);
         } else {
             FormDefinition newFormDefinition = new FormDefinition(new TemporalFrom(validFrom, storedFrom), formSourceId);
             newFormDefinition = formDefinitionRepository.save(newFormDefinition);
@@ -123,7 +133,7 @@ public class FormController {
     private RowState<FormQuestion, FormQuestionAudit> getOrCreateFormQuestion(String formQuestionId, Instant storedFrom, Instant validFrom) {
         Optional<FormQuestion> existing = formQuestionRepository.findByInternalId(formQuestionId);
         if (existing.isPresent()) {
-            return new RowState<>(existing.get(), validFrom, storedFrom, true);
+            return new RowState<>(existing.get(), validFrom, storedFrom, false);
         } else {
             FormQuestion newFormQuestion = new FormQuestion(new TemporalFrom(validFrom, storedFrom), formQuestionId);
             newFormQuestion = formQuestionRepository.save(newFormQuestion);
@@ -150,6 +160,7 @@ public class FormController {
                 formMetadataMsg.getFormPatientFriendlyName(),
                 formDefinition.getEntity().getPatientFriendlyName(),
                 formDefinition.getEntity()::setPatientFriendlyName);
+        formDefinition.saveEntityOrAuditLogIfRequired(formDefinitionRepository, formDefinitionAuditRepository);
     }
 
     /**
@@ -173,5 +184,6 @@ public class FormController {
                 formQuestionMetadataMsg.getDescription(),
                 formQuestion.getEntity().getDescription(),
                 formQuestion.getEntity()::setDescription);
+        formQuestion.saveEntityOrAuditLogIfRequired(formQuestionRepository, formQuestionAuditRepository);
     }
 }
