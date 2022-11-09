@@ -83,10 +83,12 @@ public class FormController {
         RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
                 formMsg.getFormId(), storedFrom, metadataValidFrom);
 
-        Form form = new Form(new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom), formDefinition.getEntity());
-        form.setHospitalVisitId(hospitalVisit);
+        Form form = new Form(
+                new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
+                formDefinition.getEntity(),
+                hospitalVisit,
+                formMsg.getFirstFiledDatetime());
 
-        form.setFirstFiledDatetime(formMsg.getFirstFiledDatetime());
         form = formRepository.save(form);
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
             String questionId = answerMsg.getQuestionId();
