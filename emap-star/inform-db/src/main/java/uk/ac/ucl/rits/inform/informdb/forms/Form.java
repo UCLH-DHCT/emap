@@ -97,12 +97,16 @@ public class Form extends TemporalCore<Form, FormAudit> {
 
     /**
      * Create a new Form.
-     * @param temporalFrom   validity of the form
-     * @param formDefinition definition of the form
+     * @param temporalFrom   temporal parameters of the form
+     * @param formDefinition specify the type of form of which this is an instance
+     * @param hospitalVisit  the hospital visit this form is connected to
+     * @param firstFiledDatetime instant for when this form was first filed
      */
-    public Form(TemporalFrom temporalFrom, FormDefinition formDefinition) {
+    public Form(TemporalFrom temporalFrom, FormDefinition formDefinition, HospitalVisit hospitalVisit, Instant firstFiledDatetime) {
         setTemporalFrom(temporalFrom);
         this.formDefinitionId = formDefinition;
+        this.hospitalVisitId = hospitalVisit;
+        this.firstFiledDatetime = firstFiledDatetime;
     }
 
     private Form(Form other) {
