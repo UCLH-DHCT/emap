@@ -53,6 +53,6 @@ public class AdvanceDecisionProcessor {
                 msgStatusChangeTime, storedFrom);
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getStatusChangeDatetime(), storedFrom);
-        advanceDecisionController.processMessage(msg, visit, mrn, storedFrom);
+        advanceDecisionController.processMessage(msg, visit, storedFrom);
     }
 }
