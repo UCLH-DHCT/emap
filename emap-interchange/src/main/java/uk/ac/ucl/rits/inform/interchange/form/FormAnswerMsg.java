@@ -31,7 +31,7 @@ public class FormAnswerMsg {
      * If the form answer has been updated since the form was first filed, then
      * the filing datetime can be overridden here.
      */
-    private Instant validFrom;
+    private Instant filedDatetime;
 
     // These different values depend on knowing the type in the SDE data itself,
     // as a datasource won't have access to the metadata!
