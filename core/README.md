@@ -127,7 +127,7 @@ Tests can also be run individually by clicking the play button on a class within
 
 ## Deploying a live version
 
-How to deploy an instance of Emap on the ULCH GAE, to be run on real patient data. [emap-setup](https://github.com/inform-health-informatics/emap-setup)
+How to deploy an instance of Emap on the UCLH GAE, to be run on real patient data. [emap-setup](https://github.com/inform-health-informatics/emap-setup)
 manages the multiple repositories and configuration files.
 
 
