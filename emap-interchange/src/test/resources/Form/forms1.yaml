@@ -9,7 +9,7 @@
       sourceMessageId: 72564
       questionId: "UCLH#1167"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -18,7 +18,7 @@
       sourceMessageId: 72565
       questionId: "UCLH#1205"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -32,7 +32,7 @@
       sourceMessageId: 72566
       questionId: "UCLH#1206"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -45,7 +45,7 @@
       sourceMessageId: 72567
       questionId: "UCLH#1207"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -58,7 +58,7 @@
       sourceMessageId: 72568
       questionId: "UCLH#1208"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -79,7 +79,7 @@
       sourceMessageId: 72569
       questionId: "UCLH#1167"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -88,7 +88,7 @@
       sourceMessageId: 72570
       questionId: "UCLH#1205"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       booleanValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -101,7 +101,7 @@
       sourceMessageId: 72571
       questionId: "FAKE#0001"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       booleanValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -114,7 +114,7 @@
       sourceMessageId: 72573
       questionId: "FAKE#0003"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       dateValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -127,7 +127,7 @@
       sourceMessageId: 72574
       questionId: "FAKE#0004"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       utcDatetimeValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -140,7 +140,7 @@
       sourceMessageId: 72575
       questionId: "FAKE#0005"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -153,7 +153,7 @@
       sourceMessageId: 72576
       questionId: "FAKE#0006"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -166,7 +166,7 @@
       sourceMessageId: 72577
       questionId: "FAKE#0007"
       context: "NOTE"
-      validFrom: null
+      filedDatetime: null
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
