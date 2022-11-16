@@ -323,8 +323,12 @@ public class InterchangeMessageFactory {
         InputStream inputStream = getInputStream(resourcePath);
         List<FormMsg> formMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormMsg>>() {});
         for (FormMsg msg : formMsgs) {
-            // derived source Id, so generate programmatically here
-            msg.setSourceMessageId(String.format("%s_%s_%s", msg.getFirstFiledDatetime(), msg.getMrn(), msg.getFormId()));
+            // These source IDs are derived, so generate programmatically here.
+            // All answers should have the same filing time, perhaps an argument for moving this to the form?
+            // A form without any answers is invalid.
+            Instant answersFiledDatetime = msg.getFormAnswerMsgs().get(0).getFiledDatetime();
+            msg.setSourceMessageId(String.format("%s_%s_%s_%s", msg.getFirstFiledDatetime(), answersFiledDatetime, msg.getMrn(), msg.getFormId()));
+            msg.setFormInstanceId(String.format("%s_%s_%s", msg.getFirstFiledDatetime(), msg.getMrn(), msg.getFormId()));
         }
         return formMsgs;
     }
