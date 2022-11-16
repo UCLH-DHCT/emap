@@ -73,7 +73,7 @@
   formId: "2056"
   firstFiledDatetime: "2018-11-01T15:39:15Z"
   visitNumber: "*116066"
-  mrn: "20017819"
+  mrn: "20017888"
   formAnswerMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
       sourceMessageId: 72569
@@ -175,3 +175,66 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "0"
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "*116066"
+  mrn: "20017888"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72577
+      questionId: "FAKE#0007"
+      context: "NOTE"
+      filedDatetime: "2018-11-02T15:39:15Z"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 3.14
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "3.14"
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "*116066"
+  mrn: "20017888"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72570
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      filedDatetime: "2019-05-01T15:39:15Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: false
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "*116066"
+  mrn: "20017888"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72570
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      filedDatetime: "2019-05-02T15:39:15Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: true

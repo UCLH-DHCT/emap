@@ -29,6 +29,12 @@ public class FormMsg extends EmapOperationMessage implements Serializable {
     private String formId;
 
     /**
+     * An Id that identifies the form instance. If a new FormMsg is subsequently sent
+     * intending to make an update to an existing form, it must have the same formInstanceId.
+     */
+    private String formInstanceId;
+
+    /**
      * Timestamp for when this form was filed, not counting any updated answers that may come through (hence "first").
      */
     private Instant firstFiledDatetime;
