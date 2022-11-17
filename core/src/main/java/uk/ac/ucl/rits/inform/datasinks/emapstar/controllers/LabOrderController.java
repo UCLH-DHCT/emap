@@ -65,17 +65,6 @@ public class LabOrderController {
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
-        createCoPathBattery();
-    }
-
-    private void createCoPathBattery() {
-        String coPathName = OrderCodingSystem.CO_PATH.name();
-        Instant now = Instant.now();
-        LabBattery coPathBattery = getOrCreateLabBattery(coPathName, coPathName, now, now);
-        coPathBattery.setDescription(new StringBuilder(2)
-                .append("CoPath does not use test batteries, all orders are filed under this battery code. ")
-                .append("The lab test definition lab department can be used to distinguish types of requested tests").toString());
-        labBatteryRepo.save(coPathBattery);
     }
 
     /**
