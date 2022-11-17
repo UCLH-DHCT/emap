@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionRepository;
@@ -14,6 +15,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormRepository;
 import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.forms.Form;
 import uk.ac.ucl.rits.inform.informdb.forms.FormAnswer;
+import uk.ac.ucl.rits.inform.informdb.forms.FormAnswerAudit;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinition;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionAudit;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestion;
@@ -25,7 +27,10 @@ import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Jeremy Stein
@@ -37,6 +42,7 @@ public class FormController {
 
     private final FormRepository formRepository;
     private final FormAnswerRepository formAnswerRepository;
+    private final FormAnswerAuditRepository formAnswerAuditRepository;
     private final FormDefinitionRepository formDefinitionRepository;
     private final FormDefinitionAuditRepository formDefinitionAuditRepository;
     private final FormQuestionRepository formQuestionRepository;
@@ -45,6 +51,7 @@ public class FormController {
     /**
      * @param formRepository
      * @param formAnswerRepository
+     * @param formAnswerAuditRepository
      * @param formDefinitionRepository
      * @param formDefinitionAuditRepository
      * @param formQuestionRepository
@@ -53,12 +60,14 @@ public class FormController {
     public FormController(
             FormRepository formRepository,
             FormAnswerRepository formAnswerRepository,
+            FormAnswerAuditRepository formAnswerAuditRepository,
             FormDefinitionRepository formDefinitionRepository,
             FormDefinitionAuditRepository formDefinitionAuditRepository,
             FormQuestionRepository formQuestionRepository,
             FormQuestionAuditRepository formQuestionAuditRepository) {
         this.formRepository = formRepository;
         this.formAnswerRepository = formAnswerRepository;
+        this.formAnswerAuditRepository = formAnswerAuditRepository;
         this.formDefinitionRepository = formDefinitionRepository;
         this.formDefinitionAuditRepository = formDefinitionAuditRepository;
         this.formQuestionRepository = formQuestionRepository;
@@ -83,41 +92,81 @@ public class FormController {
         RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
                 formMsg.getFormId(), storedFrom, metadataValidFrom);
 
-        Form form = new Form(
+        /* Use the form instance ID to see if the incoming message is referring to an existing form that needs updating.
+         * The concept of a form instance doesn't seem to exist in our Epic source data, so that ID will be
+         * synthetic, which doesn't matter as long as it's consistent. Not the core processor's problem!
+         */
+        Form newOrExistingForm = getOrCreateForm(
                 new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
                 formDefinition.getEntity(),
                 hospitalVisit,
+                formMsg.getFormInstanceId(),
                 formMsg.getFirstFiledDatetime());
 
-        form = formRepository.save(form);
+        /* For each answer in the form, determine if it's an update to an existing answer or a new answer in need of adding.
+         * If the form is new, all form answers will be new.
+         * If the form is pre-existing, there could easily be a mixture of adds and updates (imagine a No->Yes answer change
+         * that enables a bunch of previously hidden questions).
+         */
+        Map<String, FormAnswer> preExistingFormAnswers = newOrExistingForm.getFormAnswers().stream().collect(
+                Collectors.toUnmodifiableMap(fa -> fa.getFormQuestionId().getInternalId(), Function.identity()));
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
-            String questionId = answerMsg.getQuestionId();
-            RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(questionId, storedFrom, metadataValidFrom);
-            FormAnswer formAnswer = new FormAnswer(
-                    new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
-                    form,
-                    formQuestion.getEntity());
-            setValuesForAllTypes(formAnswer, answerMsg);
-            formAnswer.setInternalId(answerMsg.getSourceMessageId());
-            formAnswer = formAnswerRepository.save(formAnswer);
+            FormAnswer formAnswer = preExistingFormAnswers.get(answerMsg.getQuestionId());
+            boolean entityJustCreated = false;
+            if (formAnswer == null) {
+                RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(
+                        answerMsg.getQuestionId(), storedFrom, metadataValidFrom);
+                formAnswer = new FormAnswer(
+                        new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
+                        newOrExistingForm,
+                        formQuestion.getEntity());
+                formAnswer.setInternalId(answerMsg.getSourceMessageId());
+                entityJustCreated = true;
+            }
+            RowState<FormAnswer, FormAnswerAudit> formAnswerRowState = new RowState<>(formAnswer, metadataValidFrom, storedFrom, entityJustCreated);
+            setValuesForAllTypes(formAnswerRowState, formAnswer, answerMsg);
+            formAnswerRowState.assignIfDifferent(answerMsg.getFiledDatetime(), formAnswer.getFiledDatetime(), formAnswer::setFiledDatetime);
+            formAnswerRowState.saveEntityOrAuditLogIfRequired(formAnswerRepository, formAnswerAuditRepository);
         }
     }
 
-    private void setValuesForAllTypes(FormAnswer formAnswer, FormAnswerMsg answerMsg) {
+    private Form getOrCreateForm(TemporalFrom temporalFrom, FormDefinition formDefinition, HospitalVisit hospitalVisit,
+                                 String formInstanceId, Instant firstFiledDatetime) {
+        Optional<Form> existingForm = formRepository.findByInternalId(formInstanceId);
+        return existingForm.orElseGet(
+                () -> formRepository.save(new Form(temporalFrom, formDefinition, hospitalVisit, formInstanceId, firstFiledDatetime)));
+    }
+
+    private void setValuesForAllTypes(RowState<FormAnswer, FormAnswerAudit> formAnswerRowState, FormAnswer formAnswer, FormAnswerMsg answerMsg) {
         if (answerMsg.getStringValue().isSave()) {
-            formAnswer.setValueAsText(answerMsg.getStringValue().get());
+            formAnswerRowState.assignIfDifferent(
+                    answerMsg.getStringValue().get(),
+                    formAnswer.getValueAsText(),
+                    formAnswer::setValueAsText);
         }
         if (answerMsg.getBooleanValue().isSave()) {
-            formAnswer.setValueAsBoolean(answerMsg.getBooleanValue().get());
+            formAnswerRowState.assignIfDifferent(
+                    answerMsg.getBooleanValue().get(),
+                    formAnswer.getValueAsBoolean(),
+                    formAnswer::setValueAsBoolean);
         }
         if (answerMsg.getDateValue().isSave()) {
-            formAnswer.setValueAsDate(answerMsg.getDateValue().get());
+            formAnswerRowState.assignIfDifferent(
+                    answerMsg.getDateValue().get(),
+                    formAnswer.getValueAsDate(),
+                    formAnswer::setValueAsDate);
         }
         if (answerMsg.getUtcDatetimeValue().isSave()) {
-            formAnswer.setValueAsDatetime(answerMsg.getUtcDatetimeValue().get());
+            formAnswerRowState.assignIfDifferent(
+                    answerMsg.getUtcDatetimeValue().get(),
+                    formAnswer.getValueAsDatetime(),
+                    formAnswer::setValueAsDatetime);
         }
         if (answerMsg.getNumericValue().isSave()) {
-            formAnswer.setValueAsNumber(answerMsg.getNumericValue().get());
+            formAnswerRowState.assignIfDifferent(
+                    answerMsg.getNumericValue().get(),
+                    formAnswer.getValueAsNumber(),
+                    formAnswer::setValueAsNumber);
         }
     }
 
