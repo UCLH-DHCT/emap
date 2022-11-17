@@ -499,13 +499,4 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(cancelMsg));
     }
-
-    @Test
-    void testCoPathLabBatteryAddedAtStart() {
-        String coPath = OrderCodingSystem.CO_PATH.name();
-        Optional<LabBattery> coPathBattery = labBatteryRepository.findByBatteryCodeAndLabProvider(coPath, coPath);
-        assertTrue(coPathBattery.isPresent());
-        assertFalse(coPathBattery.get().getDescription().isEmpty());
-    }
-
 }
