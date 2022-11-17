@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormQuestionAuditRepository;
@@ -51,6 +53,10 @@ public class TestFormProcessing extends MessageProcessingBase {
     private FormDefinitionAuditRepository formDefinitionAuditRepository;
     @Autowired
     private FormQuestionAuditRepository formQuestionAuditRepository;
+    @Autowired
+    private FormAuditRepository formAuditRepository;
+    @Autowired
+    private FormAnswerAuditRepository formAnswerAuditRepository;
 
     // Counts for initialised test DB (populate_db.sql)
     private final long STARTING_NUM_QUESTIONS = 29;
@@ -74,6 +80,12 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertEquals(Instant.parse("2018-11-01T15:39:15Z"), answersByIdPreMetadata.get("UCLH#1167").getFormId().getFirstFiledDatetime());
         Set<String> expectedQuestions = Set.of("UCLH#1167", "UCLH#1205", "FAKE#0001", "FAKE#0003", "FAKE#0004", "FAKE#0005", "FAKE#0006", "FAKE#0007");
         assertEquals(expectedQuestions, answersByIdPreMetadata.keySet());
+
+        // updates should have created some audit rows
+        assertEquals(0, formAuditRepository.count());
+        assertEquals(3, formAnswerAuditRepository.count());
+        assertEquals(1, formAnswerAuditRepository.findAllByInternalId("72577").size());
+        assertEquals(2, formAnswerAuditRepository.findAllByInternalId("72570").size());
 
         // check some values
         assertEquals("abcabc", answersByIdPreMetadata.get("UCLH#1167").getValueAsText());
