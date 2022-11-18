@@ -67,6 +67,13 @@ public class Form extends TemporalCore<Form, FormAudit> {
     private HospitalVisit hospitalVisitId;
 
     /**
+     * \brief A unique ID for this form that can be used to track back to the source system and to look up
+     * existing items in Star.
+     */
+    @Column(nullable = false, unique = true)
+    private String internalId;
+
+    /**
      * We don't currently bring in Notes, so there is no other table to join to.
      * If we do in future, this field would be migrated to a foreign key field.
      * <p>
@@ -100,12 +107,15 @@ public class Form extends TemporalCore<Form, FormAudit> {
      * @param temporalFrom   temporal parameters of the form
      * @param formDefinition specify the type of form of which this is an instance
      * @param hospitalVisit  the hospital visit this form is connected to
+     * @param internalId     the form identifier from the source system
      * @param firstFiledDatetime instant for when this form was first filed
      */
-    public Form(TemporalFrom temporalFrom, FormDefinition formDefinition, HospitalVisit hospitalVisit, Instant firstFiledDatetime) {
+    public Form(TemporalFrom temporalFrom, FormDefinition formDefinition, HospitalVisit hospitalVisit,
+                String internalId, Instant firstFiledDatetime) {
         setTemporalFrom(temporalFrom);
         this.formDefinitionId = formDefinition;
         this.hospitalVisitId = hospitalVisit;
+        this.internalId = internalId;
         this.firstFiledDatetime = firstFiledDatetime;
     }
 
@@ -115,6 +125,7 @@ public class Form extends TemporalCore<Form, FormAudit> {
         this.formDefinitionId = other.formDefinitionId;
         this.mrnId = other.mrnId;
         this.hospitalVisitId = other.hospitalVisitId;
+        this.internalId = other.internalId;
         this.noteId = other.noteId;
         this.firstFiledDatetime = other.firstFiledDatetime;
     }
