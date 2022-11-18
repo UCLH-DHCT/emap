@@ -4,7 +4,7 @@ on:
   push:
     branches: ["develop"]
   schedule:
-    - cron:  '0 0 * * *'    # At midnight every day
+    - cron: '0 0 * * *'
 
 jobs:
   run_scheduled_test_if_tagged:
