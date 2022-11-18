@@ -33,6 +33,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
@@ -61,6 +62,8 @@ public class TestFormProcessing extends MessageProcessingBase {
     // Counts for initialised test DB (populate_db.sql)
     private final long STARTING_NUM_QUESTIONS = 29;
     private final long STARTING_NUM_FORMS = 1;
+
+    private final Instant FALLBACK_INSTANT = Instant.now();
 
     @Test
     public void formFollowedByFormMetadata() throws EmapOperationMessageProcessingException, IOException {
@@ -124,16 +127,25 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertEquals(1, formDefinitionAuditRepository.count());
 
         // re-fetch and check some of the metadata
-        Map<String, FormQuestion> questionsByIdPostMetadata = formQuestionRepository.findAllByInternalIdIn(expectedQuestions).stream().collect(
+        Map<String, FormQuestion> questionsByIdPostMetadata = formQuestionRepository.findAllByInternalIdIn(Set.of("UCLH#1205", "UCLH#1209")).stream().collect(
                 Collectors.toUnmodifiableMap(FormQuestion::getInternalId, Function.identity()));
-        assertEquals("ICU Discussion", questionsByIdPostMetadata.get("UCLH#1205").getConceptAbbrevName());
-        assertEquals("ICU DISCUSSION", questionsByIdPostMetadata.get("UCLH#1205").getConceptName());
+        FormQuestion formQuestionUCLH1205 = questionsByIdPostMetadata.get("UCLH#1205");
+        assertNotNull(formQuestionUCLH1205);
+        assertEquals("ICU Discussion", formQuestionUCLH1205.getConceptAbbrevName());
+        assertEquals("ICU DISCUSSION", formQuestionUCLH1205.getConceptName());
+        assertEquals(Instant.parse("2019-04-08T10:00:00Z"), formQuestionUCLH1205.getValidFrom());
         assertEquals("Most SDEs have no description but this one has a two-line description (1/2)\nSecond line of description",
-                questionsByIdPostMetadata.get("UCLH#1205").getDescription());
+                formQuestionUCLH1205.getDescription());
+
+        FormQuestion formQuestionUCLH1209 = questionsByIdPostMetadata.get("UCLH#1209");
+        assertNotNull(formQuestionUCLH1209);
+        assertEquals(FALLBACK_INSTANT, formQuestionUCLH1209.getValidFrom());
 
         FormDefinition formDefAfterMetadata  = formDefinitionRepository.findByInternalId("2056").get();
         assertEquals("UCLH ADVANCED TEP", formDefAfterMetadata.getName());
         assertEquals("tep patient friendly name", formDefAfterMetadata.getPatientFriendlyName());
+        assertEquals(Instant.parse("2019-04-08T10:00:00Z"), formDefAfterMetadata.getValidFrom());
+        assertEquals(FALLBACK_INSTANT, formDefinitionRepository.findByInternalId("1234").get().getValidFrom());
     }
 
     @Test
@@ -178,11 +190,10 @@ public class TestFormProcessing extends MessageProcessingBase {
      * Process test FormMetadataMsg and FormQuestionMetadataMsg messages, and perform some basic checks.
      */
     private void _processMetadata() throws EmapOperationMessageProcessingException, IOException {
-        List<FormMetadataMsg> formMetadataMsgs = messageFactory.getFormMetadataMsg("form_metadata1.yaml");
-        List<FormQuestionMetadataMsg> formQuestionMetadataMsg = messageFactory.getFormQuestionMetadataMsg("form_question_metadata_full.yaml");
+        List<FormMetadataMsg> formMetadataMsgs = messageFactory.getFormMetadataMsg("form_metadata1.yaml", FALLBACK_INSTANT);
+        List<FormQuestionMetadataMsg> formQuestionMetadataMsg = messageFactory.getFormQuestionMetadataMsg("form_question_metadata_full.yaml", FALLBACK_INSTANT);
         processMessages(formMetadataMsgs);
         processMessages(formQuestionMetadataMsg);
 
-        FormDefinition formDefinition = formDefinitionRepository.findByInternalId("2056").get();
     }
 }
