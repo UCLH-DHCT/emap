@@ -333,36 +333,36 @@ public class InterchangeMessageFactory {
         return formMsgs;
     }
 
-    public List<FormMetadataMsg> getFormMetadataMsg(final String fileName) throws IOException {
+    public List<FormMetadataMsg> getFormMetadataMsg(final String fileName, Instant fallbackValidFrom) throws IOException {
         String resourcePath = "/Form/" + fileName;
         InputStream inputStream = getInputStream(resourcePath);
         List<FormMetadataMsg> formMetadataMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormMetadataMsg>>() {});
-        return formMetadataMsgs;
-    }
-
-    public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName) throws IOException {
-        String resourcePath = "/Form/" + fileName;
-        InputStream inputStream = getInputStream(resourcePath);
-        List<FormQuestionMetadataMsg> formMetadataMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
+        for (var m : formMetadataMsgs) {
+            m.setSourceSystem("clarity");
+            // if validFrom has not been set then fill it in from the fallback value, if set
+            if (fallbackValidFrom != null && m.getValidFrom() == null) {
+                m.setValidFrom(fallbackValidFrom);
+            }
+        }
         return formMetadataMsgs;
     }
 
     /**
-     * Read a (partial) yaml file, and fill in the valid from if specified. This is needed
-     * because we can't predict the expected valid from time up front.
+     * Read a (partial) yaml file.
      * @param fileName expected messages yaml file to read from
-     * @param overrideValidFrom if not null, set all returned messages to have the given valid from time
+     * @param fallbackValidFrom if not null, set all returned messages to have the given valid from time
      * @return
      * @throws IOException
      */
-    public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName, Instant overrideValidFrom) throws IOException {
+    public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName, Instant fallbackValidFrom) throws IOException {
         String resourcePath = "/Form/" + fileName;
         InputStream inputStream = getInputStream(resourcePath);
         List<FormQuestionMetadataMsg> formMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
         for (var m : formMsgs) {
             m.setSourceSystem("clarity");
-            if (overrideValidFrom != null) {
-                m.setValidFrom(overrideValidFrom);
+            // if validFrom has not been set then fill it in from the fallback value, if set
+            if (fallbackValidFrom != null && m.getValidFrom() == null) {
+                m.setValidFrom(fallbackValidFrom);
             }
         }
         return formMsgs;
