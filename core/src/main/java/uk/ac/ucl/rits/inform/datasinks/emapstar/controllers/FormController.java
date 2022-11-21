@@ -171,25 +171,21 @@ public class FormController {
     }
 
     private RowState<FormDefinition, FormDefinitionAudit> getOrCreateFormDefinition(String formSourceId, Instant storedFrom, Instant validFrom) {
-        Optional<FormDefinition> existing = formDefinitionRepository.findByInternalId(formSourceId);
-        if (existing.isPresent()) {
-            return new RowState<>(existing.get(), validFrom, storedFrom, false);
-        } else {
-            FormDefinition newFormDefinition = new FormDefinition(new TemporalFrom(validFrom, storedFrom), formSourceId);
-            newFormDefinition = formDefinitionRepository.save(newFormDefinition);
-            return new RowState<>(newFormDefinition, validFrom, storedFrom, true);
-        }
+        return formDefinitionRepository.findByInternalId(formSourceId)
+                .map(fd -> new RowState<>(fd, validFrom, storedFrom, false))
+                .orElseGet(() -> {
+                    FormDefinition newFd = formDefinitionRepository.save(new FormDefinition(new TemporalFrom(validFrom, storedFrom), formSourceId));
+                    return new RowState<>(newFd, validFrom, storedFrom, true);
+                });
     }
 
     private RowState<FormQuestion, FormQuestionAudit> getOrCreateFormQuestion(String formQuestionId, Instant storedFrom, Instant validFrom) {
-        Optional<FormQuestion> existing = formQuestionRepository.findByInternalId(formQuestionId);
-        if (existing.isPresent()) {
-            return new RowState<>(existing.get(), validFrom, storedFrom, false);
-        } else {
-            FormQuestion newFormQuestion = new FormQuestion(new TemporalFrom(validFrom, storedFrom), formQuestionId);
-            newFormQuestion = formQuestionRepository.save(newFormQuestion);
-            return new RowState<>(newFormQuestion, validFrom, storedFrom, true);
-        }
+        return formQuestionRepository.findByInternalId(formQuestionId)
+                .map(fq -> new RowState<>(fq, validFrom, storedFrom, false))
+                .orElseGet(() -> {
+                    FormQuestion newFq = formQuestionRepository.save(new FormQuestion(new TemporalFrom(validFrom, storedFrom), formQuestionId));
+                    return new RowState<>(newFq, validFrom, storedFrom, true);
+                });
     }
 
     /**
