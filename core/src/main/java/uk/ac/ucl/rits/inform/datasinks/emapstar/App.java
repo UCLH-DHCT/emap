@@ -125,29 +125,4 @@ public class App {
         }
     }
 
-    /**
-     * Write the test data to the actively configured database, then exit.
-     * Intended for the use case of demonstrating a new DB schema feature to an alpha user.
-     * @param entityManagerFactory entity manager factory
-     * @param ctx app context
-     * @return a runner
-     */
-    @Bean
-    @Profile("writetestdataonly")
-    public CommandLineRunner writeTestDataToDatabase(EntityManagerFactory entityManagerFactory, ApplicationContext ctx) {
-        return (args) -> {
-            logger.info("Inserting test data into production config");
-            InputStream sqlFile = new ClassPathResource("populate_db.sql").getInputStream();
-            String query = new String(sqlFile.readAllBytes(), StandardCharsets.UTF_8);
-            SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-            try (Session session = sessionFactory.openSession()) {
-                Transaction transaction = session.beginTransaction();
-                NativeQuery nativeQuery = session.createNativeQuery(query);
-                nativeQuery.executeUpdate();
-                transaction.commit();
-            }
-            SpringApplication.exit(ctx, () -> 0);
-        };
-    }
-
 }
