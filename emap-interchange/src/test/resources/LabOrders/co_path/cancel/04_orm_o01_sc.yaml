@@ -2,6 +2,7 @@ statusChangeTime: "2020-11-17T15:44:00Z"
 orderControlId: "SC"
 sourceSystem: "CoPath"
 labDepartment: "H"
+testBatteryLocalCode: "H"
 orderStatus: "CM"
 resultStatus: "I"
 collectionMethod:
