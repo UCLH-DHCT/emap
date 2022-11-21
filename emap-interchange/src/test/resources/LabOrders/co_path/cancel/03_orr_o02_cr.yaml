@@ -2,6 +2,7 @@ statusChangeTime: "2020-11-11T12:49:41Z"
 orderControlId: "CR"
 sourceSystem: "Not in Message"
 labDepartment: "Path,Cyt"
+testBatteryLocalCode: "Path,Cyt"
 visitNumber: ""
 questions:
   "Is this the patient's first biopsy on the cancer pathway?": "No"
