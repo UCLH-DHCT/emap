@@ -19,7 +19,6 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 /**
  * Define the message types that an Emap processor
  * must process.
- *
  * @author Jeremy Stein
  * @author Stef Piatek
  */
@@ -79,6 +78,12 @@ public interface EmapOperationMessageProcessor {
     void processMessage(CancelPendingTransfer msg) throws EmapOperationMessageProcessingException;
 
     /**
+     * @param msg the ResearchOptOut msg to process.
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(ResearchOptOut msg) throws EmapOperationMessageProcessingException;
+
+    /**
      * @param msg the flowsheet message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
@@ -116,11 +121,10 @@ public interface EmapOperationMessageProcessor {
 
     /**
      * Process mapping for consult code -> human readable name.
-     *
-     * @param consultMetadata consult metadata message to process
+     * @param msg consult metadata message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(ConsultMetadata consultMetadata) throws EmapOperationMessageProcessingException;
+    void processMessage(ConsultMetadata msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the AdvanceDecisionMessage to process

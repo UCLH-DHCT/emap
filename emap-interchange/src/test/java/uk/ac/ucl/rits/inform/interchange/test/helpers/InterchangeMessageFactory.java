@@ -13,6 +13,8 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
+import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
@@ -190,6 +192,17 @@ public class InterchangeMessageFactory {
 
     public List<LabMetadataMsg> getLabMetadataMsgs(final String fileName) throws IOException {
         InputStream resourceAsStream = getInputStream("/LabsMetadata/" + fileName);
+        return EmapYamlMapper.readValue(resourceAsStream, new TypeReference<>() {});
+    }
+
+    /**
+     * Build interchange message from file.
+     * @param fileName filename of the yaml serialised data
+     * @return interchange message of the data
+     * @throws IOException if the file can't be read
+     */
+    public List<ResearchOptOut> getResearchOptOuts(String fileName) throws IOException {
+        InputStream resourceAsStream = getInputStream("/ResearchOptOut/" + fileName);
         return EmapYamlMapper.readValue(resourceAsStream, new TypeReference<>() {});
     }
 
