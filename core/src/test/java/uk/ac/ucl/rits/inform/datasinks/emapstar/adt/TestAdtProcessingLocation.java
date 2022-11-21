@@ -12,13 +12,14 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
@@ -30,6 +31,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
@@ -74,9 +76,13 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     private FormAuditRepository formAuditRepository;
     @Autowired
     private FormAnswerAuditRepository formAnswerAuditRepository;
+    @Autowired
+    private PlannedMovementRepository plannedMovementRepo;
+    @Autowired
+    private PlannedMovementAuditRepository plannedMovementAuditRepo;
 
-    private final String originalLocation = "T42E^T42E BY03^BY03-17";
-    private final long defaultHospitalVisitId = 4001;
+    private static final String ORIGINAL_LOCATION = "T42E^T42E BY03^BY03-17";
+    private static final long DEFAULT_HOSPITAL_VISIT_ID = 4001;
 
     /**
      * No locations or location-visit in database.
@@ -123,17 +129,17 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElseThrow(NullPointerException::new);
         assertNotNull(dischargedVisit.getDischargeDatetime());
 
         // current location visit is different
         LocationVisit currentVisit = locationVisitRepository
-                .findByDischargeDatetimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
+                .findByDischargeDatetimeIsNullAndHospitalVisitIdHospitalVisitId(DEFAULT_HOSPITAL_VISIT_ID)
                 .orElseThrow(NullPointerException::new);
-        assertNotEquals(originalLocation, currentVisit.getLocationId().getLocationString());
+        assertNotEquals(ORIGINAL_LOCATION, currentVisit.getLocationId().getLocationString());
 
         // audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElseThrow(NullPointerException::new);
         assertNull(audit.getDischargeDatetime());
     }
 
@@ -146,17 +152,17 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testDischargeMessage() throws Exception {
         DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
-        msg.setFullLocationString(InterchangeValue.buildFromHl7(originalLocation));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7(ORIGINAL_LOCATION));
         dbOps.processMessage(msg);
 
         // original location visit is discharged
         List<LocationVisit> dischargedVisits = locationVisitRepository
-                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
+                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(ORIGINAL_LOCATION, defaultEncounter);
         assertEquals(1, dischargedVisits.size());
         dischargedVisits.forEach(visit -> assertNotNull(visit.getDischargeDatetime()));
 
         // audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElseThrow(NullPointerException::new);
         assertNull(audit.getDischargeDatetime());
     }
 
@@ -169,7 +175,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testDuplicateDischargeMessage() throws Exception {
         DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
-        msg.setFullLocationString(InterchangeValue.buildFromHl7(originalLocation));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7(ORIGINAL_LOCATION));
         // first discharge
         dbOps.processMessage(msg);
         // duplicate discharge message
@@ -177,12 +183,12 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // original location visit is discharged
         List<LocationVisit> dischargedVisits = locationVisitRepository
-                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
+                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(ORIGINAL_LOCATION, defaultEncounter);
         assertEquals(1, dischargedVisits.size());
         dischargedVisits.forEach(visit -> assertNotNull(visit.getDischargeDatetime()));
 
         // single audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElseThrow(NullPointerException::new);
         assertNull(audit.getDischargeDatetime());
     }
 
@@ -199,40 +205,52 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // current db location visit has not been discharged
-        LocationVisit visit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisit visit = locationVisitRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElseThrow(NullPointerException::new);
         assertNull(visit.getDischargeDatetime());
 
         // audit row for location when it had no discharge time
-        Optional<LocationVisitAudit> audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation);
+        Optional<LocationVisitAudit> audit = locationVisitAuditRepository.findByLocationIdLocationString(ORIGINAL_LOCATION);
         assertTrue(audit.isEmpty());
     }
 
     /**
-     * Delete full record for a person where there are multiple dependent table rows that will require a cascading delete.
+     * Given multiple dependent rows on encounter `123412341234`
+     * When a "delete patient information" message is received for the patient in the encounter
+     * Then dependent rows should be audited and deleted
      * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
     void testDeletePersonInformationWithCascade() throws Exception {
+        // -- Arrange
         List<LabOrderMsg> labOrderMsgs = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
         ConsultRequest consultMsg = messageFactory.getConsult("minimal.yaml");
-        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
-        // process message
+        PendingTransfer pendingAdtMsg = messageFactory.getAdtMessage("pending/A15.yaml");
         for (var loMsg : labOrderMsgs) {
             dbOps.processMessage(loMsg);
         }
         dbOps.processMessage(consultMsg);
+        dbOps.processMessage(pendingAdtMsg);
+
+        // -- Act
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        msg.setEventOccurredDateTime(Instant.now());
         dbOps.processMessage(msg);
 
+        // -- Assert
+
         // original location does not exist
-        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElse(null);
         assertNull(locationVisit);
 
         // audit row for the existing location
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElse(null);
-        assertNotNull(audit);
+        assertTrue(locationVisitAuditRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).isPresent());
 
-        // also check core demographics? visit observations? MRN itself?
+        // PlannedMovement should be deleted and audited
+        var movements = plannedMovementRepo.findAllByHospitalVisitIdEncounter(defaultEncounter);
+        assertTrue(movements.isEmpty());
+        var movementAudits = plannedMovementAuditRepo.findAllByHospitalVisitId(DEFAULT_HOSPITAL_VISIT_ID);
+        assertFalse(movementAudits.isEmpty());
 
         // Forms have been deleted and moved to audit table
         assertEquals(0, formAnswerRepository.count());
@@ -243,8 +261,8 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         assertEquals(11, formAuditRepository.count());
         assertTrue(formAuditRepository.existsByFormId(210001L));
 
-        // Do rows exist in audit table and not exist in live table?
-        List<LabOrderAudit> labOrderAudits = labOrderAuditRepository.findAllByHospitalVisitIdIn(List.of(defaultHospitalVisitId));
+        // Ensure live lab rows are missing, and audit rows do exist
+        var labOrderAudits = labOrderAuditRepository.findAllByHospitalVisitIdIn(List.of(DEFAULT_HOSPITAL_VISIT_ID));
         assertEquals(2, labOrderAudits.size());
         for (var loa : labOrderAudits) {
             // shouldn't exist in live table
@@ -270,11 +288,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location does not exist
-        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElse(null);
         assertNull(locationVisit);
 
         // audit row for the existing location
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElse(null);
         assertNotNull(audit);
     }
 
@@ -291,7 +309,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location does still exist
-        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(ORIGINAL_LOCATION).orElse(null);
         assertNotNull(locationVisit);
 
         // No audit rows
@@ -323,7 +341,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location visit is deleted
-        Optional<LocationVisit> deletedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation);
+        Optional<LocationVisit> deletedVisit = locationVisitRepository.findByLocationIdLocationString(ORIGINAL_LOCATION);
         assertTrue(deletedVisit.isEmpty());
     }
 
@@ -395,13 +413,13 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testCancelTransfer() throws Exception {
         CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
-        msg.setCancelledLocation(originalLocation);
+        msg.setCancelledLocation(ORIGINAL_LOCATION);
         String correctLocation = "T11E^T11E BY02^BY02-25";
 
         dbOps.processMessage(msg);
 
         // original location visit is deleted
-        Optional<LocationVisit> deletedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation);
+        Optional<LocationVisit> deletedVisit = locationVisitRepository.findByLocationIdLocationString(ORIGINAL_LOCATION);
         assertTrue(deletedVisit.isEmpty());
 
         // correct location is reopened

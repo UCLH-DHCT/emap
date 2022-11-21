@@ -13,7 +13,6 @@ import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecision;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecisionAudit;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecisionType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 
 import javax.annotation.Resource;
@@ -53,15 +52,14 @@ public class AdvanceDecisionController {
      * Process advanced decision message.
      * @param msg        Message containing information for advanced decision of a patient.
      * @param visit      Hospital visit of the patient this advanced decision was recorded for.
-     * @param mrn        Patient identifier to whom advanced decision corresponds.
      * @param storedFrom Time point when advanced decision was recorded first.
      */
     @Transactional
-    public void processMessage(final AdvanceDecisionMessage msg, HospitalVisit visit, Mrn mrn,
+    public void processMessage(final AdvanceDecisionMessage msg, HospitalVisit visit,
                                final Instant storedFrom) {
         AdvanceDecisionType advanceDecisionType = cache.getOrCreateAdvancedDecisionType(msg, storedFrom);
         RowState<AdvanceDecision, AdvanceDecisionAudit> advanceDecisionState = getOrCreateAdvancedDecision(
-                msg, visit, mrn, advanceDecisionType, storedFrom);
+                msg, visit, advanceDecisionType, storedFrom);
 
         if (messageShouldBeUpdated(msg.getStatusChangeDatetime(), advanceDecisionState)) {
             updateConsultRequest(msg, advanceDecisionState);
@@ -76,33 +74,31 @@ public class AdvanceDecisionController {
      * Get existing or create new advance decision.
      * @param msg                 Advance decision message.
      * @param visit               Hospital visit of patient this advanced decision message refers to.
-     * @param mrn                 Patient this advanced decision is recorded for.
      * @param advanceDecisionType Type of advanced decision recorded for patient.
      * @param storedFrom          Time that emap-core started processing this advanced decision message.
      * @return AdvancedDecision entity wrapped in RowState
      */
     private RowState<AdvanceDecision, AdvanceDecisionAudit> getOrCreateAdvancedDecision(
-            AdvanceDecisionMessage msg, HospitalVisit visit, Mrn mrn, AdvanceDecisionType advanceDecisionType,
+            AdvanceDecisionMessage msg, HospitalVisit visit, AdvanceDecisionType advanceDecisionType,
             Instant storedFrom) {
         return advanceDecisionRepo
                 .findByInternalId(msg.getAdvanceDecisionNumber())
                 .map(obs -> new RowState<>(obs, msg.getStatusChangeDatetime(), storedFrom, false))
-                .orElseGet(() -> createMinimalAdvanceDecision(msg, visit, mrn, advanceDecisionType, storedFrom));
+                .orElseGet(() -> createMinimalAdvanceDecision(msg, visit, advanceDecisionType, storedFrom));
     }
 
     /**
      * Create minimal advance decision wrapped in RowState.
      * @param msg                 Advance decision message
      * @param visit               Hospital visit of the patient advanced decision was recorded for.
-     * @param mrn                 Identifier of patient the advanced decision has been recorded for.
      * @param advanceDecisionType Type of advanced decision recorded for patient.
      * @param storedFrom          Time that emap-core started processing the advanced decision of that patient.
      * @return minimal advanced decision wrapped in RowState
      */
     private RowState<AdvanceDecision, AdvanceDecisionAudit> createMinimalAdvanceDecision(
-            AdvanceDecisionMessage msg, HospitalVisit visit, Mrn mrn, AdvanceDecisionType advanceDecisionType,
+            AdvanceDecisionMessage msg, HospitalVisit visit, AdvanceDecisionType advanceDecisionType,
             Instant storedFrom) {
-        AdvanceDecision advanceDecision = new AdvanceDecision(advanceDecisionType, visit, mrn,
+        AdvanceDecision advanceDecision = new AdvanceDecision(advanceDecisionType, visit,
                 msg.getAdvanceDecisionNumber());
         logger.debug("Created new {}", advanceDecision);
         return new RowState<>(advanceDecision, msg.getStatusChangeDatetime(), storedFrom, true);

@@ -63,6 +63,7 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
             String eventType, HospitalVisit hospitalVisitId, Location plannedLocation, Instant eventDatetime
     );
 
+    List<PlannedMovement> findAllByHospitalVisitId(HospitalVisit visit);
 
     /**
      * For testing.
@@ -78,4 +79,5 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
      * @return list of planned movements
      */
     List<PlannedMovement> findAllByHospitalVisitIdEncounter(String encounter);
+
 }
