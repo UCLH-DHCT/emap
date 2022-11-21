@@ -56,6 +56,13 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     private String internalId;
 
     /**
+     * \brief The datetime this answer was filed. It may differ from Form.firstFiledDatetime
+     * if this form answer has been updated since the form was first filed.
+     */
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant filedDatetime;
+
+    /**
      * \brief Categorical string value of the "context" of an SDE.
      * Eg. is it related to an order, an encounter, a note, etc.
      * This value is not the same for every instance of the same SDE, hence why
@@ -108,6 +115,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     public FormAnswer(TemporalFrom temporalFrom, Form form, FormQuestion formQuestion) {
         setTemporalFrom(temporalFrom);
         form.addFormAnswer(this);
+        this.filedDatetime = temporalFrom.getValid();
         this.formQuestionId = formQuestion;
     }
 
@@ -117,6 +125,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
         this.formQuestionId = other.formQuestionId;
         this.formId = other.formId;
         this.internalId = other.internalId;
+        this.filedDatetime = other.filedDatetime;
         this.context = other.context;
         this.valueAsText = other.valueAsText;
         this.valueAsNumber = other.valueAsNumber;
