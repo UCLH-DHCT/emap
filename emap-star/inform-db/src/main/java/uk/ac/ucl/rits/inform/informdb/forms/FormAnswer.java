@@ -56,8 +56,8 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     private String internalId;
 
     /**
-     * \brief If this is an updated form answer, this field contains the datetime it was updated,
-     * otherwise will be null to indicate that formId.firstFiledDatetime is still valid.
+     * \brief The datetime this answer was filed. It may differ from Form.firstFiledDatetime
+     * if this form answer has been updated since the form was first filed.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant filedDatetime;
