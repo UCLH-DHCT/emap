@@ -15,7 +15,7 @@ jobs:
       token: ${{ secrets.GH_ACCESS_TOKEN }}
 
   run_tests:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/test.yaml
     needs: set_tag_exists
     if: ${{ needs.set_tag_exists.outputs.tag_exists }}
 
