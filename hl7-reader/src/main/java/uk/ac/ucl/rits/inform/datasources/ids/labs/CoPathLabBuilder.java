@@ -87,7 +87,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         populateObrFields(obr);
         populateOrderInformation(orc, obr);
         setEpicOrderNumberFromORC();
-        getMsg().setTestBatteryLocalCode(getCodingSystem().name());
+        // Sets TestBatteryLocalCode to labDepartment code
+        getMsg().setTestBatteryLocalCode(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
     }
 
     private void setEpicOrderNumberFromORC() {
