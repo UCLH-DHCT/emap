@@ -2,10 +2,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.query.NativeQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -13,14 +9,11 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.handler.annotation.Header;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
@@ -29,10 +22,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
-import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 
