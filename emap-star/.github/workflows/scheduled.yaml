@@ -4,12 +4,26 @@ on:
   push:
     branches: ["develop"]
   schedule:
-    - cron:  '0 0 * * *'    # At midnight every day
+    - cron: '0 0 * * *'  # At midnight every day
 
 jobs:
-  run_scheduled_test_if_tagged:
-    uses: inform-health-informatics/emap-actions/.github/workflows/test_if_tagged.yaml@main
+  set_tag_exists:
+    uses: inform-health-informatics/emap-actions/.github/workflows/is_tagged.yml@main
     with:
       repo: "Inform-DB"
     secrets:
       token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+  run_tests:
+    uses: ./.github/workflows/test.yml
+    needs: set_tag_exists
+    if: ${{ needs.set_tag_exists.outputs.tag_exists }}
+
+  remove_tag:
+    needs: set_tag_exists
+    uses: inform-health-informatics/emap-actions/.github/workflows/remove_tag.yml@main
+    with:
+      repo: "Inform-DB"
+    secrets:
+      token: ${{ secrets.GH_ACCESS_TOKEN }}
+
