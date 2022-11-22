@@ -28,7 +28,6 @@ import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -132,8 +131,7 @@ public class FormController {
 
     private Form getOrCreateForm(TemporalFrom temporalFrom, FormDefinition formDefinition, HospitalVisit hospitalVisit,
                                  String formInstanceId, Instant firstFiledDatetime) {
-        Optional<Form> existingForm = formRepository.findByInternalId(formInstanceId);
-        return existingForm.orElseGet(
+        return formRepository.findByInternalId(formInstanceId).orElseGet(
                 () -> formRepository.save(new Form(temporalFrom, formDefinition, hospitalVisit, formInstanceId, firstFiledDatetime)));
     }
 
