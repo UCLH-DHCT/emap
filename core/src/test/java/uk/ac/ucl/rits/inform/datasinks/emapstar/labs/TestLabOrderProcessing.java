@@ -83,7 +83,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     }
 
     private void checkFirstMessageLabEntityCount() {
-        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(1, labOrderRepository.count(), "lab order should have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
     }
@@ -433,7 +433,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         processSingleMessage(cancelMsg);
 
-        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(0, labOrderRepository.count(), "lab order should not have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
     }
@@ -455,7 +455,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         processSingleMessage(cancelMsg);
 
-        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(0, labOrderRepository.count(), "lab order should not have been created");
         assertEquals(1, labOrderAuditRepository.count(), "lab audit order should have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
@@ -478,7 +478,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         processSingleMessage(cancelMsg);
 
-        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(1, labOrderRepository.count(), "lab order should not have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
     }

@@ -181,7 +181,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertNull(labSample.getReceiptAtLabDatetime());
         assertEquals("Stained slides x 6 Ref: 20/12322 from Barts Health", labSample.getCollectionMethod()); // from 01 SN
 
-        LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("CO_PATH", labSample).orElseThrow();
+        LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("H", labSample).orElseThrow();
         assertEquals(Instant.parse("2020-05-22T11:10:00Z"), labOrder.getOrderDatetime()); // from 01 SN
         assertEquals("CoPath", labOrder.getSourceSystem()); // from 04 ORU
         assertEquals("12121212", labOrder.getInternalLabNumber()); // from 01 SN
@@ -217,7 +217,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertEquals(Instant.parse("2020-11-09T15:05:00Z"), labSample.getSampleCollectionDatetime()); // from 01 NW
         assertEquals(Instant.parse("2020-11-11T12:53:00Z"), labSample.getReceiptAtLabDatetime()); // 04 ORM SC
 
-        LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("CO_PATH", labSample).orElseThrow();
+        LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("H", labSample).orElseThrow();
         if (labOrder.getOrderDatetime() != null) {
             // from 01 NW but cancelled, never added in this stream
             // direct in order it'll be null, otherwise should have 01 NW value
