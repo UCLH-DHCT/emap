@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,10 +32,7 @@ class TestImagingLabs {
     private static final String FILE_TEMPLATE = "LabOrders/imaging/%s.txt";
 
     private LabOrderMsg getLabOrder(String fileName) throws Exception {
-        return labReader.processSingleMessage(String.format(FILE_TEMPLATE, fileName)).stream()
-                .filter(msg -> msg instanceof LabOrderMsg)
-                .map(o -> (LabOrderMsg) o).findFirst()
-                .orElseThrow();
+        return labReader.processSingleMessage(String.format(FILE_TEMPLATE, fileName)).stream().filter(msg -> msg instanceof LabOrderMsg).map(o -> (LabOrderMsg) o).findFirst().orElseThrow();
     }
 
     /**
@@ -49,12 +47,13 @@ class TestImagingLabs {
         List<String> resultTypes = labOrder.getLabResultMsgs().stream().map(LabResultMsg::getTestItemLocalCode).collect(Collectors.toList());
         assertEquals(List.of("TEXT", "INDICATIONS"), resultTypes);
         // Check the report text is from &GDT
-        String textResult = labOrder.getLabResultMsgs().stream()
-                .filter(result -> "TEXT".equals(result.getTestItemLocalCode()))
-                .map(LabResultMsg::getStringValue)
-                .map(InterchangeValue::get)
-                .findFirst().orElseThrow();
-        assertEquals("Study Date: 16/1/22\nmore data\nend of report", textResult);
+        String textResult = labOrder.getLabResultMsgs().stream().filter(result -> "TEXT".equals(result.getTestItemLocalCode())).map(LabResultMsg::getStringValue).map(InterchangeValue::get).findFirst().orElseThrow();
+        String expectedResult = new StringJoiner("\n")
+                .add("This is a summary report. The complete report is available in the patient's medical record. If you cannot access the medical record, please contact the sending organisation for a detailed fax or copy.")
+                .add("").add("Study Date: 16/1/22").add("more data").add("end of report").add("")
+                .add("OPINION:").add("An actionable alert has been placed on the report and the referring clinician emailed.")
+                .add("Signed by:").add("Panda ORANGE").toString();
+        assertEquals(expectedResult, textResult);
     }
 
 }
