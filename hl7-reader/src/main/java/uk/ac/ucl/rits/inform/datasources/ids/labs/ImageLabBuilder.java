@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,8 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     private static final Logger logger = LoggerFactory.getLogger(ImageLabBuilder.class);
     private static final String QUESTION_SEPARATOR = "=";
     private static final Pattern QUESTION_PATTERN = Pattern.compile(QUESTION_SEPARATOR);
+    private static final Set<String> RESULT_OBX_IDENTIFIERS = Set.of("IMP", "GDT");
+    private static final String IGNORED_OBX_IDENTIFIER = "ADT";
 
     @Override
     protected void setLabSpecimenNumber(ORC orc) {
@@ -118,22 +121,22 @@ public final class ImageLabBuilder extends LabOrderBuilder {
 
         Map<String, List<OBX>> obxByIdentifier = new HashMap<>(obs.getOBSERVATIONAll().size());
         String previousIdentifier = null;
-        String previousSubId = null;
         for (OBX obx : obxSegments) {
             String identifier = getIdentifierTypeOrEmpty(obx);
-            String subId = obx.getObx4_ObservationSubID().getValueOrEmpty();
-            if ("IMP".equals(identifier)) {
-                // stop processing if we encounter an IMP
-                break;
+            if (IGNORED_OBX_IDENTIFIER.contains(identifier)) {
+                // don't process amendment OBX segments for a quick test for PIXL
+                continue;
             }
-            if (!identifier.equals(previousIdentifier) || !subId.equals(previousSubId)) {
-                // Newer data for the identifier, so replace existing data if it exists
+            if (RESULT_OBX_IDENTIFIERS.contains(identifier)) {
+                identifier = "GDT";
+            }
+
+            if (!identifier.equals(previousIdentifier)) {
                 obxByIdentifier.put(identifier, new ArrayList<>(obs.getOBSERVATIONAll().size()));
             }
             obxByIdentifier.get(identifier).add(obx);
             // update previous tracing identifier data
             previousIdentifier = identifier;
-            previousSubId = subId;
         }
         return obxByIdentifier;
     }
