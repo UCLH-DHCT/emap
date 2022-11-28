@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * An instance of an answered question (Eg. SDE), which will always be nested in a Form.
+ * An instance of an answered question (Eg. SDE), which will always be nested in a {@link FormMsg}.
  * Doesn't extend EmapOperationMessage to disallow the sending of bare objects of this class.
  */
 @Data
