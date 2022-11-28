@@ -26,6 +26,7 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -43,21 +44,23 @@ public class LabOrderController {
     private final LabResultRepository labResultRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final QuestionController questionController;
-
+    private final LabResultController labResultController;
 
     /**
-     * @param labBatteryRepo     repository for LabBattery
-     * @param labSampleRepo      repository for LabSample
-     * @param labSampleAuditRepo repository for LabSampleAudit
-     * @param labOrderRepo       repository for LabOrder
-     * @param labResultRepo      repository for LabResult
-     * @param labOrderAuditRepo  repository for LabOrderAudit
-     * @param questionController controller for Question tables
+     * @param labBatteryRepo      repository for LabBattery
+     * @param labSampleRepo       repository for LabSample
+     * @param labSampleAuditRepo  repository for LabSampleAudit
+     * @param labOrderRepo        repository for LabOrder
+     * @param labResultRepo       repository for LabResult
+     * @param labOrderAuditRepo   repository for LabOrderAudit
+     * @param questionController  controller for Question tables
+     * @param labResultController controller for LabOrder tables
      */
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
             LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabResultRepository labResultRepo,
-            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController) {
+            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController,
+            LabResultController labResultController) {
         this.labBatteryRepo = labBatteryRepo;
         this.labSampleRepo = labSampleRepo;
         this.labSampleAuditRepo = labSampleAuditRepo;
@@ -65,6 +68,7 @@ public class LabOrderController {
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
+        this.labResultController = labResultController;
         createCoPathBattery();
     }
 
@@ -294,4 +298,14 @@ public class LabOrderController {
         labOrderRepo.delete(labOrder);
     }
 
+    public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        List<LabOrder> labOrders = labOrderRepo.findAllByHospitalVisitId(visit);
+        for (var lo : labOrders) {
+            labResultController.deleteLabResultsForLabOrder(lo, invalidationTime, deletionTime);
+
+            LabOrderAudit labOrderAudit = lo.createAuditEntity(invalidationTime, deletionTime);
+            labOrderAuditRepo.save(labOrderAudit);
+            labOrderRepo.delete(lo);
+        }
+    }
 }
