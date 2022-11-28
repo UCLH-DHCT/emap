@@ -37,14 +37,25 @@ public class VisitController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final HospitalVisitRepository hospitalVisitRepo;
     private final HospitalVisitAuditRepository hospitalVisitAuditRepo;
+    private final ConsultationRequestController consultationRequestController;
+    private final PendingAdtController pendingAdtController;
+    private final LabOrderController labOrderController;
 
     /**
      * @param hospitalVisitRepo      repository for HospitalVisit
      * @param hospitalVisitAuditRepo repository for HospitalVisitAudit
+     * @param consultationRequestController  controller for consultation request tables
+     * @param pendingAdtController  controller for planned visit tables
+     * @param labOrderController  controller for lab order tables
      */
-    public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo) {
+    public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo,
+                           ConsultationRequestController consultationRequestController, PendingAdtController pendingAdtController,
+                           LabOrderController labOrderController) {
         this.hospitalVisitRepo = hospitalVisitRepo;
         this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;
+        this.consultationRequestController = consultationRequestController;
+        this.pendingAdtController = pendingAdtController;
+        this.labOrderController = labOrderController;
     }
 
     /**
@@ -316,5 +327,22 @@ public class VisitController {
      */
     private boolean isVisitNumberChangesAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
         return !msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && hospitalVisitRepo.findByEncounter(msg.getVisitNumber()).isPresent();
+    }
+
+    /**
+     * Delete all visits that are older than the current message, along with tables which require visits.
+     * @param visits           List of hopsital visits
+     * @param invalidationTime Time of the delete information message
+     * @param deletionTime     time that emap-core started processing the message.
+     */
+    public void deleteVisitsAndDependentEntities(Iterable<HospitalVisit> visits, Instant invalidationTime, Instant deletionTime) {
+        for (HospitalVisit visit : visits) {
+            pendingAdtController.deletePlannedMovements(visit, invalidationTime, deletionTime);
+            labOrderController.deleteLabOrdersForVisit(visit, invalidationTime, deletionTime);
+            consultationRequestController.deleteConsultRequestsForVisit(visit, invalidationTime, deletionTime);
+
+            hospitalVisitAuditRepo.save(visit.createAuditEntity(invalidationTime, deletionTime));
+            hospitalVisitRepo.delete(visit);
+        }
     }
 }
