@@ -1,9 +1,11 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg"
+  sourceSystem: "clarity"
   sourceMessageId: "2056"
   validFrom: "2019-04-08T10:00:00Z"
   formName: "UCLH ADVANCED TEP"
   formPatientFriendlyName: "tep patient friendly name"
 - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg"
+  sourceSystem: "clarity"
   sourceMessageId: "1234"
   formName: "test"
   formPatientFriendlyName: null

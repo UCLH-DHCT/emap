@@ -331,6 +331,12 @@ public class InterchangeMessageFactory {
         return orderReader.readValue(getInputStream(overridingPath));
     }
 
+    /**
+     * Load test form data.
+     * @param fileName message array json file
+     * @return list of FormMsg from this file
+     * @throws IOException if file cannot be read
+     */
     public List<FormMsg> getFormMsgs(final String fileName) throws IOException {
         String resourcePath = "/Form/" + fileName;
         InputStream inputStream = getInputStream(resourcePath);
@@ -346,12 +352,22 @@ public class InterchangeMessageFactory {
         return formMsgs;
     }
 
+    /**
+     * Load test form metadata. As in the real life data, the "valid from" date for metadata is sometimes not known,
+     * and the expected behaviour in this case is to use the current time. The fallbackValidFrom date gives the test
+     * a mechanism to say what the correct "now" timestamp is, otherwise you'd have to do some fudging in the assertion:
+     * The expected "now" would usually be a few milliseconds after the actual now, unless your computer
+     * was unexpectedly slow, or you set a breakpoint, etc. Better to be exact than go for any weird heuristics.
+     * @param fileName message array json file
+     * @param fallbackValidFrom Timestamp to fill in if the validFrom is null
+     * @return list of FormMetadataMsg from this file
+     * @throws IOException if file cannot be read
+     */
     public List<FormMetadataMsg> getFormMetadataMsg(final String fileName, Instant fallbackValidFrom) throws IOException {
         String resourcePath = "/Form/" + fileName;
         InputStream inputStream = getInputStream(resourcePath);
         List<FormMetadataMsg> formMetadataMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormMetadataMsg>>() {});
         for (var m : formMetadataMsgs) {
-            m.setSourceSystem("clarity");
             // if validFrom has not been set then fill it in from the fallback value, if set
             if (fallbackValidFrom != null && m.getValidFrom() == null) {
                 m.setValidFrom(fallbackValidFrom);
@@ -361,18 +377,17 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Read a (partial) yaml file.
+     * Load test form question metadata. fallbackValidFrom exists for same reason as in {@link #getFormMetadataMsg}
      * @param fileName expected messages yaml file to read from
-     * @param fallbackValidFrom if not null, set all returned messages to have the given valid from time
-     * @return
-     * @throws IOException
+     * @param fallbackValidFrom Timestamp to fill in if the validFrom is null
+     * @return list of FormQuestionMetadataMsg from this file
+     * @throws IOException if file cannot be read
      */
     public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName, Instant fallbackValidFrom) throws IOException {
         String resourcePath = "/Form/" + fileName;
         InputStream inputStream = getInputStream(resourcePath);
         List<FormQuestionMetadataMsg> formMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
         for (var m : formMsgs) {
-            m.setSourceSystem("clarity");
             // if validFrom has not been set then fill it in from the fallback value, if set
             if (fallbackValidFrom != null && m.getValidFrom() == null) {
                 m.setValidFrom(fallbackValidFrom);
