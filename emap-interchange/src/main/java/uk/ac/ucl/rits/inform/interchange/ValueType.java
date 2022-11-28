@@ -35,7 +35,7 @@ public enum ValueType {
      * Boolean value.
      * (Doesn't exist as mime type so custom type used)
      */
-    BOOLEAN("numeric/boolean"),
+    BOOLEAN("boolean"),
     /**
      * PDF value.
      */
