@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @author Jeremy Stein
- * Test SmartForm and Smart Data Element processing.
+ * Test Form and Form metadata processing (derived only from Epic Smart Data Elements at the moment)
  */
 @Transactional
 public class TestFormProcessing extends MessageProcessingBase {
@@ -67,12 +67,11 @@ public class TestFormProcessing extends MessageProcessingBase {
 
     @Test
     public void formFollowedByFormMetadata() throws EmapOperationMessageProcessingException, IOException {
-        // This is 2 form, which implies 2 form definition.
-        // The form contains many answers, so there should be many implied questions that we don't have metadata for yet
+        // Forms with form answers. Placeholders are created for form and question metadata.
         _processForms();
 
         // implied from forms above (13 answers for 11 distinct questions)
-        assertEquals(11, formQuestionRepository.count());
+        assertEquals(8, formQuestionRepository.count());
         assertEquals(1, formDefinitionRepository.count());
         // no updates yet
         assertEquals(0, formQuestionAuditRepository.count());
@@ -119,7 +118,7 @@ public class TestFormProcessing extends MessageProcessingBase {
         // Metadata also contains 29 questions, of which 28 previously unknown.
         // Hence 2 form definitions and 11 + 28 = 39 questions.
         _processMetadata();
-        assertEquals(39, formQuestionRepository.count());
+        assertEquals(36, formQuestionRepository.count());
         assertEquals(2, formDefinitionRepository.count());
 
         // some audit rows should have been created due to the updates
