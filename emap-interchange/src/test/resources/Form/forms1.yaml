@@ -28,46 +28,6 @@
         status: "SAVE"
         value: true
 
-    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
-      sourceMessageId: 72566
-      questionId: "UCLH#1206"
-      context: "NOTE"
-      filedDatetime: "2018-11-01T15:39:15Z"
-      stringValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: "0"
-      booleanValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: false
-    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
-      sourceMessageId: 72567
-      questionId: "UCLH#1207"
-      context: "NOTE"
-      filedDatetime: "2018-11-01T15:39:15Z"
-      stringValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: "0"
-      booleanValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: false
-    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
-      sourceMessageId: 72568
-      questionId: "UCLH#1208"
-      context: "NOTE"
-      filedDatetime: "2018-11-01T15:39:15Z"
-      stringValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: "1"
-      booleanValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: true
-
 - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
   sourceSystem: "ids"
   formId: "2056"
