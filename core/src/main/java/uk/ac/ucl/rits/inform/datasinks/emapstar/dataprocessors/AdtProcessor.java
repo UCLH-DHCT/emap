@@ -120,7 +120,7 @@ public class AdtProcessor {
             return;
         }
         patientLocationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
-        //visitController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
+        visitController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
     }
 
     /**

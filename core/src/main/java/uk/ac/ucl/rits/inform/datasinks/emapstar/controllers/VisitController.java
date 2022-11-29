@@ -330,7 +330,7 @@ public class VisitController {
     }
 
     /**
-     * Delete all visits that are older than the current message, along with tables which require visits.
+     * Deletes visits that are older than the current message, along with tables which require visits.
      * @param visits           List of hopsital visits
      * @param invalidationTime Time of the delete information message
      * @param deletionTime     time that emap-core started processing the message.
