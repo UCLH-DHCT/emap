@@ -203,6 +203,12 @@ public class ConsultationRequestController {
         }
     }
 
+    /**
+     * Deletes consult requests that are older than the current message.
+     * @param visit             Hospital Visit Entity
+     * @param invalidationTime  Lab Battery
+     * @param deletionTime      Lab Sample entity
+     */
     public void deleteConsultRequestsForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
         List<ConsultationRequest> consultationRequests = consultationRequestRepo.findAllByHospitalVisitId(visit);
         for (var cr : consultationRequests) {

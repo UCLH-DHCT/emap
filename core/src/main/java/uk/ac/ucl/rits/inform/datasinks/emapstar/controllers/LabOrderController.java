@@ -298,6 +298,12 @@ public class LabOrderController {
         labOrderRepo.delete(labOrder);
     }
 
+    /**
+     * Deletes lab orders that are older than the current message, along with tables which require orders.
+     * @param visit             Hospital Visit Entity
+     * @param invalidationTime  Lab Battery
+     * @param deletionTime      Lab Sample entity
+     */
     public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
         List<LabOrder> labOrders = labOrderRepo.findAllByHospitalVisitId(visit);
         for (var lo : labOrders) {
