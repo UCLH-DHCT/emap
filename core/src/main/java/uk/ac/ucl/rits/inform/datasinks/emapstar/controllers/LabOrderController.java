@@ -44,7 +44,6 @@ public class LabOrderController {
     private final LabResultRepository labResultRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final QuestionController questionController;
-    private final LabResultController labResultController;
 
     /**
      * @param labBatteryRepo      repository for LabBattery
@@ -54,13 +53,11 @@ public class LabOrderController {
      * @param labResultRepo       repository for LabResult
      * @param labOrderAuditRepo   repository for LabOrderAudit
      * @param questionController  controller for Question tables
-     * @param labResultController controller for LabOrder tables
      */
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
             LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabResultRepository labResultRepo,
-            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController,
-            LabResultController labResultController) {
+            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController) {
         this.labBatteryRepo = labBatteryRepo;
         this.labSampleRepo = labSampleRepo;
         this.labSampleAuditRepo = labSampleAuditRepo;
@@ -68,7 +65,6 @@ public class LabOrderController {
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
-        this.labResultController = labResultController;
         createCoPathBattery();
     }
 
@@ -304,7 +300,7 @@ public class LabOrderController {
      * @param invalidationTime  Lab Battery
      * @param deletionTime      Lab Sample entity
      */
-    public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+    public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime, LabResultController labResultController) {
         List<LabOrder> labOrders = labOrderRepo.findAllByHospitalVisitId(visit);
         for (var lo : labOrders) {
             labResultController.deleteLabResultsForLabOrder(lo, invalidationTime, deletionTime);
