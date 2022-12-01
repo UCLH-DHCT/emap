@@ -40,25 +40,22 @@ public class VisitController {
     private final ConsultationRequestController consultationRequestController;
     private final PendingAdtController pendingAdtController;
     private final LabOrderController labOrderController;
-    private final LabResultController labResultController;
 
     /**
-     * @param hospitalVisitRepo                 repository for HospitalVisit
-     * @param hospitalVisitAuditRepo            repository for HospitalVisitAudit
-     * @param consultationRequestController     controller for consultation request tables
-     * @param pendingAdtController              controller for planned visit tables
-     * @param labOrderController                controller for lab order tables
-     * @param labResultController               controller for LabOrder tables
+     * @param hospitalVisitRepo      repository for HospitalVisit
+     * @param hospitalVisitAuditRepo repository for HospitalVisitAudit
+     * @param consultationRequestController  controller for consultation request tables
+     * @param pendingAdtController  controller for planned visit tables
+     * @param labOrderController  controller for lab order tables
      */
     public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo,
                            ConsultationRequestController consultationRequestController, PendingAdtController pendingAdtController,
-                           LabOrderController labOrderController, LabResultController labResultController) {
+                           LabOrderController labOrderController) {
         this.hospitalVisitRepo = hospitalVisitRepo;
         this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;
         this.consultationRequestController = consultationRequestController;
         this.pendingAdtController = pendingAdtController;
         this.labOrderController = labOrderController;
-        this.labResultController = labResultController;
     }
 
     /**
@@ -341,7 +338,7 @@ public class VisitController {
     public void deleteVisitsAndDependentEntities(Iterable<HospitalVisit> visits, Instant invalidationTime, Instant deletionTime) {
         for (HospitalVisit visit : visits) {
             pendingAdtController.deletePlannedMovements(visit, invalidationTime, deletionTime);
-            labOrderController.deleteLabOrdersForVisit(visit, invalidationTime, deletionTime, labResultController);
+            labOrderController.deleteLabOrdersForVisit(visit, invalidationTime, deletionTime);
             consultationRequestController.deleteConsultRequestsForVisit(visit, invalidationTime, deletionTime);
 
             hospitalVisitAuditRepo.save(visit.createAuditEntity(invalidationTime, deletionTime));

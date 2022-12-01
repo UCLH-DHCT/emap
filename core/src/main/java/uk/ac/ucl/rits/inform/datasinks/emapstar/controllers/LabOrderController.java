@@ -44,6 +44,7 @@ public class LabOrderController {
     private final LabResultRepository labResultRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final QuestionController questionController;
+    private final LabResultController labResultController;
 
     /**
      * @param labBatteryRepo      repository for LabBattery
@@ -53,11 +54,14 @@ public class LabOrderController {
      * @param labResultRepo       repository for LabResult
      * @param labOrderAuditRepo   repository for LabOrderAudit
      * @param questionController  controller for Question tables
+     * @param labResultController controller for LabOrder tables
      */
+    @SuppressWarnings("checkstyle:parameternumber")
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
             LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabResultRepository labResultRepo,
-            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController) {
+            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController,
+            LabResultController labResultController) {
         this.labBatteryRepo = labBatteryRepo;
         this.labSampleRepo = labSampleRepo;
         this.labSampleAuditRepo = labSampleAuditRepo;
@@ -65,6 +69,7 @@ public class LabOrderController {
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
+        this.labResultController = labResultController;
         createCoPathBattery();
     }
 
@@ -296,13 +301,11 @@ public class LabOrderController {
 
     /**
      * Deletes lab orders that are older than the current message, along with tables which require orders.
-     * @param visit                 Hospital Visit Entity
-     * @param invalidationTime      Lab Battery
-     * @param deletionTime          Lab Sample entity
-     * @param labResultController   Controller for lab results table
+     * @param visit             Hospital Visit Entity
+     * @param invalidationTime  Lab Battery
+     * @param deletionTime      Lab Sample entity
      */
-    public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime,
-                                        LabResultController labResultController) {
+    public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
         List<LabOrder> labOrders = labOrderRepo.findAllByHospitalVisitId(visit);
         for (var lo : labOrders) {
             labResultController.deleteLabResultsForLabOrder(lo, invalidationTime, deletionTime);
