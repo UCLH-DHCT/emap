@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
@@ -44,16 +45,17 @@ class TestImagingLabs {
     void testMultipleResultsWithOpinion() throws Exception {
         LabOrderMsg labOrder = getLabOrder("oru_r01_imaging_multiple_results");
         // Check the result types
-        List<String> resultTypes = labOrder.getLabResultMsgs().stream().map(LabResultMsg::getTestItemLocalCode).collect(Collectors.toList());
-        assertEquals(List.of("TEXT", "INDICATIONS"), resultTypes);
+        Set<String> resultTypes = labOrder.getLabResultMsgs().stream().map(LabResultMsg::getTestItemLocalCode).collect(Collectors.toSet());
+        assertEquals(Set.of("TEXT", "INDICATIONS"), resultTypes);
         // Check the report text is from &GDT
         String textResult = labOrder.getLabResultMsgs().stream().filter(result -> "TEXT".equals(result.getTestItemLocalCode())).map(LabResultMsg::getStringValue).map(InterchangeValue::get).findFirst().orElseThrow();
         String expectedResult = new StringJoiner("\n")
+                .add("--------")
+                .add("report about an MDT summary ")
                 .add("This is a summary report. The complete report is available in the patient's medical record. If you cannot access the medical record, please contact the sending organisation for a detailed fax or copy.")
                 .add("").add("Study Date: 16/1/22").add("more data").add("end of report").add("")
                 .add("OPINION:").add("An actionable alert has been placed on the report and the referring clinician emailed.")
                 .add("Signed by:").add("Panda ORANGE").toString();
         assertEquals(expectedResult, textResult);
     }
-
 }
