@@ -26,23 +26,21 @@ public class ImageLabResultBuilder extends LabResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(ImageLabResultBuilder.class);
     private final OBR obr;
     private final List<OBX> obxSegments;
-    private final String resultCode;
+    private final boolean isTextResult;
     private boolean ignored = false;
     private static final String CODING_SYSTEM = OrderCodingSystem.PACS.name();
     private static final Set<String> TEXT_TYPE = Set.of("TX", "ST");
-    private static final String TEXT_RESULT_CODE = "GDT";
-    private static final String ALLOWED_NON_TEXT_CODE = "INDICATIONS";
 
     /**
-     * @param resultCode  code for the result type, if empty then this is the text report
-     * @param obxSegments the OBX segments for this result type
-     * @param obr         the OBR segment for this result (will be the same segment shared with other OBXs)
+     * @param isTextResult are the OBX segments for a text result?
+     * @param obxSegments  the OBX segments for this result type
+     * @param obr          the OBR segment for this result (will be the same segment shared with other OBXs)
      */
-    ImageLabResultBuilder(String resultCode, List<OBX> obxSegments, OBR obr) {
+    ImageLabResultBuilder(boolean isTextResult, List<OBX> obxSegments, OBR obr) {
         super(obxSegments.get(0), new ArrayList<>(0), null);
         this.obxSegments = Collections.unmodifiableList(obxSegments);
         this.obr = obr;
-        this.resultCode = resultCode;
+        this.isTextResult = isTextResult;
     }
 
     /**
@@ -86,31 +84,23 @@ public class ImageLabResultBuilder extends LabResultBuilder {
             throw new Hl7InconsistencyException(String.format("Imaging OBX type not recognised '%s'", dataType));
         }
 
-        if (isAllowedTextResult()) {
+        if (isTextResult) {
             setMimeTypeAndTestCode(valueType);
             String observationIdAndSubId = getObservationIdAndSubId(getObx());
             String value = incrementallyBuildValue(observationIdAndSubId, delimiter);
             setValueOrIgnored(dataType, value);
-        } else if (isNonTextReport()) {
+        } else {
             if (obxSegments.size() != 1) {
                 throw new Hl7InconsistencyException(String.format("Imaging OBX should only have a single result, %d were found", obxSegments.size()));
             }
             setStringValueAndMimeType(obxSegments.get(0));
-        } else {
-            ignored = true;
         }
     }
 
     private boolean isAllowedTextResult() {
-        return TEXT_RESULT_CODE.equals(resultCode);
+        return isTextResult;
     }
 
-    /**
-     * @return true if this is an allowed non-text result.
-     */
-    private boolean isNonTextReport() {
-        return ALLOWED_NON_TEXT_CODE.equals(resultCode);
-    }
 
     private void setMimeTypeAndTestCode(ValueType valueType) {
         getMessage().setMimeType(valueType);

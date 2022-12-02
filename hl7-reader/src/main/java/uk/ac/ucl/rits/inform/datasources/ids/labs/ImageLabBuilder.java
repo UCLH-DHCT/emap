@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -45,8 +46,14 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     private static final Logger logger = LoggerFactory.getLogger(ImageLabBuilder.class);
     private static final String QUESTION_SEPARATOR = "=";
     private static final Pattern QUESTION_PATTERN = Pattern.compile(QUESTION_SEPARATOR);
-    private static final Set<String> RESULT_OBX_IDENTIFIERS = Set.of("IMP", "GDT");
-    private static final String IGNORED_OBX_IDENTIFIER = "ADT";
+    /**
+     * OBX identifiers that will be used to build a report result.
+     */
+    private static final Set<String> RESULT_OBX_IDENTIFIERS = Set.of("IMP", "GDT", "ADT");
+    /**
+     * Internal identifier for a report result.
+     */
+    private static final String REPORT_OBX = ValueType.TEXT.toString();
 
     @Override
     protected void setLabSpecimenNumber(ORC orc) {
@@ -95,7 +102,7 @@ public final class ImageLabBuilder extends LabOrderBuilder {
 
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (Map.Entry<String, List<OBX>> entries : obxByIdentifier.entrySet()) {
-            ImageLabResultBuilder labResult = new ImageLabResultBuilder(entries.getKey(), entries.getValue(), obr);
+            ImageLabResultBuilder labResult = new ImageLabResultBuilder(entries.getKey().equals(REPORT_OBX), entries.getValue(), obr);
             try {
                 labResult.constructMsg();
                 if (!labResult.isIgnored()) {
@@ -123,12 +130,8 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         String previousIdentifier = null;
         for (OBX obx : obxSegments) {
             String identifier = getIdentifierTypeOrEmpty(obx);
-            if (IGNORED_OBX_IDENTIFIER.contains(identifier)) {
-                // don't process amendment OBX segments for a quick test for PIXL
-                continue;
-            }
             if (RESULT_OBX_IDENTIFIERS.contains(identifier)) {
-                identifier = "GDT";
+                identifier = REPORT_OBX;
             }
 
             if (!identifier.equals(previousIdentifier)) {
