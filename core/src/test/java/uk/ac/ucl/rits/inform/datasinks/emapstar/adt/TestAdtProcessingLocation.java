@@ -256,7 +256,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         assertEquals(0, formAnswerRepository.count());
         assertEquals(0, formRepository.count());
 
-        assertEquals(214, formAnswerAuditRepository.count());
+        assertEquals(67, formAnswerAuditRepository.count());
         assertTrue(formAnswerAuditRepository.existsByFormAnswerId(230001L));
         assertEquals(11, formAuditRepository.count());
         assertTrue(formAuditRepository.existsByFormId(210001L));
