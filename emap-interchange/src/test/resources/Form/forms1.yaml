@@ -2,7 +2,7 @@
   sourceSystem: "ids"
   formId: "2056"
   firstFiledDatetime: "2018-11-01T15:39:15Z"
-  visitNumber: "*116065"
+  visitNumber: "12345678"
   mrn: "20017809"
   formAnswerMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
@@ -32,7 +32,7 @@
   sourceSystem: "ids"
   formId: "2056"
   firstFiledDatetime: "2018-11-01T15:39:15Z"
-  visitNumber: "*116066"
+  visitNumber: "22345677"
   mrn: "20017888"
   formAnswerMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
@@ -140,7 +140,7 @@
   sourceSystem: "ids"
   formId: "2056"
   firstFiledDatetime: "2018-11-01T15:39:15Z"
-  visitNumber: "*116066"
+  visitNumber: "22345677"
   mrn: "20017888"
   formAnswerMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
@@ -161,7 +161,7 @@
   sourceSystem: "ids"
   formId: "2056"
   firstFiledDatetime: "2018-11-01T15:39:15Z"
-  visitNumber: "*116066"
+  visitNumber: "22345677"
   mrn: "20017888"
   formAnswerMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
@@ -182,7 +182,7 @@
   sourceSystem: "ids"
   formId: "2056"
   firstFiledDatetime: "2018-11-01T15:39:15Z"
-  visitNumber: "*116066"
+  visitNumber: "22345677"
   mrn: "20017888"
   formAnswerMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
