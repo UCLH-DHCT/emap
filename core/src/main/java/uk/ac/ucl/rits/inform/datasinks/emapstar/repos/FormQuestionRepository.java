@@ -10,5 +10,6 @@ import java.util.Set;
 public interface FormQuestionRepository extends CrudRepository<FormQuestion, Long> {
     Optional<FormQuestion> findByInternalId(String formQuestionSourceId);
 
+    // only used in testing
     List<FormQuestion> findAllByInternalIdIn(Set<String> formQuestionSourceIds);
 }

@@ -16,9 +16,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormRepository;
 import uk.ac.ucl.rits.inform.informdb.forms.Form;
 import uk.ac.ucl.rits.inform.informdb.forms.FormAnswer;
 import uk.ac.ucl.rits.inform.informdb.forms.FormDefinition;
-import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionAudit;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestion;
-import uk.ac.ucl.rits.inform.informdb.forms.FormQuestionAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
@@ -60,7 +58,7 @@ public class TestFormProcessing extends MessageProcessingBase {
     private FormAnswerAuditRepository formAnswerAuditRepository;
 
     // Counts for initialised test DB (populate_db.sql)
-    private final long STARTING_NUM_QUESTIONS = 29;
+    private final long STARTING_NUM_QUESTIONS = 10;
     private final long STARTING_NUM_FORMS = 1;
 
     private final Instant FALLBACK_INSTANT = Instant.now();
@@ -70,7 +68,7 @@ public class TestFormProcessing extends MessageProcessingBase {
         // Forms with form answers. Placeholders are created for form and question metadata.
         _processForms();
 
-        // implied from forms above (13 answers for 11 distinct questions)
+        // implied from forms above
         assertEquals(8, formQuestionRepository.count());
         assertEquals(1, formDefinitionRepository.count());
         // no updates yet
@@ -78,7 +76,7 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertEquals(0, formDefinitionAuditRepository.count());
 
         // pick just one form instance to inspect in more detail
-        Map<String, FormAnswer> answersByIdPreMetadata = getAnswersByConceptId("*116066");
+        Map<String, FormAnswer> answersByIdPreMetadata = getAnswersByConceptId("22345677");
         assertEquals(Instant.parse("2018-11-01T15:39:15Z"), answersByIdPreMetadata.get("UCLH#1167").getFormId().getFirstFiledDatetime());
         Set<String> expectedQuestions = Set.of("UCLH#1167", "UCLH#1205", "FAKE#0001", "FAKE#0003", "FAKE#0004", "FAKE#0005", "FAKE#0006", "FAKE#0007");
         assertEquals(expectedQuestions, answersByIdPreMetadata.keySet());
@@ -115,16 +113,29 @@ public class TestFormProcessing extends MessageProcessingBase {
         assertNull(formDef.getName());
 
         // Metadata contains 2 form definition of which we already knew about one;
-        // Metadata also contains 29 questions, of which 28 previously unknown.
-        // Hence 2 form definitions and 11 + 28 = 39 questions.
+        // Metadata also contains 10 questions, of which 9 previously unknown, to add to the 8 previously implied.
+        // Hence 2 form definitions and 8 + 9 = 17 questions.
         _processMetadata();
-        assertEquals(36, formQuestionRepository.count());
+        assertEquals(17, formQuestionRepository.count());
         assertEquals(2, formDefinitionRepository.count());
 
         // some audit rows should have been created due to the updates
         assertEquals(1, formQuestionAuditRepository.count());
         assertEquals(1, formDefinitionAuditRepository.count());
 
+        _validateFormQuestionDetails();
+        _validateFormDefinitionDetails();
+    }
+
+    private void _validateFormDefinitionDetails() {
+        FormDefinition formDefAfterMetadata  = formDefinitionRepository.findByInternalId("2056").get();
+        assertEquals("UCLH ADVANCED TEP", formDefAfterMetadata.getName());
+        assertEquals("tep patient friendly name", formDefAfterMetadata.getPatientFriendlyName());
+        assertEquals(Instant.parse("2019-04-08T10:00:00Z"), formDefAfterMetadata.getValidFrom());
+        assertEquals(FALLBACK_INSTANT, formDefinitionRepository.findByInternalId("1234").get().getValidFrom());
+    }
+
+    private void _validateFormQuestionDetails() {
         // re-fetch and check some of the metadata
         Map<String, FormQuestion> questionsByIdPostMetadata = formQuestionRepository.findAllByInternalIdIn(Set.of("UCLH#1205", "UCLH#1209")).stream().collect(
                 Collectors.toUnmodifiableMap(FormQuestion::getInternalId, Function.identity()));
@@ -139,19 +150,15 @@ public class TestFormProcessing extends MessageProcessingBase {
         FormQuestion formQuestionUCLH1209 = questionsByIdPostMetadata.get("UCLH#1209");
         assertNotNull(formQuestionUCLH1209);
         assertEquals(FALLBACK_INSTANT, formQuestionUCLH1209.getValidFrom());
-
-        FormDefinition formDefAfterMetadata  = formDefinitionRepository.findByInternalId("2056").get();
-        assertEquals("UCLH ADVANCED TEP", formDefAfterMetadata.getName());
-        assertEquals("tep patient friendly name", formDefAfterMetadata.getPatientFriendlyName());
-        assertEquals(Instant.parse("2019-04-08T10:00:00Z"), formDefAfterMetadata.getValidFrom());
-        assertEquals(FALLBACK_INSTANT, formDefinitionRepository.findByInternalId("1234").get().getValidFrom());
     }
 
     @Test
     @Sql("/populate_db.sql")
     public void metadataTestStartingPopulated() throws EmapOperationMessageProcessingException, IOException {
-        // STARTING_NUM_QUESTIONS questions in initial DB state, metadata messages contain 29 questions
+        // STARTING_NUM_QUESTIONS questions in initial DB state, metadata messages contain 10 questions
         // of which 0 are new, 2 form definitions of which 1 is new.
+        assertEquals(STARTING_NUM_QUESTIONS, formQuestionRepository.count());
+        assertEquals(STARTING_NUM_FORMS, formDefinitionRepository.count());
         _processMetadata();
         assertEquals(STARTING_NUM_QUESTIONS + 0, formQuestionRepository.count());
         assertEquals(STARTING_NUM_FORMS + 1, formDefinitionRepository.count());
@@ -160,9 +167,9 @@ public class TestFormProcessing extends MessageProcessingBase {
     @Test
     public void metadataTestStartingBlank() throws EmapOperationMessageProcessingException, IOException {
         // Empty initial state, so this is a test of adding only.
-        // The 29 questions and 2 form definitions in the message should be added.
+        // The 10 questions and 2 form definitions in the message should be added.
         _processMetadata();
-        assertEquals(29, formQuestionRepository.count());
+        assertEquals(10, formQuestionRepository.count());
         assertEquals(2, formDefinitionRepository.count());
     }
 
