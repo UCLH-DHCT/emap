@@ -330,19 +330,14 @@ public class VisitController {
     }
 
     /**
-     * Deletes visits that are older than the current message, along with tables which require visits.
-     * @param visits           List of hopsital visits
-     * @param invalidationTime Time of the delete information message
-     * @param deletionTime     time that emap-core started processing the message.
+     * Deletes visit and updates corresponding audit table.
+     * @param visit             List of hospital visits
+     * @param invalidationTime  Time of the delete information message
+     * @param deletionTime      time that emap-core started processing the message.
      */
-    public void deleteVisitsAndDependentEntities(Iterable<HospitalVisit> visits, Instant invalidationTime, Instant deletionTime) {
-        for (HospitalVisit visit : visits) {
-            pendingAdtController.deletePlannedMovements(visit, invalidationTime, deletionTime);
-            labOrderController.deleteLabOrdersForVisit(visit, invalidationTime, deletionTime);
-            consultationRequestController.deleteConsultRequestsForVisit(visit, invalidationTime, deletionTime);
-
-            hospitalVisitAuditRepo.save(visit.createAuditEntity(invalidationTime, deletionTime));
-            hospitalVisitRepo.delete(visit);
-        }
+    public void deleteVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        hospitalVisitAuditRepo.save(visit.createAuditEntity(invalidationTime, deletionTime));
+        hospitalVisitRepo.delete(visit);
     }
+
 }

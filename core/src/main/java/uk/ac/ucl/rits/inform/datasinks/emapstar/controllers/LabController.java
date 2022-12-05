@@ -30,6 +30,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import javax.annotation.Resource;
 import java.time.Instant;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -192,6 +193,20 @@ public class LabController {
         if (definitionState.isEntityCreated() || testDefinition.getName() == null || testDefinition.getValidFrom().isBefore(validFrom)) {
             definitionState.assignIfDifferent(msg.getName(), testDefinition.getName(), testDefinition::setName);
             cache.updateLabTestDefinitionCache(definitionState);
+        }
+    }
+
+    /**
+     * Deletes lab orders that are older than the current message, along with tables which require orders.
+     * @param visit             Hospital Visit Entity
+     * @param invalidationTime  Lab Battery
+     * @param deletionTime      Lab Sample entity
+     */
+    public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        List<LabOrder> labOrders = labOrderController.getLabOrdersForVisit(visit);
+        for (var lo : labOrders) {
+            labResultController.deleteLabResultsForLabOrder(lo, invalidationTime, deletionTime);
+            labOrderController.deleteLabOrder(lo, invalidationTime, deletionTime);
         }
     }
 }
