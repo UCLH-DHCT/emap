@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientLocationContr
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PendingAdtController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.DeletionController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -35,6 +36,7 @@ public class AdtProcessor {
     private final VisitController visitController;
     private final PatientLocationController patientLocationController;
     private final PendingAdtController pendingAdtController;
+    private final DeletionController deletionController;
 
     /**
      * Implicitly wired spring beans.
@@ -42,13 +44,16 @@ public class AdtProcessor {
      * @param visitController           encounter interactions.
      * @param patientLocationController location interactions.
      * @param pendingAdtController      pending ADT interactions.
+     * @param deletionController        cascading deletes for hospital visits.
      */
     public AdtProcessor(PersonController personController, VisitController visitController,
-                        PatientLocationController patientLocationController, PendingAdtController pendingAdtController) {
+                        PatientLocationController patientLocationController, PendingAdtController pendingAdtController,
+                        DeletionController deletionController) {
         this.personController = personController;
         this.visitController = visitController;
         this.patientLocationController = patientLocationController;
         this.pendingAdtController = pendingAdtController;
+        this.deletionController = deletionController;
     }
 
 
@@ -120,7 +125,7 @@ public class AdtProcessor {
             return;
         }
         patientLocationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
-        visitController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
+        deletionController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
     }
 
     /**

@@ -300,19 +300,23 @@ public class LabOrderController {
     }
 
     /**
-     * Deletes lab orders that are older than the current message, along with tables which require orders.
-     * @param visit             Hospital Visit Entity
+     * Returns all lab orders associated with a specific hospital visit.
+     * @param visit                 Hospital Visit Entity
+     * @return List of Lab Orders
+     */
+    public List<LabOrder> getLabOrdersForVisit(HospitalVisit visit) {
+        return labOrderRepo.findAllByHospitalVisitId(visit);
+    }
+
+    /**
+     * Deletes a single lab order.
+     * @param labOrder          Lab Order
      * @param invalidationTime  Lab Battery
      * @param deletionTime      Lab Sample entity
      */
-    public void deleteLabOrdersForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
-        List<LabOrder> labOrders = labOrderRepo.findAllByHospitalVisitId(visit);
-        for (var lo : labOrders) {
-            labResultController.deleteLabResultsForLabOrder(lo, invalidationTime, deletionTime);
-
-            LabOrderAudit labOrderAudit = lo.createAuditEntity(invalidationTime, deletionTime);
-            labOrderAuditRepo.save(labOrderAudit);
-            labOrderRepo.delete(lo);
-        }
+    public void deleteLabOrder(LabOrder labOrder, Instant invalidationTime, Instant deletionTime) {
+        LabOrderAudit labOrderAudit = labOrder.createAuditEntity(invalidationTime, deletionTime);
+        labOrderAuditRepo.save(labOrderAudit);
+        labOrderRepo.delete(labOrder);
     }
 }
