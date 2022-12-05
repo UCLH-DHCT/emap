@@ -21,6 +21,7 @@ import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 
 import javax.annotation.Resource;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Functionality to create consultation requests for patients.
@@ -199,6 +200,21 @@ public class ConsultationRequestController {
         // only update status change time if the entity has been created or updated
         if (requestState.isEntityCreated() || requestState.isEntityUpdated()) {
             requestState.assignIfDifferent(msg.getStatusChangeDatetime(), request.getStatusChangeDatetime(), request::setStatusChangeDatetime);
+        }
+    }
+
+    /**
+     * Deletes consult requests that are older than the current message.
+     * @param visit             Hospital Visit Entity
+     * @param invalidationTime  Lab Battery
+     * @param deletionTime      Lab Sample entity
+     */
+    public void deleteConsultRequestsForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        List<ConsultationRequest> consultationRequests = consultationRequestRepo.findAllByHospitalVisitId(visit);
+        for (var cr : consultationRequests) {
+            ConsultationRequestAudit auditEntity = cr.createAuditEntity(invalidationTime, deletionTime);
+            consultationRequestAuditRepo.save(auditEntity);
+            consultationRequestRepo.delete(cr);
         }
     }
 }
