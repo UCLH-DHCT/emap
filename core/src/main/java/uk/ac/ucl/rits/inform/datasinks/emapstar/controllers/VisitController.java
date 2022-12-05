@@ -37,25 +37,14 @@ public class VisitController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final HospitalVisitRepository hospitalVisitRepo;
     private final HospitalVisitAuditRepository hospitalVisitAuditRepo;
-    private final ConsultationRequestController consultationRequestController;
-    private final PendingAdtController pendingAdtController;
-    private final LabOrderController labOrderController;
 
     /**
      * @param hospitalVisitRepo      repository for HospitalVisit
      * @param hospitalVisitAuditRepo repository for HospitalVisitAudit
-     * @param consultationRequestController  controller for consultation request tables
-     * @param pendingAdtController  controller for planned visit tables
-     * @param labOrderController  controller for lab order tables
      */
-    public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo,
-                           ConsultationRequestController consultationRequestController, PendingAdtController pendingAdtController,
-                           LabOrderController labOrderController) {
+    public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo) {
         this.hospitalVisitRepo = hospitalVisitRepo;
         this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;
-        this.consultationRequestController = consultationRequestController;
-        this.pendingAdtController = pendingAdtController;
-        this.labOrderController = labOrderController;
     }
 
     /**
