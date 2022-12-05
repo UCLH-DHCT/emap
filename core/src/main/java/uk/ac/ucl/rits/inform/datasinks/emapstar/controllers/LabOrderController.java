@@ -26,6 +26,7 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -44,15 +45,14 @@ public class LabOrderController {
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final QuestionController questionController;
 
-
     /**
-     * @param labBatteryRepo     repository for LabBattery
-     * @param labSampleRepo      repository for LabSample
-     * @param labSampleAuditRepo repository for LabSampleAudit
-     * @param labOrderRepo       repository for LabOrder
-     * @param labResultRepo      repository for LabResult
-     * @param labOrderAuditRepo  repository for LabOrderAudit
-     * @param questionController controller for Question tables
+     * @param labBatteryRepo      repository for LabBattery
+     * @param labSampleRepo       repository for LabSample
+     * @param labSampleAuditRepo  repository for LabSampleAudit
+     * @param labOrderRepo        repository for LabOrder
+     * @param labResultRepo       repository for LabResult
+     * @param labOrderAuditRepo   repository for LabOrderAudit
+     * @param questionController  controller for Question tables
      */
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
@@ -294,4 +294,24 @@ public class LabOrderController {
         labOrderRepo.delete(labOrder);
     }
 
+    /**
+     * Returns all lab orders associated with a specific hospital visit.
+     * @param visit                 Hospital Visit Entity
+     * @return List of Lab Orders
+     */
+    public List<LabOrder> getLabOrdersForVisit(HospitalVisit visit) {
+        return labOrderRepo.findAllByHospitalVisitId(visit);
+    }
+
+    /**
+     * Deletes a single lab order.
+     * @param labOrder          Lab Order
+     * @param invalidationTime  Lab Battery
+     * @param deletionTime      Lab Sample entity
+     */
+    public void deleteLabOrder(LabOrder labOrder, Instant invalidationTime, Instant deletionTime) {
+        LabOrderAudit labOrderAudit = labOrder.createAuditEntity(invalidationTime, deletionTime);
+        labOrderAuditRepo.save(labOrderAudit);
+        labOrderRepo.delete(labOrder);
+    }
 }

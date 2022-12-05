@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.DeletionController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientLocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PendingAdtController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.DeletionController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -34,20 +34,21 @@ public class AdtProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AdtProcessor.class);
     private final PersonController personController;
     private final VisitController visitController;
-    private final DeletionController deletionController;
     private final PatientLocationController patientLocationController;
     private final PendingAdtController pendingAdtController;
+    private final DeletionController deletionController;
 
     /**
      * Implicitly wired spring beans.
      * @param personController          person interactions.
      * @param visitController           encounter interactions.
-     * @param deletionController        cascading deletions.
      * @param patientLocationController location interactions.
      * @param pendingAdtController      pending ADT interactions.
+     * @param deletionController        cascading deletes for hospital visits.
      */
-    public AdtProcessor(PersonController personController, VisitController visitController, DeletionController deletionController,
-                        PatientLocationController patientLocationController, PendingAdtController pendingAdtController) {
+    public AdtProcessor(PersonController personController, VisitController visitController,
+                        PatientLocationController patientLocationController, PendingAdtController pendingAdtController,
+                        DeletionController deletionController) {
         this.personController = personController;
         this.visitController = visitController;
         this.patientLocationController = patientLocationController;
