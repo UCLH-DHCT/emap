@@ -29,10 +29,6 @@ public class LocationMetadata extends EmapOperationMessage {
      * Most likely null but track in case we do have it.
      */
     private Instant departmentUpdateDate;
-    /**
-     *  Speciality of the department at the current time of a given row
-     */
-    private String currentSpeciality;
 
     /**
      * Unique ID for the contact, can have multiple from the same hl7 representation.
