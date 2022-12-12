@@ -32,7 +32,7 @@ import javax.persistence.Table;
 public class ConditionVisits {
 
     /**
-     * \brief Unique identifier in EMAP for this link record.
+     * \brief Unique identifier in EMAP for this condition visit record.
      *
      * This is the primary key for the ConditionVisits table.
      */
