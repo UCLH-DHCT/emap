@@ -69,7 +69,7 @@ class TestCoPathOrders {
         assertEquals("Not in Message", order.getSourceSystem());
         assertEquals(InterchangeValue.buildFromHl7("PLF"), order.getSpecimenType());
         assertEquals("Path,Cyt", order.getLabDepartment());
-        assertEquals("Path,Cyt", order.getTestBatteryLocalCode());
+        assertEquals("UC", order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertFalse(order.getQuestions().isEmpty());
         String answer = order.getQuestions().get("Clinical Details:");
@@ -167,7 +167,7 @@ class TestCoPathOrders {
         assertEquals("Not in Message", order.getSourceSystem());
         assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
         assertEquals("Path,Cyt", order.getLabDepartment());
-        assertEquals(order.getLabDepartment(), order.getTestBatteryLocalCode());
+        assertEquals("UC", order.getTestBatteryLocalCode());
 
         assertTrue(order.getOrderStatus().isEmpty());
         assertTrue(order.getResultStatus().isEmpty());
