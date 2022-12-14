@@ -90,8 +90,9 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
 
         // Epic alters these two codes, so we will do the same
         String localCode = getMsg().getTestBatteryLocalCode();
-        if (localCode.equals("H") || localCode.equals("C"))
+        if (localCode.equals("H") || localCode.equals("C")) {
             getMsg().setTestBatteryLocalCode("U" + localCode);
+        }
     }
 
     private void setEpicOrderNumberFromORC() {
