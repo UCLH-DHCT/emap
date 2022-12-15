@@ -22,6 +22,12 @@ public interface DepartmentStateRepository extends CrudRepository<DepartmentStat
      */
     Optional<DepartmentState> findByDepartmentIdAndStatus(Department department, String status);
 
-    List<DepartmentState> findByDepartmentId(Department department);
+    /**
+     * For testing.
+     * @param department department entity
+     * @param speciality speciality
+     * @return potential department state
+     */
+    Optional<DepartmentState> findByDepartmentIdAndSpeciality(Department department, String speciality);
 
 }

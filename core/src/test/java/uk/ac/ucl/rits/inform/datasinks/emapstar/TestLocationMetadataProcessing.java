@@ -1,8 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.jdbc.Sql;
@@ -29,8 +27,6 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -263,35 +259,27 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Set fields which should never change to new value.
-     */
-    static Stream<Consumer<LocationMetadata>> departmentFieldsWithChangedData() {
-        String newData = "NEW";
-        return Stream.of(
-                metadata -> metadata.setDepartmentSpeciality(newData)
-        );
-    }
-
-    /**
      * Given that location exists with a linked department.
      * When a message with the same full hl7 string has a different department data (excluding status and updatedDate)
      * The message should be processed
      */
-    @ParameterizedTest
-    @MethodSource("departmentFieldsWithChangedData")
+    @Test
     @Sql("/populate_db.sql")
-    void testDepartmentCanChange(Consumer<LocationMetadata> metadataConsumer) throws Exception {
-        metadataConsumer.accept(acunCensusBed);
+    void testDepartmentCanChange() throws Exception {
+        // Alter test data
+        acunCensusBed.setDepartmentSpeciality("NEW");
+
+        // Checking the original department speciality
         Location location = getLocation(ACUN_LOCATION_HL7_STRING);
         Department dep = location.getDepartmentId();
-        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+        DepartmentState previousState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+        assertEquals("Maternity - Well Baby", previousState.getSpeciality());
 
         // Process message
         acunCensusBed.setDepartmentUpdateDate(acunCensusBed.getDepartmentUpdateDate().plusSeconds(20));
         processSingleMessage(acunCensusBed);
-        List<DepartmentState> currentStates = departmentStateRepo.findByDepartmentId(dep);
-        assertEquals("NEW", currentStates.get(currentStates.size()-1).getSpeciality());
-
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, "NEW").orElseThrow();
+        assertNull(currentState.getValidUntil());
     }
 
     // ROOM
