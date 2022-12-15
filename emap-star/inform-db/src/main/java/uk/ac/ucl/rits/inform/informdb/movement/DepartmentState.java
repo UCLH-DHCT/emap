@@ -25,7 +25,8 @@ import java.time.Instant;
 @Table
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class DepartmentState extends AuditCore<DepartmentState> {
+public class
+DepartmentState extends AuditCore<DepartmentState> {
 
     /**
      * \brief Unique identifier in EMAP for this departmentState record.
@@ -51,15 +52,20 @@ public class DepartmentState extends AuditCore<DepartmentState> {
     private String status;
 
     /**
+     * \brief Current speciality of the department
+     */
+    private String speciality;
+    /**
      * Create valid department state.
      * @param department parent department
      * @param status     status of department
      * @param validFrom  time that the message was valid from
      * @param storedFrom time that emap core stared processing the message
      */
-    public DepartmentState(Department department, String status, Instant validFrom, Instant storedFrom) {
+    public DepartmentState(Department department, String status, String speciality, Instant validFrom, Instant storedFrom) {
         departmentId = department;
         this.status = status;
+        this.speciality = speciality;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
@@ -70,6 +76,7 @@ public class DepartmentState extends AuditCore<DepartmentState> {
         setStoredFrom(other.getStoredFrom());
         departmentId = other.departmentId;
         status = other.status;
+        speciality = other.speciality;
     }
 
     @Override
