@@ -115,13 +115,9 @@ public class LocationController {
         Department dep = departmentRepo
                 .findByHl7StringAndName(msg.getDepartmentHl7(), msg.getDepartmentName())
                 .orElseGet(() -> departmentRepo.save(
-                        new Department(msg.getDepartmentHl7(), msg.getDepartmentName(), msg.getDepartmentSpeciality())));
+                        new Department(msg.getDepartmentHl7(), msg.getDepartmentName())));
 
         createDepartmentOnlyLocationIfRequired(dep, msg.getHl7String());
-
-        if (notNullAndDifferent(msg.getDepartmentSpeciality(), dep.getSpeciality())) {
-            throw new IncompatibleDatabaseStateException("Department can't change it's speciality");
-        }
 
         createCurrentStateAndUpdatePreviousIfRequired(msg, dep, storedFrom);
 
@@ -165,7 +161,7 @@ public class LocationController {
      */
     private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom) {
         DepartmentState currentState = new DepartmentState(
-                department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentUpdateDate(), storedFrom);
+                department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), msg.getDepartmentUpdateDate(), storedFrom);
 
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo.findFirstByDepartmentIdOrderByStoredFromDesc(department);
 
@@ -175,6 +171,7 @@ public class LocationController {
             if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
                 previousState.setStoredUntil(currentState.getStoredFrom());
                 previousState.setValidUntil(currentState.getValidFrom());
+                previousState.setSpeciality(msg.getDepartmentSpeciality());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
             }
         } else {
