@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -20,5 +21,7 @@ public interface DepartmentStateRepository extends CrudRepository<DepartmentStat
      * @return potential department state
      */
     Optional<DepartmentState> findByDepartmentIdAndStatus(Department department, String status);
+
+    List<DepartmentState> findByDepartmentId(Department department);
 
 }

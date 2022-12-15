@@ -136,7 +136,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         Department dep = location.getDepartmentId();
         assertEquals(ACUN_DEPT_HL7_STRING, dep.getHl7String());
         assertEquals("EGA E03 ACU NURSERY", dep.getName());
-        assertEquals("Maternity - Well Baby", dep.getSpeciality());
+        //assertEquals("Maternity - Well Baby", dep.getSpeciality());
 
         DepartmentState depState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
         assertNotNull(depState.getStoredFrom());
@@ -268,7 +268,6 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     static Stream<Consumer<LocationMetadata>> departmentFieldsWithChangedData() {
         String newData = "NEW";
         return Stream.of(
-                metadata -> metadata.setDepartmentHl7(newData),
                 metadata -> metadata.setDepartmentSpeciality(newData)
         );
     }
@@ -276,19 +275,23 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     /**
      * Given that location exists with a linked department.
      * When a message with the same full hl7 string has a different department data (excluding status and updatedDate)
-     * An exception should be thrown
+     * The message should be processed
      */
     @ParameterizedTest
     @MethodSource("departmentFieldsWithChangedData")
     @Sql("/populate_db.sql")
-    void testDepartmentCantChange(Consumer<LocationMetadata> metadataConsumer) {
+    void testDepartmentCanChange(Consumer<LocationMetadata> metadataConsumer) throws Exception {
         metadataConsumer.accept(acunCensusBed);
-        if ("NEW".equals(acunCensusBed.getDepartmentHl7())) {
-            // data integrity violation will be the thrown exception, even if our own custom exception is thrown beforehand
-            assertThrows(DataIntegrityViolationException.class, () -> processSingleMessage(acunCensusBed));
-        } else {
-            assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
-        }
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+        Department dep = location.getDepartmentId();
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+
+        // Process message
+        acunCensusBed.setDepartmentUpdateDate(acunCensusBed.getDepartmentUpdateDate().plusSeconds(20));
+        processSingleMessage(acunCensusBed);
+        List<DepartmentState> currentStates = departmentStateRepo.findByDepartmentId(dep);
+        assertEquals("NEW", currentStates.get(currentStates.size()-1).getSpeciality());
+
     }
 
     // ROOM
