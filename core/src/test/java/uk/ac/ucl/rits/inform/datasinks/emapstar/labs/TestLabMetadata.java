@@ -53,7 +53,7 @@ public class TestLabMetadata extends MessageProcessingBase {
             processSingleMessage(m);
         }
 
-        assertEquals(1 + 7, labBatteryRepository.count());
+        assertEquals(1 + 8, labBatteryRepository.count());
 
         // unchanged
         assertEquals(4, labBatteryElementRepository.count());
