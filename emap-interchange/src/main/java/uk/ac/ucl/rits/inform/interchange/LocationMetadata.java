@@ -85,6 +85,7 @@ public class LocationMetadata extends EmapOperationMessage {
      */
     private Boolean bedIsInCensus;
     private String bedFacility;
+    private Instant auditDate;
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
