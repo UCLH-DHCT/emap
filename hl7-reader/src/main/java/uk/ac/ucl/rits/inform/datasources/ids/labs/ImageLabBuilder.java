@@ -19,7 +19,6 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
-import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -28,7 +27,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -46,14 +44,15 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     private static final Logger logger = LoggerFactory.getLogger(ImageLabBuilder.class);
     private static final String QUESTION_SEPARATOR = "=";
     private static final Pattern QUESTION_PATTERN = Pattern.compile(QUESTION_SEPARATOR);
+    private static final String NARRATIVE_CODE = "GDT";
+    private static final String ADDENDA_CODE = "ADT";
+    private static final String IMPRESSION_CODE = "IMP";
     /**
      * OBX identifiers that will be used to build a report result.
      */
-    private static final Set<String> RESULT_OBX_IDENTIFIERS = Set.of("IMP", "GDT", "ADT");
-    /**
-     * Internal identifier for a report result.
-     */
-    private static final String REPORT_OBX = ValueType.TEXT.toString();
+    private static final Map<String, String> RESULT_OBX_IDENTIFIERS = Map.of(
+            ADDENDA_CODE, "ADDENDA", NARRATIVE_CODE, "NARRATIVE", IMPRESSION_CODE, "IMPRESSION"
+    );
 
     @Override
     protected void setLabSpecimenNumber(ORC orc) {
@@ -98,11 +97,12 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         setOrderInformation(subMessageSourceId, patientHl7, obr, obs.getORC(), notes);
 
 
-        Map<String, List<OBX>> obxByIdentifier = getLatestValidResultByIdentifier(obs);
+        Map<String, List<OBX>> obxByIdentifier = getResultsByIdentifier(obs);
 
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (Map.Entry<String, List<OBX>> entries : obxByIdentifier.entrySet()) {
-            ImageLabResultBuilder labResult = new ImageLabResultBuilder(entries.getKey().equals(REPORT_OBX), entries.getValue(), obr);
+            String identifier = entries.getKey();
+            ImageLabResultBuilder labResult = new ImageLabResultBuilder(RESULT_OBX_IDENTIFIERS.containsValue(identifier), identifier, entries.getValue(), obr);
             try {
                 labResult.constructMsg();
                 if (!labResult.isIgnored()) {
@@ -123,15 +123,28 @@ public final class ImageLabBuilder extends LabOrderBuilder {
      * @return OBX segments grouped by their identifier (using primitive identifier as a fallback)
      * @throws HL7Exception if HAPI does
      */
-    private Map<String, List<OBX>> getLatestValidResultByIdentifier(ORU_R01_ORDER_OBSERVATION obs) throws HL7Exception {
+    private Map<String, List<OBX>> getResultsByIdentifier(ORU_R01_ORDER_OBSERVATION obs) throws HL7Exception {
         List<OBX> obxSegments = obs.getOBSERVATIONAll().stream().map(ORU_R01_OBSERVATION::getOBX).collect(Collectors.toList());
 
         Map<String, List<OBX>> obxByIdentifier = new HashMap<>(obs.getOBSERVATIONAll().size());
         String previousIdentifier = null;
+        // for report data, the expected order is "ADT", "GDT", "IMP". If there's a final GDT then we should ignore these lines
+        boolean impressionFound = false;
         for (OBX obx : obxSegments) {
             String identifier = getIdentifierTypeOrEmpty(obx);
-            if (RESULT_OBX_IDENTIFIERS.contains(identifier)) {
-                identifier = REPORT_OBX;
+            if (impressionFound && NARRATIVE_CODE.equals(identifier)) {
+                break;
+            }
+            if (shouldSkipTextResultLine(identifier, obx)) {
+                continue;
+            }
+
+
+            if (RESULT_OBX_IDENTIFIERS.containsKey(identifier)) {
+                if (IMPRESSION_CODE.equals(identifier)) {
+                    impressionFound = true;
+                }
+                identifier = RESULT_OBX_IDENTIFIERS.get(identifier);
             }
 
             if (!identifier.equals(previousIdentifier)) {
@@ -142,6 +155,17 @@ public final class ImageLabBuilder extends LabOrderBuilder {
             previousIdentifier = identifier;
         }
         return obxByIdentifier;
+    }
+
+    private boolean shouldSkipTextResultLine(String identifier, OBX obx) throws HL7Exception {
+        boolean shouldSkip = false;
+        String textValue = obx.getObx5_ObservationValue(0).getData().encode();
+        if (IMPRESSION_CODE.equals(identifier)) {
+            shouldSkip = "OPINION:".equals(textValue);
+        } else if (ADDENDA_CODE.equals(identifier)) {
+            shouldSkip = "---------------------------------------- ".equals(textValue) || textValue.startsWith("Electronically Signed by:");
+        }
+        return shouldSkip;
     }
 
     private String getIdentifierTypeOrEmpty(OBX obx) {

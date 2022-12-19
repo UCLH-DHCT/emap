@@ -56,7 +56,7 @@ class TestImagingLabs {
     void testAddenda() throws Exception {
         LabOrderMsg labOrder = getLabOrder("oru_r01_imaging_multiple_results");
         String textResult = getTextResultByTestCode(labOrder, "ADDENDA");
-        assertEquals("report about an MDT summary ", textResult);
+        assertEquals("report about an MDT summary", textResult);
     }
 
     /**
