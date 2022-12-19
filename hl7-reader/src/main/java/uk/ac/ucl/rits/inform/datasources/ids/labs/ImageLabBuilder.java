@@ -117,9 +117,11 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     }
 
     /**
-     * Group OBX segments by identifier, and return the latest result before an IMP (OBX of opinion) segment.
+     * Group OBX segments by identifier with human-readable names.
      * <p>
-     * We receive multiple OBX segments for the same identifier, but EPIC only keeps the latest result, unless there's an IMP segment.
+     * For text results we can receive ADDENDA (&ADT), NARRATIVE (&GDT) and IMPRESSIONs (&IMP).
+     * To match with EPIC we do some further parsing, skipping some addenda and impression lines, and
+     * any narrative lines after an impression should be skipped.
      * @param obs observations
      * @return OBX segments grouped by their identifier (using primitive identifier as a fallback)
      * @throws HL7Exception if HAPI does
@@ -133,13 +135,12 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         boolean impressionFound = false;
         for (OBX obx : obxSegments) {
             String identifier = getIdentifierTypeOrEmpty(obx);
-            if (impressionFound && NARRATIVE_CODE.equals(identifier)) {
+            if (narrativeResultAfterImpression(impressionFound, identifier)) {
                 break;
             }
             if (shouldSkipTextResultLine(identifier, obx)) {
                 continue;
             }
-
 
             if (RESULT_OBX_IDENTIFIERS.containsKey(identifier)) {
                 if (IMPRESSION_CODE.equals(identifier)) {
@@ -156,6 +157,10 @@ public final class ImageLabBuilder extends LabOrderBuilder {
             previousIdentifier = identifier;
         }
         return obxByIdentifier;
+    }
+
+    private boolean narrativeResultAfterImpression(boolean impressionFound, String identifier) {
+        return impressionFound && NARRATIVE_CODE.equals(identifier);
     }
 
     private boolean shouldSkipTextResultLine(String identifier, OBX obx) throws HL7Exception {
