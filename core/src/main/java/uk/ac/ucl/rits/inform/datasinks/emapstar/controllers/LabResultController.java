@@ -24,6 +24,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Controller for LabResult specific information.
@@ -209,6 +210,15 @@ class LabResultController {
         LabSensitivity sensitivity = new LabSensitivity(labIsolate, agent);
         sensitivity.setReportingDatetime(validFrom);
         return new RowState<>(sensitivity, validFrom, storedFrom, true);
+    }
+
+    public void deleteLabResultsForLabOrder(LabOrder labOrder, Instant invalidationTime, Instant deletionTime) {
+        List<LabResult> labResults = labResultRepo.findAllByLabOrderId(labOrder);
+        for (var lr : labResults) {
+            LabResultAudit resultAudit = lr.createAuditEntity(invalidationTime, deletionTime);
+            labResultAuditRepo.save(resultAudit);
+            labResultRepo.delete(lr);
+        }
     }
 
 }
