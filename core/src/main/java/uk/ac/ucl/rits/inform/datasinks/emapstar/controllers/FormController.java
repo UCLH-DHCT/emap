@@ -110,10 +110,8 @@ public class FormController {
     public void processForm(FormMsg formMsg, Instant storedFrom, HospitalVisit hospitalVisit) {
         /* This value will only be used if formMsg contains a reference to a form or question
          * that we don't have metadata for so a placeholder metadata entry needs to be created.
-         * In this case, there is not very much data at all, so the importance of a "valid from"
-         * date seems quite low, so just pick it to match the current time that we're writing this.
          */
-        Instant metadataValidFrom = storedFrom;
+        Instant metadataValidFrom = formMsg.getFirstFiledDatetime();
 
         // get existing or create a new, minimal, metadata entry
         RowState<FormDefinition, FormDefinitionAudit> formDefinition = formDefinitionController.getOrCreateFormDefinition(
