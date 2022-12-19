@@ -13,7 +13,7 @@ labResultMsgs:
       value: "NG positioning"
   - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
     mimeType: "TEXT"
-    testItemLocalCode: "TEXT"
+    testItemLocalCode: "NARRATIVE"
     observationSubId: "1"
     resultStatus: "FINAL"
     testItemCodingSystem: "PACS"
