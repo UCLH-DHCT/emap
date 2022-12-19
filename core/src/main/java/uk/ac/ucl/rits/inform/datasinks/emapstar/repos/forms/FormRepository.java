@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.forms;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.forms.Form;
@@ -11,7 +11,15 @@ import java.util.Optional;
 
 public interface FormRepository extends CrudRepository<Form, Long> {
     Optional<Form> findByInternalId(String internalId);
-    List<Form> findAllByHospitalVisitIdEncounter(String encounter);
+
     List<Form> findAllByHospitalVisitId(HospitalVisit hospitalVisit);
+
     List<Form> findAllByMrnIdAndValidFromBefore(Mrn mrn, Instant deletionTime);
+
+    /**
+     * For testing only.
+     * @param encounter encounter string to query by
+     * @return list of forms that match
+     */
+    List<Form> findAllByHospitalVisitIdEncounter(String encounter);
 }
