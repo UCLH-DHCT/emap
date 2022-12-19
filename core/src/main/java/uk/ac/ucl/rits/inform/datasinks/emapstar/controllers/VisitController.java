@@ -317,4 +317,16 @@ public class VisitController {
     private boolean isVisitNumberChangesAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
         return !msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && hospitalVisitRepo.findByEncounter(msg.getVisitNumber()).isPresent();
     }
+
+    /**
+     * Deletes visit and updates corresponding audit table.
+     * @param visit             List of hospital visits
+     * @param invalidationTime  Time of the delete information message
+     * @param deletionTime      time that emap-core started processing the message.
+     */
+    public void deleteVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        hospitalVisitAuditRepo.save(visit.createAuditEntity(invalidationTime, deletionTime));
+        hospitalVisitRepo.delete(visit);
+    }
+
 }
