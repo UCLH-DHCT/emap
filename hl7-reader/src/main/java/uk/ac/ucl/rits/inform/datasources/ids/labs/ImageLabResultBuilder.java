@@ -34,6 +34,7 @@ public class ImageLabResultBuilder extends LabResultBuilder {
 
     /**
      * @param isTextResult are the OBX segments for a text result?
+     * @param identifier   the human-readable identifier for the result
      * @param obxSegments  the OBX segments for this result type
      * @param obr          the OBR segment for this result (will be the same segment shared with other OBXs)
      */

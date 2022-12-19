@@ -102,7 +102,8 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (Map.Entry<String, List<OBX>> entries : obxByIdentifier.entrySet()) {
             String identifier = entries.getKey();
-            ImageLabResultBuilder labResult = new ImageLabResultBuilder(RESULT_OBX_IDENTIFIERS.containsValue(identifier), identifier, entries.getValue(), obr);
+            boolean isTextResult = RESULT_OBX_IDENTIFIERS.containsValue(identifier);
+            ImageLabResultBuilder labResult = new ImageLabResultBuilder(isTextResult, identifier, entries.getValue(), obr);
             try {
                 labResult.constructMsg();
                 if (!labResult.isIgnored()) {
