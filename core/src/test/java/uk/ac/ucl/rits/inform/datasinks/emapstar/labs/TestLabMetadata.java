@@ -41,7 +41,7 @@ public class TestLabMetadata extends MessageProcessingBase {
     @Test
     public void testImpliedMetadata() throws Exception {
         processLabOrderMessage();
-        assertEquals(2, labBatteryRepository.count());
+        assertEquals(1, labBatteryRepository.count());
         assertEquals(4, labBatteryElementRepository.count());
         assertEquals(4, labTestDefinitionRepository.count());
 
@@ -53,7 +53,7 @@ public class TestLabMetadata extends MessageProcessingBase {
             processSingleMessage(m);
         }
 
-        assertEquals(2 + 7, labBatteryRepository.count());
+        assertEquals(1 + 8, labBatteryRepository.count());
 
         // unchanged
         assertEquals(4, labBatteryElementRepository.count());
