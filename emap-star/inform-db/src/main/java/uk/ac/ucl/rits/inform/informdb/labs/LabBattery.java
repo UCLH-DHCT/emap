@@ -45,11 +45,6 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
     private String batteryName;
 
     /**
-     * \brief Desription of this battery of tests.
-     */
-    private String description;
-
-    /**
      * \brief Source system of this batteryCode.
      *
      * What system this code belongs to. Examples could be WinPath, or Epic.
@@ -78,7 +73,6 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
         this.labBatteryId = other.labBatteryId;
         this.batteryCode = other.batteryCode;
         this.batteryName = other.batteryName;
-        this.description = other.description;
         this.labProvider = other.labProvider;
     }
 
