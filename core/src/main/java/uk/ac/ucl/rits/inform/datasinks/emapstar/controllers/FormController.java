@@ -33,7 +33,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * Processing of Forms, AKA Smart Data elements.
+ * <p>
+ * The Form definition has been broken out into a separate component to make the deliniation of metadata and patient data more clear.
  * @author Jeremy Stein
+ * @author Stef Piatek
  */
 @Component
 @Transactional
@@ -42,37 +46,24 @@ public class FormController {
     private final FormAuditRepository formAuditRepository;
     private final FormAnswerRepository formAnswerRepository;
     private final FormAnswerAuditRepository formAnswerAuditRepository;
-    private final FormDefinitionRepository formDefinitionRepository;
-    private final FormDefinitionAuditRepository formDefinitionAuditRepository;
-    private final FormQuestionRepository formQuestionRepository;
-    private final FormQuestionAuditRepository formQuestionAuditRepository;
+    private final FormDefinitionController formDefinitionController;
 
     /**
-     * @param formRepository                to store the instance of a form
-     * @param formAuditRepository           to store deletions of forms
-     * @param formAnswerRepository          to store the answers from a form
-     * @param formAnswerAuditRepository     to audit changes to form answers
-     * @param formDefinitionRepository      to store the definition of a form
-     * @param formDefinitionAuditRepository to audit the changes to the form definition
-     * @param formQuestionRepository        to store the questions in a form
-     * @param formQuestionAuditRepository   to audit the changes to the form questions
+     * @param formRepository            to store the instance of a form
+     * @param formAuditRepository       to store deletions of forms
+     * @param formAnswerRepository      to store the answers from a form
+     * @param formAnswerAuditRepository to audit changes to form answers
+     * @param formDefinitionController  to process form and question definitions
      */
     public FormController(
             FormRepository formRepository,
             FormAuditRepository formAuditRepository, FormAnswerRepository formAnswerRepository,
-            FormAnswerAuditRepository formAnswerAuditRepository,
-            FormDefinitionRepository formDefinitionRepository,
-            FormDefinitionAuditRepository formDefinitionAuditRepository,
-            FormQuestionRepository formQuestionRepository,
-            FormQuestionAuditRepository formQuestionAuditRepository) {
+            FormAnswerAuditRepository formAnswerAuditRepository, FormDefinitionController formDefinitionController) {
         this.formRepository = formRepository;
         this.formAuditRepository = formAuditRepository;
         this.formAnswerRepository = formAnswerRepository;
         this.formAnswerAuditRepository = formAnswerAuditRepository;
-        this.formDefinitionRepository = formDefinitionRepository;
-        this.formDefinitionAuditRepository = formDefinitionAuditRepository;
-        this.formQuestionRepository = formQuestionRepository;
-        this.formQuestionAuditRepository = formQuestionAuditRepository;
+        this.formDefinitionController = formDefinitionController;
     }
 
     /**
@@ -93,7 +84,7 @@ public class FormController {
      * @param deletionTime     time that emap-core started processing the message.
      */
     public void deleteFormsForMrn(Mrn mrn, Instant invalidationTime, Instant deletionTime) {
-        List<Form> allFormsForMrn = formRepository.findAllByMrnId(mrn);
+        List<Form> allFormsForMrn = formRepository.findAllByMrnIdAndValidFromBefore(mrn, invalidationTime);
         deleteForms(allFormsForMrn, invalidationTime, deletionTime);
     }
 
@@ -125,7 +116,7 @@ public class FormController {
         Instant metadataValidFrom = storedFrom;
 
         // get existing or create a new, minimal, metadata entry
-        RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
+        RowState<FormDefinition, FormDefinitionAudit> formDefinition = formDefinitionController.getOrCreateFormDefinition(
                 formMsg.getFormId(), storedFrom, metadataValidFrom);
 
         /* Use the form instance ID to see if the incoming message is referring to an existing form that needs updating.
@@ -150,7 +141,7 @@ public class FormController {
             FormAnswer formAnswer = preExistingFormAnswers.get(answerMsg.getQuestionId());
             boolean entityJustCreated = false;
             if (formAnswer == null) {
-                RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(
+                RowState<FormQuestion, FormQuestionAudit> formQuestion = formDefinitionController.getOrCreateFormQuestion(
                         answerMsg.getQuestionId(), storedFrom, metadataValidFrom);
                 formAnswer = new FormAnswer(
                         new TemporalFrom(formMsg.getFirstFiledDatetime(), storedFrom),
@@ -205,24 +196,6 @@ public class FormController {
         }
     }
 
-    private RowState<FormDefinition, FormDefinitionAudit> getOrCreateFormDefinition(String formSourceId, Instant storedFrom, Instant validFrom) {
-        return formDefinitionRepository.findByInternalId(formSourceId)
-                .map(fd -> new RowState<>(fd, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                    FormDefinition newFd = formDefinitionRepository.save(new FormDefinition(new TemporalFrom(validFrom, storedFrom), formSourceId));
-                    return new RowState<>(newFd, validFrom, storedFrom, true);
-                });
-    }
-
-    private RowState<FormQuestion, FormQuestionAudit> getOrCreateFormQuestion(String formQuestionId, Instant storedFrom, Instant validFrom) {
-        return formQuestionRepository.findByInternalId(formQuestionId)
-                .map(fq -> new RowState<>(fq, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                    FormQuestion newFq = formQuestionRepository.save(new FormQuestion(new TemporalFrom(validFrom, storedFrom), formQuestionId));
-                    return new RowState<>(newFq, validFrom, storedFrom, true);
-                });
-    }
-
     /**
      * Create new, or update existing form metadata entry.
      * @param formMetadataMsg metadata to update with
@@ -230,17 +203,7 @@ public class FormController {
      */
     public void createOrUpdateFormMetadata(FormMetadataMsg formMetadataMsg, Instant storedFrom) {
         Instant validFrom = formMetadataMsg.getValidFrom();
-        RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
-                formMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
-        formDefinition.assignIfDifferent(
-                formMetadataMsg.getFormName(),
-                formDefinition.getEntity().getName(),
-                formDefinition.getEntity()::setName);
-        formDefinition.assignIfDifferent(
-                formMetadataMsg.getFormPatientFriendlyName(),
-                formDefinition.getEntity().getPatientFriendlyName(),
-                formDefinition.getEntity()::setPatientFriendlyName);
-        formDefinition.saveEntityOrAuditLogIfRequired(formDefinitionRepository, formDefinitionAuditRepository);
+        formDefinitionController.createOrUpdateFormMetadata(formMetadataMsg, validFrom, storedFrom);
     }
 
     /**
@@ -250,6 +213,37 @@ public class FormController {
      */
     public void createOrUpdateFormQuestionMetadata(FormQuestionMetadataMsg formQuestionMetadataMsg, Instant storedFrom) {
         Instant validFrom = formQuestionMetadataMsg.getValidFrom();
+        formDefinitionController.createOrUpdateFormMetadata(formQuestionMetadataMsg, validFrom, storedFrom);
+    }
+}
+
+/**
+ * Controls interaction with the tables for form and question definition.
+ * @author Stef Piatek
+ */
+@Component
+class FormDefinitionController {
+    private final FormDefinitionRepository formDefinitionRepository;
+    private final FormDefinitionAuditRepository formDefinitionAuditRepository;
+    private final FormQuestionRepository formQuestionRepository;
+    private final FormQuestionAuditRepository formQuestionAuditRepository;
+
+    /**
+     * Component to handle form and question definitions.
+     * @param formDefinitionRepository      to store the definition of a form
+     * @param formDefinitionAuditRepository to audit the changes to the form definition
+     * @param formQuestionRepository        to store the questions in a form
+     * @param formQuestionAuditRepository   to audit the changes to the form questions
+     */
+    FormDefinitionController(FormDefinitionRepository formDefinitionRepository, FormDefinitionAuditRepository formDefinitionAuditRepository,
+                             FormQuestionRepository formQuestionRepository, FormQuestionAuditRepository formQuestionAuditRepository) {
+        this.formDefinitionRepository = formDefinitionRepository;
+        this.formDefinitionAuditRepository = formDefinitionAuditRepository;
+        this.formQuestionRepository = formQuestionRepository;
+        this.formQuestionAuditRepository = formQuestionAuditRepository;
+    }
+
+    void createOrUpdateFormMetadata(FormQuestionMetadataMsg formQuestionMetadataMsg, Instant validFrom, Instant storedFrom) {
         RowState<FormQuestion, FormQuestionAudit> formQuestion = getOrCreateFormQuestion(
                 formQuestionMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
         formQuestion.assignIfDifferent(
@@ -265,5 +259,38 @@ public class FormController {
                 formQuestion.getEntity().getDescription(),
                 formQuestion.getEntity()::setDescription);
         formQuestion.saveEntityOrAuditLogIfRequired(formQuestionRepository, formQuestionAuditRepository);
+    }
+
+    RowState<FormQuestion, FormQuestionAudit> getOrCreateFormQuestion(String formQuestionId, Instant storedFrom, Instant validFrom) {
+        return formQuestionRepository.findByInternalId(formQuestionId)
+                .map(fq -> new RowState<>(fq, validFrom, storedFrom, false))
+                .orElseGet(() -> {
+                    FormQuestion newFq = formQuestionRepository.save(new FormQuestion(new TemporalFrom(validFrom, storedFrom), formQuestionId));
+                    return new RowState<>(newFq, validFrom, storedFrom, true);
+                });
+    }
+
+    void createOrUpdateFormMetadata(FormMetadataMsg formMetadataMsg, Instant validFrom, Instant storedFrom) {
+        RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
+                formMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
+        formDefinition.assignIfDifferent(
+                formMetadataMsg.getFormName(),
+                formDefinition.getEntity().getName(),
+                formDefinition.getEntity()::setName);
+        formDefinition.assignIfDifferent(
+                formMetadataMsg.getFormPatientFriendlyName(),
+                formDefinition.getEntity().getPatientFriendlyName(),
+                formDefinition.getEntity()::setPatientFriendlyName);
+        formDefinition.saveEntityOrAuditLogIfRequired(formDefinitionRepository, formDefinitionAuditRepository);
+    }
+
+
+    RowState<FormDefinition, FormDefinitionAudit> getOrCreateFormDefinition(String formSourceId, Instant storedFrom, Instant validFrom) {
+        return formDefinitionRepository.findByInternalId(formSourceId)
+                .map(fd -> new RowState<>(fd, validFrom, storedFrom, false))
+                .orElseGet(() -> {
+                    FormDefinition newFd = formDefinitionRepository.save(new FormDefinition(new TemporalFrom(validFrom, storedFrom), formSourceId));
+                    return new RowState<>(newFd, validFrom, storedFrom, true);
+                });
     }
 }
