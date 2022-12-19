@@ -152,7 +152,7 @@ public final class ImageLabBuilder extends LabOrderBuilder {
                 obxByIdentifier.put(identifier, new ArrayList<>(obs.getOBSERVATIONAll().size()));
             }
             obxByIdentifier.get(identifier).add(obx);
-            // update previous tracing identifier data
+            // update previous tracking identifier data
             previousIdentifier = identifier;
         }
         return obxByIdentifier;
