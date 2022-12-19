@@ -1,12 +1,11 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAnswerRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormDefinitionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.FormQuestionAuditRepository;
@@ -21,12 +20,14 @@ import uk.ac.ucl.rits.inform.informdb.forms.FormDefinitionAudit;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestion;
 import uk.ac.ucl.rits.inform.informdb.forms.FormQuestionAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,9 +38,8 @@ import java.util.stream.Collectors;
 @Component
 @Transactional
 public class FormController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private final FormRepository formRepository;
+    private final FormAuditRepository formAuditRepository;
     private final FormAnswerRepository formAnswerRepository;
     private final FormAnswerAuditRepository formAnswerAuditRepository;
     private final FormDefinitionRepository formDefinitionRepository;
@@ -48,23 +48,25 @@ public class FormController {
     private final FormQuestionAuditRepository formQuestionAuditRepository;
 
     /**
-     * @param formRepository
-     * @param formAnswerRepository
-     * @param formAnswerAuditRepository
-     * @param formDefinitionRepository
-     * @param formDefinitionAuditRepository
-     * @param formQuestionRepository
-     * @param formQuestionAuditRepository
+     * @param formRepository                to store the instance of a form
+     * @param formAuditRepository           to store deletions of forms
+     * @param formAnswerRepository          to store the answers from a form
+     * @param formAnswerAuditRepository     to audit changes to form answers
+     * @param formDefinitionRepository      to store the definition of a form
+     * @param formDefinitionAuditRepository to audit the changes to the form definition
+     * @param formQuestionRepository        to store the questions in a form
+     * @param formQuestionAuditRepository   to audit the changes to the form questions
      */
     public FormController(
             FormRepository formRepository,
-            FormAnswerRepository formAnswerRepository,
+            FormAuditRepository formAuditRepository, FormAnswerRepository formAnswerRepository,
             FormAnswerAuditRepository formAnswerAuditRepository,
             FormDefinitionRepository formDefinitionRepository,
             FormDefinitionAuditRepository formDefinitionAuditRepository,
             FormQuestionRepository formQuestionRepository,
             FormQuestionAuditRepository formQuestionAuditRepository) {
         this.formRepository = formRepository;
+        this.formAuditRepository = formAuditRepository;
         this.formAnswerRepository = formAnswerRepository;
         this.formAnswerAuditRepository = formAnswerAuditRepository;
         this.formDefinitionRepository = formDefinitionRepository;
@@ -74,9 +76,44 @@ public class FormController {
     }
 
     /**
+     * Delete all form data for a given hospital visit.
+     * @param visit            hospital visit to query on
+     * @param invalidationTime Time of the delete information message
+     * @param deletionTime     time that emap-core started processing the message.
+     */
+    public void deleteFormsForVisit(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        List<Form> allFormsForVisit = formRepository.findAllByHospitalVisitId(visit);
+        deleteForms(allFormsForVisit, invalidationTime, deletionTime);
+    }
+
+    /**
+     * Delete all forms and form answers directly attached to an MRN.
+     * @param mrn              mrn to delete from
+     * @param invalidationTime Time of the delete information message
+     * @param deletionTime     time that emap-core started processing the message.
+     */
+    public void deleteFormsForMrn(Mrn mrn, Instant invalidationTime, Instant deletionTime) {
+        List<Form> allFormsForMrn = formRepository.findAllByMrnId(mrn);
+        deleteForms(allFormsForMrn, invalidationTime, deletionTime);
+    }
+
+
+    private void deleteForms(Iterable<Form> allFormsForVisit, Instant invalidationTime, Instant deletionTime) {
+        for (Form form : allFormsForVisit) {
+            List<FormAnswer> formAnswers = form.getFormAnswers();
+            for (FormAnswer ans : formAnswers) {
+                formAnswerAuditRepository.save(ans.createAuditEntity(invalidationTime, deletionTime));
+            }
+            formAnswerRepository.deleteAll(formAnswers);
+            formAuditRepository.save(form.createAuditEntity(invalidationTime, deletionTime));
+        }
+        formRepository.deleteAll(allFormsForVisit);
+    }
+
+    /**
      * A new (instance of a) form has been completed.
-     * @param formMsg the form message, containing all answers
-     * @param storedFrom stored from timestamp
+     * @param formMsg       the form message, containing all answers
+     * @param storedFrom    stored from timestamp
      * @param hospitalVisit the hospital visit to associate this form with
      */
     public void processForm(FormMsg formMsg, Instant storedFrom, HospitalVisit hospitalVisit) {
@@ -189,12 +226,10 @@ public class FormController {
     /**
      * Create new, or update existing form metadata entry.
      * @param formMetadataMsg metadata to update with
-     * @param storedFrom stored from if new rows are created
+     * @param storedFrom      stored from if new rows are created
      */
     public void createOrUpdateFormMetadata(FormMetadataMsg formMetadataMsg, Instant storedFrom) {
         Instant validFrom = formMetadataMsg.getValidFrom();
-        TemporalFrom temporalFrom = new TemporalFrom(validFrom, storedFrom);
-
         RowState<FormDefinition, FormDefinitionAudit> formDefinition = getOrCreateFormDefinition(
                 formMetadataMsg.getSourceMessageId(), storedFrom, validFrom);
         formDefinition.assignIfDifferent(
@@ -211,7 +246,7 @@ public class FormController {
     /**
      * Create new, or update an existing question metadata entry.
      * @param formQuestionMetadataMsg metadata message
-     * @param storedFrom stored from if new rows are created
+     * @param storedFrom              stored from if new rows are created
      */
     public void createOrUpdateFormQuestionMetadata(FormQuestionMetadataMsg formQuestionMetadataMsg, Instant storedFrom) {
         Instant validFrom = formQuestionMetadataMsg.getValidFrom();

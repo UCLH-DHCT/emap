@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  */
 @Transactional
 public class TestFormProcessing extends MessageProcessingBase {
+    // TODO: ensure form answer repo is used in tests
     @Autowired
     private FormAnswerRepository formAnswerRepository;
     @Autowired

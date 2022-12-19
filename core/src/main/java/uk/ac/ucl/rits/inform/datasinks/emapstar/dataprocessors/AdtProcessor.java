@@ -119,7 +119,7 @@ public class AdtProcessor {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         personController.deleteDemographic(mrn, messageDateTime, storedFrom);
-        deletionController.deleteFormsForMrn(mrn, messageDateTime, storedFrom);
+        deletionController.deleteMrnDependentEntities(mrn, messageDateTime, storedFrom);
         List<HospitalVisit> olderVisits = visitController.getOlderVisits(mrn, messageDateTime);
         if (olderVisits.isEmpty()) {
             logger.warn("No existing visits for DeletePersonMessage message: {}", msg);
