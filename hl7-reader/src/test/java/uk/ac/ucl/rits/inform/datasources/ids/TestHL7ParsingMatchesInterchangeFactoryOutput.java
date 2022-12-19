@@ -24,9 +24,9 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
@@ -540,7 +540,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @AfterAll
     void checkAllFilesHaveBeenAccessed() throws Exception {
 
-        var excludedSourceSystems = new String[]{"clarity", "caboodle"};
+        var excludedSourceSystems = Set.of("clarity", "caboodle", "ids");
         var missedFilePaths = new ArrayList<String>();
 
         for (var file : interchangeFactory.getFileStore()) {
@@ -552,7 +552,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                 continue;
             }
 
-            if (Arrays.asList(excludedSourceSystems).contains(file.sourceSystem().get())) {
+            if (excludedSourceSystems.contains(file.sourceSystem().get())) {
                 continue;  // Source system is excluded
             }
 
