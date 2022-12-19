@@ -139,8 +139,8 @@ public class FormController {
                 Collectors.toUnmodifiableMap(fa -> fa.getFormQuestionId().getInternalId(), Function.identity()));
         for (FormAnswerMsg answerMsg : formMsg.getFormAnswerMsgs()) {
             FormAnswer formAnswer = preExistingFormAnswers.get(answerMsg.getQuestionId());
-            boolean entityJustCreated = false;
-            if (formAnswer == null) {
+            boolean entityJustCreated = formAnswer == null;
+            if (entityJustCreated) {
                 RowState<FormQuestion, FormQuestionAudit> formQuestion = formDefinitionController.getOrCreateFormQuestion(
                         answerMsg.getQuestionId(), storedFrom, metadataValidFrom);
                 formAnswer = new FormAnswer(
@@ -148,7 +148,6 @@ public class FormController {
                         newOrExistingForm,
                         formQuestion.getEntity());
                 formAnswer.setInternalId(answerMsg.getSourceMessageId());
-                entityJustCreated = true;
             }
             RowState<FormAnswer, FormAnswerAudit> formAnswerRowState = new RowState<>(formAnswer, metadataValidFrom, storedFrom, entityJustCreated);
             setValuesForAllTypes(formAnswerRowState, formAnswer, answerMsg);
