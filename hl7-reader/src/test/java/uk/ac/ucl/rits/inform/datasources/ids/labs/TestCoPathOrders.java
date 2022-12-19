@@ -69,7 +69,7 @@ class TestCoPathOrders {
         assertEquals("Not in Message", order.getSourceSystem());
         assertEquals(InterchangeValue.buildFromHl7("PLF"), order.getSpecimenType());
         assertEquals("Path,Cyt", order.getLabDepartment());
-        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
+        assertEquals("UC", order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertFalse(order.getQuestions().isEmpty());
         String answer = order.getQuestions().get("Clinical Details:");
@@ -100,7 +100,7 @@ class TestCoPathOrders {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sc");
         assertEquals("CoPath", order.getSourceSystem());
         assertEquals("UC", order.getLabDepartment());
-        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
+        assertEquals("UC", order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertEquals("CM", order.getOrderStatus());
         assertEquals("I", order.getResultStatus());
@@ -134,7 +134,7 @@ class TestCoPathOrders {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sn");
         assertEquals("CoPath", order.getSourceSystem());
         assertEquals("UC", order.getLabDepartment());
-        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
+        assertEquals("UC", order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertEquals("IP", order.getOrderStatus());
         assertEquals("I", order.getResultStatus());
@@ -165,9 +165,9 @@ class TestCoPathOrders {
     void testOrrO02NAOrderInfo() throws Exception {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orr_o02_na");
         assertEquals("Not in Message", order.getSourceSystem());
-        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
         assertEquals("Path,Cyt", order.getLabDepartment());
+        assertEquals("UC", order.getTestBatteryLocalCode());
 
         assertTrue(order.getOrderStatus().isEmpty());
         assertTrue(order.getResultStatus().isEmpty());
@@ -187,7 +187,6 @@ class TestCoPathOrders {
         InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
         assertTrue(epicOrderInterchangeValue.isDelete());
         assertEquals(epicOrder, epicOrderInterchangeValue.get());
-        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
     }
 
@@ -201,7 +200,6 @@ class TestCoPathOrders {
         InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
         assertTrue(epicOrderInterchangeValue.isDelete());
         assertEquals(epicOrder, epicOrderInterchangeValue.get());
-        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
     }
 
@@ -216,7 +214,6 @@ class TestCoPathOrders {
         InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
         assertTrue(epicOrderInterchangeValue.isDelete());
         assertEquals(epicOrder, epicOrderInterchangeValue.get());
-        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
     }
 
