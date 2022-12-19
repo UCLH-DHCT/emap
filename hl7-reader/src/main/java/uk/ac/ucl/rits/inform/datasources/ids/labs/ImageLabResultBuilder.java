@@ -27,6 +27,7 @@ public class ImageLabResultBuilder extends LabResultBuilder {
     private final OBR obr;
     private final List<OBX> obxSegments;
     private final boolean isTextResult;
+    private final String identifier;
     private boolean ignored = false;
     private static final String CODING_SYSTEM = OrderCodingSystem.PACS.name();
     private static final Set<String> TEXT_TYPE = Set.of("TX", "ST");
@@ -36,9 +37,10 @@ public class ImageLabResultBuilder extends LabResultBuilder {
      * @param obxSegments  the OBX segments for this result type
      * @param obr          the OBR segment for this result (will be the same segment shared with other OBXs)
      */
-    ImageLabResultBuilder(boolean isTextResult, List<OBX> obxSegments, OBR obr) {
+    ImageLabResultBuilder(boolean isTextResult, String identifier, List<OBX> obxSegments, OBR obr) {
         super(obxSegments.get(0), new ArrayList<>(0), null);
         this.obxSegments = Collections.unmodifiableList(obxSegments);
+        this.identifier = identifier;
         this.obr = obr;
         this.isTextResult = isTextResult;
     }
@@ -85,7 +87,7 @@ public class ImageLabResultBuilder extends LabResultBuilder {
         }
 
         if (isTextResult) {
-            setMimeTypeAndTestCode(valueType);
+            setTextResultMimeTypeAndTestCode(valueType);
             String observationIdAndSubId = getObservationIdAndSubId(getObx());
             String value = incrementallyBuildValue(observationIdAndSubId, delimiter);
             setValueOrIgnored(dataType, value);
@@ -97,14 +99,9 @@ public class ImageLabResultBuilder extends LabResultBuilder {
         }
     }
 
-    private boolean isAllowedTextResult() {
-        return isTextResult;
-    }
-
-
-    private void setMimeTypeAndTestCode(ValueType valueType) {
+    private void setTextResultMimeTypeAndTestCode(ValueType valueType) {
         getMessage().setMimeType(valueType);
-        getMessage().setTestItemLocalCode(valueType.name());
+        getMessage().setTestItemLocalCode(identifier);
     }
 
     private void setValueOrIgnored(String dataType, String value) {
@@ -136,7 +133,7 @@ public class ImageLabResultBuilder extends LabResultBuilder {
             }
             value.add(obx.getObx5_ObservationValue(0).getData().encode());
         }
-        return value.toString();
+        return value.toString().strip();
     }
 
     private String getObservationIdAndSubId(OBX obx) {
