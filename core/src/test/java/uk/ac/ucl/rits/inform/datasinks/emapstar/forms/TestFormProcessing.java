@@ -40,9 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  */
 @Transactional
 public class TestFormProcessing extends MessageProcessingBase {
-    // TODO: ensure form answer repo is used in tests
-    @Autowired
-    private FormAnswerRepository formAnswerRepository;
     @Autowired
     private FormRepository formRepository;
     @Autowired
@@ -129,11 +126,11 @@ public class TestFormProcessing extends MessageProcessingBase {
     }
 
     private void _validateFormDefinitionDetails() {
-        FormDefinition formDefAfterMetadata  = formDefinitionRepository.findByInternalId("2056").get();
+        FormDefinition formDefAfterMetadata  = formDefinitionRepository.findByInternalId("2056").orElseThrow();
         assertEquals("UCLH ADVANCED TEP", formDefAfterMetadata.getName());
         assertEquals("tep patient friendly name", formDefAfterMetadata.getPatientFriendlyName());
         assertEquals(Instant.parse("2019-04-08T10:00:00Z"), formDefAfterMetadata.getValidFrom());
-        assertEquals(FALLBACK_INSTANT, formDefinitionRepository.findByInternalId("1234").get().getValidFrom());
+        assertEquals(FALLBACK_INSTANT, formDefinitionRepository.findByInternalId("1234").orElseThrow().getValidFrom());
     }
 
     private void _validateFormQuestionDetails() {
@@ -155,7 +152,7 @@ public class TestFormProcessing extends MessageProcessingBase {
 
     @Test
     @Sql("/populate_db.sql")
-    public void metadataTestStartingPopulated() throws EmapOperationMessageProcessingException, IOException {
+    public void metadataTestStartingPopulated() throws Exception {
         // STARTING_NUM_QUESTIONS questions in initial DB state, metadata messages contain 10 questions
         // of which 0 are new, 2 form definitions of which 1 is new.
         assertEquals(STARTING_NUM_QUESTIONS, formQuestionRepository.count());
@@ -166,7 +163,7 @@ public class TestFormProcessing extends MessageProcessingBase {
     }
 
     @Test
-    public void metadataTestStartingBlank() throws EmapOperationMessageProcessingException, IOException {
+    public void metadataTestStartingBlank() throws Exception {
         // Empty initial state, so this is a test of adding only.
         // The 10 questions and 2 form definitions in the message should be added.
         _processMetadata();
@@ -188,9 +185,8 @@ public class TestFormProcessing extends MessageProcessingBase {
         Form onlyForm = forms.get(0);
         FormDefinition formDefinition = onlyForm.getFormDefinitionId();
         assertEquals("2056", formDefinition.getInternalId());
-        Map<String, FormAnswer> answersById = onlyForm.getFormAnswers().stream().collect(Collectors.toUnmodifiableMap(
+        return onlyForm.getFormAnswers().stream().collect(Collectors.toUnmodifiableMap(
                 fa -> fa.getFormQuestionId().getInternalId(), Function.identity()));
-        return answersById;
     }
 
     /**
