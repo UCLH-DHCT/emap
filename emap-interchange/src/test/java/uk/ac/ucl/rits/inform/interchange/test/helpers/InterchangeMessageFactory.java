@@ -10,24 +10,27 @@ import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.FileStoreWithMonitoredAccess;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
-import java.util.ArrayList;
 
 
 /**
@@ -326,6 +329,71 @@ public class InterchangeMessageFactory {
         ObjectReader orderReader = EmapYamlMapper.readerForUpdating(defaults);
 
         return orderReader.readValue(getInputStream(overridingPath));
+    }
+
+    /**
+     * Load test form data.
+     * @param fileName message array json file
+     * @return list of FormMsg from this file
+     * @throws IOException if file cannot be read
+     */
+    public List<FormMsg> getFormMsgs(final String fileName) throws IOException {
+        String resourcePath = "/Form/" + fileName;
+        InputStream inputStream = getInputStream(resourcePath);
+        List<FormMsg> formMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormMsg>>() {});
+        for (FormMsg msg : formMsgs) {
+            // These source IDs are derived, so generate programmatically here.
+            // All answers should have the same filing time, perhaps an argument for moving this to the form?
+            // A form without any answers is invalid.
+            Instant answersFiledDatetime = msg.getFormAnswerMsgs().get(0).getFiledDatetime();
+            msg.setSourceMessageId(String.format("%s_%s_%s_%s", msg.getFirstFiledDatetime(), answersFiledDatetime, msg.getMrn(), msg.getFormId()));
+            msg.setFormInstanceId(String.format("%s_%s_%s", msg.getFirstFiledDatetime(), msg.getMrn(), msg.getFormId()));
+        }
+        return formMsgs;
+    }
+
+    /**
+     * Load test form metadata. As in the real life data, the "valid from" date for metadata is sometimes not known,
+     * and the expected behaviour in this case is to use the current time. The fallbackValidFrom date gives the test
+     * a mechanism to say what the correct "now" timestamp is, otherwise you'd have to do some fudging in the assertion:
+     * The expected "now" would usually be a few milliseconds after the actual now, unless your computer
+     * was unexpectedly slow, or you set a breakpoint, etc. Better to be exact than go for any weird heuristics.
+     * @param fileName message array json file
+     * @param fallbackValidFrom Timestamp to fill in if the validFrom is null
+     * @return list of FormMetadataMsg from this file
+     * @throws IOException if file cannot be read
+     */
+    public List<FormMetadataMsg> getFormMetadataMsg(final String fileName, Instant fallbackValidFrom) throws IOException {
+        String resourcePath = "/Form/" + fileName;
+        InputStream inputStream = getInputStream(resourcePath);
+        List<FormMetadataMsg> formMetadataMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormMetadataMsg>>() {});
+        for (var m : formMetadataMsgs) {
+            // if validFrom has not been set then fill it in from the fallback value, if set
+            if (fallbackValidFrom != null && m.getValidFrom() == null) {
+                m.setValidFrom(fallbackValidFrom);
+            }
+        }
+        return formMetadataMsgs;
+    }
+
+    /**
+     * Load test form question metadata. fallbackValidFrom exists for same reason as in {@link #getFormMetadataMsg}
+     * @param fileName expected messages yaml file to read from
+     * @param fallbackValidFrom Timestamp to fill in if the validFrom is null
+     * @return list of FormQuestionMetadataMsg from this file
+     * @throws IOException if file cannot be read
+     */
+    public List<FormQuestionMetadataMsg> getFormQuestionMetadataMsg(final String fileName, Instant fallbackValidFrom) throws IOException {
+        String resourcePath = "/Form/" + fileName;
+        InputStream inputStream = getInputStream(resourcePath);
+        List<FormQuestionMetadataMsg> formMsgs = EmapYamlMapper.readValue(inputStream, new TypeReference<List<FormQuestionMetadataMsg>>() {});
+        for (var m : formMsgs) {
+            // if validFrom has not been set then fill it in from the fallback value, if set
+            if (fallbackValidFrom != null && m.getValidFrom() == null) {
+                m.setValidFrom(fallbackValidFrom);
+            }
+        }
+        return formMsgs;
     }
 
     /**
