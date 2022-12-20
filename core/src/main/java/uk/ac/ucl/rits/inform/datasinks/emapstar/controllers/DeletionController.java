@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import java.time.Instant;
 
@@ -19,22 +20,24 @@ public class DeletionController {
     private final LabController labController;
     private final ConsultationRequestController consultationRequestController;
     private final VisitController hospitalVisitController;
+    private final FormController formController;
 
     /**
      * Deletion controller needs access to other multiple controllers which each have their own delete methods.
-     *
-     * @param pendingAdtController              controller for pending adt tables
-     * @param labController                     controller for Lab tables
-     * @param consultationRequestController     controller for consultation request tables
-     * @param hospitalVisitController           controller for visit tables
+     * @param pendingAdtController          controller for pending adt tables
+     * @param labController                 controller for Lab tables
+     * @param consultationRequestController controller for consultation request tables
+     * @param hospitalVisitController       controller for visit tables
+     * @param formController                controller for form tables
      */
     public DeletionController(
             PendingAdtController pendingAdtController, LabController labController,
-            ConsultationRequestController consultationRequestController, VisitController hospitalVisitController) {
+            ConsultationRequestController consultationRequestController, VisitController hospitalVisitController, FormController formController) {
         this.pendingAdtController = pendingAdtController;
         this.labController = labController;
         this.consultationRequestController = consultationRequestController;
         this.hospitalVisitController = hospitalVisitController;
+        this.formController = formController;
     }
 
     /**
@@ -48,7 +51,18 @@ public class DeletionController {
             pendingAdtController.deletePlannedMovements(visit, invalidationTime, deletionTime);
             labController.deleteLabOrdersForVisit(visit, invalidationTime, deletionTime);
             consultationRequestController.deleteConsultRequestsForVisit(visit, invalidationTime, deletionTime);
+            formController.deleteFormsForVisit(visit, invalidationTime, deletionTime);
             hospitalVisitController.deleteVisit(visit, invalidationTime, deletionTime);
         }
+    }
+
+    /**
+     * Deletes entities that are older than the current message, along with tables which require visits.
+     * @param mrn              MRN of the patient to delete
+     * @param invalidationTime Time of the delete information message
+     * @param deletionTime     time that emap-core started processing the message.
+     */
+    public void deleteMrnDependentEntities(Mrn mrn, Instant invalidationTime, Instant deletionTime) {
+        formController.deleteFormsForMrn(mrn, invalidationTime, deletionTime);
     }
 }
