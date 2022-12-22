@@ -132,9 +132,8 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         Department dep = location.getDepartmentId();
         assertEquals(ACUN_DEPT_HL7_STRING, dep.getHl7String());
         assertEquals("EGA E03 ACU NURSERY", dep.getName());
-        //assertEquals("Maternity - Well Baby", dep.getSpeciality());
 
-        DepartmentState depState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+        DepartmentState depState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, acunCensusBed.getDepartmentSpeciality()).orElseThrow();
         assertNotNull(depState.getStoredFrom());
         assertNull(depState.getValidUntil());
         assertNotNull(depState.getValidFrom());
@@ -214,18 +213,14 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     /**
      * Given department exists in database
      * when a location metadata message with the same department (with same data) is processed
-     * then there should be no changes to the department tables
+     * then there should be no changes to the department table
      */
     @Test
     @Sql("/populate_db.sql")
     void testDepartmentNotDuplicated() throws Exception {
         Iterable<Department> preProcessingDept = departmentRepo.findAll();
-        Iterable<DepartmentState> preProcessingDeptState = departmentStateRepo.findAll();
-
         processSingleMessage(acunCensusBed);
-
         assertEquals(preProcessingDept, departmentRepo.findAll());
-        assertEquals(preProcessingDeptState, departmentStateRepo.findAll());
     }
 
     /**
@@ -273,13 +268,68 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         Location location = getLocation(ACUN_LOCATION_HL7_STRING);
         Department dep = location.getDepartmentId();
         DepartmentState previousState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
-        assertEquals("Maternity - Well Baby", previousState.getSpeciality());
+        assertEquals("Dental - Oral Medicine", previousState.getSpeciality());
 
         // Process message
         acunCensusBed.setDepartmentUpdateDate(acunCensusBed.getDepartmentUpdateDate().plusSeconds(20));
         processSingleMessage(acunCensusBed);
         DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, "NEW").orElseThrow();
         assertNull(currentState.getValidUntil());
+    }
+
+    /**
+     * Given no department states existing in the database
+     * when an old and a new department speciality are both given in the hl7 message
+     * then two department state rows must be created
+     */
+    @Test
+    void testDepartmentPreviousSpecialityNotInDB() throws Exception {
+        // Process message
+        processSingleMessage(acunCensusBed);
+
+        // Checking the original department speciality
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+        Department dep = location.getDepartmentId();
+        DepartmentState prevState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, "Dental - Oral Medicine").orElseThrow();
+        assertNotNull(prevState.getValidFrom());
+        assertNotNull(prevState.getValidUntil());
+        assertNotNull(prevState.getStoredFrom());
+        assertNotNull(prevState.getStoredUntil());
+
+        // Check that the current department start has starting dates but not end dates
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, "Maternity - Well Baby").orElseThrow();
+        assertNotNull(currentState.getValidFrom());
+        assertNull(currentState.getValidUntil());
+        assertNotNull(currentState.getStoredFrom());
+        assertNull(currentState.getStoredUntil());
+    }
+
+    /**
+     * Given a department already has a speciality
+     * when a message changes the department to have a new speciality
+     * then a new DepartmentState should be created and the old one updated
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testDepartmentPreviousSpecialityIsInDB() throws Exception {
+        // Process message
+        processSingleMessage(acunCensusBed);
+
+        // Checking the original department speciality
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+        Department dep = location.getDepartmentId();
+        DepartmentState prevState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, "Dental - Oral Medicine").orElseThrow();
+        assertNotNull(prevState.getValidFrom());
+        assertNotNull(prevState.getValidUntil());
+        assertNotNull(prevState.getStoredFrom());
+        assertNotNull(prevState.getStoredUntil());
+
+        // Check that the current department start has starting dates but not end dates
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, "Maternity - Well Baby").orElseThrow();
+        assertNotNull(currentState.getValidFrom());
+        assertNull(currentState.getValidUntil());
+        assertNotNull(currentState.getStoredFrom());
+        assertNull(currentState.getStoredUntil());
     }
 
     // ROOM
