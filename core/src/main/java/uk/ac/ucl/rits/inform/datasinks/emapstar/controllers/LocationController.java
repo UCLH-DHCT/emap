@@ -24,6 +24,7 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -160,8 +161,9 @@ public class LocationController {
      * @param storedFrom time that emap core started processing the message
      */
     private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom) {
+        Instant validFrom = msg.getAuditDate() == null ? msg.getDepartmentUpdateDate() : msg.getAuditDate();
         DepartmentState currentState = new DepartmentState(
-                department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), msg.getDepartmentUpdateDate(), storedFrom);
+                department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), validFrom, storedFrom);
 
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo.findFirstByDepartmentIdOrderByStoredFromDesc(department);
 
@@ -171,17 +173,29 @@ public class LocationController {
             if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
                 previousState.setStoredUntil(currentState.getStoredFrom());
                 previousState.setValidUntil(currentState.getValidFrom());
-                previousState.setSpeciality(msg.getDepartmentSpeciality());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
             }
+        // If the previous department speciality is not in the database
+        } else if (msg.getPreviousDepartmentSpeciality() != null && msg.getPreviousDepartmentSpeciality() != null ) {
+            DepartmentState previousState = new DepartmentState(
+                    department, msg.getDepartmentRecordStatus().toString(), msg.getPreviousDepartmentSpeciality(), msg.getDepartmentContactDate(), storedFrom);
+            previousState.setStoredUntil(currentState.getStoredFrom());
+            previousState.setValidUntil(currentState.getValidFrom());
+            departmentStateRepo.saveAll(List.of(previousState, currentState));
         } else {
             // if no state state exists already then just save the state
+
+            // departmentUpdateDate/auditDate
             departmentStateRepo.save(currentState);
         }
     }
 
     private boolean stateIsDifferentOrMessageIsLater(DepartmentState currentState, DepartmentState previousState) {
-        return !previousState.getStatus().equals(currentState.getStatus()) || previousState.getValidFrom().isBefore(currentState.getValidFrom());
+        String previousSpeciality = currentState.getSpeciality() == null ? currentState.getSpeciality() : "";
+        String currentSpeciality = currentState.getSpeciality() == null ? currentState.getSpeciality() : "";
+        return !previousState.getStatus().equals(currentState.getStatus())
+                || previousState.getValidFrom().isBefore(currentState.getValidFrom())
+                || !Objects.equals(currentState.getSpeciality(), previousState.getSpeciality());
     }
 
     /**
