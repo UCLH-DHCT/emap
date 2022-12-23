@@ -144,7 +144,7 @@ manages the multiple repositories and configuration files.
     ```bash
     mkdir /gae/emap-live
     chgrp -R docker /gae/emap-live
-    chmod -R g+rwx /gae/emap-live
+    chmod -R g+rws /gae/emap-live
     setfacl -R -m d:g::rwX /gae/emap-live
     ```
     
