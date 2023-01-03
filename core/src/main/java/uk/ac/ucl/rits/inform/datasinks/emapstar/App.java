@@ -9,7 +9,6 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -114,21 +113,6 @@ public class App {
             idsEffectLogging.setProcessingEndTime(Instant.now());
             idsEffectLoggingRepository.save(idsEffectLogging);
         }
-    }
-
-
-    /**
-     * Don't want to do any normal HL7 message processing if running test profile.
-     * @param dbOps Database operations functions.
-     * @return The CommandLineRunner
-     */
-    @Bean
-    @Profile("test")
-    public CommandLineRunner mainLoopTest(InformDbOperations dbOps) {
-        return (args) -> {
-//            dbOps.ensureVocabLoaded();
-            logger.info("Running test CommandLineRunner, to ensure the vocab is loaded.");
-        };
     }
 
 }
