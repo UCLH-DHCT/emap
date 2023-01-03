@@ -52,7 +52,7 @@ DepartmentState extends AuditCore<DepartmentState> {
     private String status;
 
     /**
-     * \brief Current speciality of the department
+     * \brief Current speciality of the department.
      */
     private String speciality;
     /**
@@ -61,6 +61,7 @@ DepartmentState extends AuditCore<DepartmentState> {
      * @param status     status of department
      * @param validFrom  time that the message was valid from
      * @param storedFrom time that emap core stared processing the message
+     * @param speciality name of the current speciality of this department
      */
     public DepartmentState(Department department, String status, String speciality, Instant validFrom, Instant storedFrom) {
         departmentId = department;
