@@ -1,11 +1,12 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+labDepartment: "H"
 labSpecimenNumber: "UR20-4444"
 orderStatus: ""
 mrn: "40800000"
 visitNumber: "20S123234221"
 collectionDateTime: "2020-05-22T11:07:00Z"
 testBatteryCodingSystem: "CO_PATH"
-testBatteryLocalCode: "CO_PATH"
+testBatteryLocalCode: "UH"
 parentObservationIdentifier: ""
 parentSubId: ""
 epicCareOrderNumber:
