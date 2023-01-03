@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdvanceDecisionProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FormProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
@@ -31,11 +33,15 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
+import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 
 /**
@@ -60,6 +66,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private LocationController locationController;
     @Autowired
     private AdvanceDecisionProcessor advanceDecisionProcessor;
+    @Autowired
+    private FormProcessor formProcessor;
+
+    @Value("${features.sde:false}")
+    private boolean sdeFeatureEnabled;
+
+    @PostConstruct
+    public void logFeatureFlags() {
+        logger.info("Feature flag: SDE = {}", sdeFeatureEnabled);
+    }
 
 
     /**
@@ -259,4 +275,50 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant storedFrom = Instant.now();
         labProcessor.processMessage(msg, storedFrom);
     }
+
+    private boolean checkSdeEnabled(Object msg) {
+        if (!sdeFeatureEnabled) {
+            logger.trace("Ignoring message of type {} due to SDE feature flag being disabled", msg.getClass().getSimpleName());
+        }
+        return sdeFeatureEnabled;
+    }
+
+    @Override
+    @Transactional
+    public void processMessage(FormMsg msg) throws EmapOperationMessageProcessingException {
+        if (!checkSdeEnabled(msg)) {
+            return;
+        }
+        Instant storedFrom = Instant.now();
+        formProcessor.processFormMessage(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the FormMetadataMsg msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(FormMetadataMsg msg) throws EmapOperationMessageProcessingException {
+        if (!checkSdeEnabled(msg)) {
+            return;
+        }
+        Instant storedFrom = Instant.now();
+        formProcessor.processMetadataMessage(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the FormQuestionMetadataMsg msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    public void processMessage(FormQuestionMetadataMsg msg) {
+        if (!checkSdeEnabled(msg)) {
+            return;
+        }
+        Instant storedFrom = Instant.now();
+        formProcessor.processQuestionMetadataMessage(msg, storedFrom);
+    }
+
+
 }

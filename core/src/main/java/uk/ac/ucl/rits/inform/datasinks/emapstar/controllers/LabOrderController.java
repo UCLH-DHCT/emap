@@ -22,7 +22,6 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSampleAudit;
-import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
@@ -65,17 +64,6 @@ public class LabOrderController {
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
-        createCoPathBattery();
-    }
-
-    private void createCoPathBattery() {
-        String coPathName = OrderCodingSystem.CO_PATH.name();
-        Instant now = Instant.now();
-        LabBattery coPathBattery = getOrCreateLabBattery(coPathName, coPathName, now, now);
-        coPathBattery.setDescription(new StringBuilder(2)
-                .append("CoPath does not use test batteries, all orders are filed under this battery code. ")
-                .append("The lab test definition lab department can be used to distinguish types of requested tests").toString());
-        labBatteryRepo.save(coPathBattery);
     }
 
     /**
