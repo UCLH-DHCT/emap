@@ -119,7 +119,6 @@ public class LocationController {
                         new Department(msg.getDepartmentHl7(), msg.getDepartmentName())));
 
         createDepartmentOnlyLocationIfRequired(dep, msg.getHl7String());
-
         createCurrentStateAndUpdatePreviousIfRequired(msg, dep, storedFrom);
 
         return dep;
@@ -167,7 +166,7 @@ public class LocationController {
 
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo.findFirstByDepartmentIdOrderByStoredFromDesc(department);
 
-        // if a state already exists and is different from current then we should make a new valid state from the current message
+        // if a state already exists and is different from the current state then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
             DepartmentState previousState = possiblePreviousState.get();
             if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
@@ -175,24 +174,21 @@ public class LocationController {
                 previousState.setValidUntil(currentState.getValidFrom());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
             }
-        // If the previous department speciality is not in the database
-        } else if (msg.getPreviousDepartmentSpeciality() != null && msg.getPreviousDepartmentSpeciality() != null ) {
+        // if the previous department speciality is not in the database
+        } else if (msg.getPreviousDepartmentSpeciality() != null && msg.getPreviousDepartmentSpeciality() != null) {
             DepartmentState previousState = new DepartmentState(
-                    department, msg.getDepartmentRecordStatus().toString(), msg.getPreviousDepartmentSpeciality(), msg.getDepartmentContactDate(), storedFrom);
+                    department, msg.getDepartmentRecordStatus().toString(), msg.getPreviousDepartmentSpeciality(),
+                    msg.getDepartmentContactDate(), storedFrom);
             previousState.setStoredUntil(currentState.getStoredFrom());
             previousState.setValidUntil(currentState.getValidFrom());
             departmentStateRepo.saveAll(List.of(previousState, currentState));
+        // if no state already exists then just save the state as is
         } else {
-            // if no state state exists already then just save the state
-
-            // departmentUpdateDate/auditDate
             departmentStateRepo.save(currentState);
         }
     }
 
     private boolean stateIsDifferentOrMessageIsLater(DepartmentState currentState, DepartmentState previousState) {
-        String previousSpeciality = currentState.getSpeciality() == null ? currentState.getSpeciality() : "";
-        String currentSpeciality = currentState.getSpeciality() == null ? currentState.getSpeciality() : "";
         return !previousState.getStatus().equals(currentState.getStatus())
                 || previousState.getValidFrom().isBefore(currentState.getValidFrom())
                 || !Objects.equals(currentState.getSpeciality(), previousState.getSpeciality());

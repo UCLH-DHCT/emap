@@ -4,7 +4,6 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
