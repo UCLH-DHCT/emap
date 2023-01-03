@@ -85,8 +85,15 @@ public class LocationMetadata extends EmapOperationMessage {
      */
     private Boolean bedIsInCensus;
     private String bedFacility;
+
+    /**
+     * In order to update the department speciality correctly we need to date it
+     * changed (i.e. the auditDate).  Department contact date is only used when the
+     * previous department speciality does not line up with what is currently in the
+     * EMAP database.
+     */
     private Instant auditDate;
-    private  String previousDepartmentSpeciality;
+    private String previousDepartmentSpeciality;
     private Instant departmentContactDate;
 
     @Override
