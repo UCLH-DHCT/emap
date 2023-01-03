@@ -144,7 +144,9 @@ manages the multiple repositories and configuration files.
     ```bash
     mkdir /gae/emap-live
     chgrp -R docker /gae/emap-live
-    chmod -R g+rwx /gae/emap-live
+    chmod -R g+rws /gae/emap-live <!-- Changed back from rwx as permissions weren't transferred as in the readme. If this is a problem again then we should think about it
+<img width="590" alt="image" src="https://user-images.githubusercontent.com/8124189/210367021-32ac429f-950e-4acb-a1f8-b095eb4616cd.png">
+-->
     setfacl -R -m d:g::rwX /gae/emap-live
     ```
     
