@@ -25,8 +25,7 @@ import java.time.Instant;
 @Table
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class
-DepartmentState extends AuditCore<DepartmentState> {
+public class DepartmentState extends AuditCore<DepartmentState> {
 
     /**
      * \brief Unique identifier in EMAP for this departmentState record.
