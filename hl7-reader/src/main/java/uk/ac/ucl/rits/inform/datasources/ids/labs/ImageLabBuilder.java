@@ -128,50 +128,34 @@ public final class ImageLabBuilder extends LabOrderBuilder {
      */
     private Map<String, List<OBX>> getResultsByIdentifier(ORU_R01_ORDER_OBSERVATION obs) throws HL7Exception {
         List<OBX> obxSegments = obs.getOBSERVATIONAll().stream().map(ORU_R01_OBSERVATION::getOBX).collect(Collectors.toList());
-
-        Map<String, List<OBX>> obxByIdentifier = new HashMap<>(obs.getOBSERVATIONAll().size());
-        String previousIdentifier = null;
-        // for report data, the expected order is "ADT", "GDT", "IMP". If there's a final GDT then we should ignore these lines
+        int maximumNumberOfResults = obs.getOBSERVATIONAll().size();
+        Map<String, List<OBX>> obxByIdentifier = new HashMap<>(maximumNumberOfResults);
+        // for report data, the expected order is "ADT", "GDT", "IMP". If there's a final GDT then we should add this to the IMP section
         boolean impressionFound = false;
+
         for (OBX obx : obxSegments) {
-            String identifier = getIdentifierTypeOrEmpty(obx);
-            if (narrativeResultAfterImpression(impressionFound, identifier)) {
-                break;
+            String rawIdentifier = getIdentifierTypeOrEmpty(obx);
+            if (narrativeResultAfterImpression(impressionFound, rawIdentifier)) {
+                rawIdentifier = IMPRESSION_CODE;
             }
-            if (shouldSkipTextResultLine(identifier, obx)) {
+
+            if (!RESULT_OBX_IDENTIFIERS.containsKey(rawIdentifier)) {
+                // non-text results should only have one OBX (e.g. INDICATIONS), so just make a singleton list
+                obxByIdentifier.put(rawIdentifier, List.of(obx));
                 continue;
             }
 
-            if (RESULT_OBX_IDENTIFIERS.containsKey(identifier)) {
-                if (IMPRESSION_CODE.equals(identifier)) {
-                    impressionFound = true;
-                }
-                identifier = RESULT_OBX_IDENTIFIERS.get(identifier);
+            String textIdentifier = RESULT_OBX_IDENTIFIERS.get(rawIdentifier);
+            obxByIdentifier.computeIfAbsent(textIdentifier, key -> new ArrayList<>(maximumNumberOfResults)).add(obx);
+            if (IMPRESSION_CODE.equals(rawIdentifier)) {
+                impressionFound = true;
             }
-
-            if (!identifier.equals(previousIdentifier)) {
-                obxByIdentifier.put(identifier, new ArrayList<>(obs.getOBSERVATIONAll().size()));
-            }
-            obxByIdentifier.get(identifier).add(obx);
-            // update previous tracking identifier data
-            previousIdentifier = identifier;
         }
         return obxByIdentifier;
     }
 
     private boolean narrativeResultAfterImpression(boolean impressionFound, String identifier) {
         return impressionFound && NARRATIVE_CODE.equals(identifier);
-    }
-
-    private boolean shouldSkipTextResultLine(String identifier, OBX obx) throws HL7Exception {
-        boolean shouldSkip = false;
-        String textValue = obx.getObx5_ObservationValue(0).getData().encode();
-        if (IMPRESSION_CODE.equals(identifier)) {
-            shouldSkip = "OPINION:".equals(textValue);
-        } else if (ADDENDA_CODE.equals(identifier)) {
-            shouldSkip = "---------------------------------------- ".equals(textValue) || textValue.startsWith("Electronically Signed by:");
-        }
-        return shouldSkip;
     }
 
     private String getIdentifierTypeOrEmpty(OBX obx) {
