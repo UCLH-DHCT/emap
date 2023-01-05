@@ -8,4 +8,4 @@ departmentSpeciality: "Dental - Oral Medicine"
 departmentRecordStatus: "ACTIVE"
 departmentUpdateDate: "2018-08-22T00:00:00Z"
 # missing previous department will be null
-auditDate: "2020-07-28T10:21:07Z"
+specialityUpdate: "2020-07-28T10:21:07Z"
