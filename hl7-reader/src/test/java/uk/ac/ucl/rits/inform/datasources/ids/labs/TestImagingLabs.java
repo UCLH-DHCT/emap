@@ -118,7 +118,27 @@ class TestImagingLabs {
                 .add("16/1/22")
                 .toString();
         assertEquals(expectedResult, textResult);
+    }
 
+    /**
+     * Given an imaging message which has an indication and 3 lines of narrative text
+     * When this is processed
+     * There should only be an indication and narrative, no signature
+     */
+    @Test
+    void testNonSignatureMessage() throws Exception {
+        LabOrderMsg labOrder = getLabOrder("oru_r01_automated_report");
+
+        Set<String> resultTypes = labOrder.getLabResultMsgs().stream().map(LabResultMsg::getTestItemLocalCode).collect(Collectors.toSet());
+        assertEquals(Set.of("INDICATIONS", "NARRATIVE"), resultTypes);
+
+        String textResult = getTextResultByTestCode(labOrder, "NARRATIVE");
+        String expectedResult = new StringJoiner("\n")
+                .add("This is an automated report. ")
+                .add("If you require the clinical report for this scan, please see patient notes. ")
+                .add("If you require further assistance please contact the Unit.")
+                .toString();
+        assertEquals(expectedResult, textResult);
     }
 
 }
