@@ -47,11 +47,12 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     private static final String NARRATIVE_CODE = "GDT";
     private static final String ADDENDA_CODE = "ADT";
     private static final String IMPRESSION_CODE = "IMP";
+    private static final String SIGNATURE_CODE = "SIG";
     /**
      * OBX identifiers that will be used to build a report result.
      */
     private static final Map<String, String> RESULT_OBX_IDENTIFIERS = Map.of(
-            ADDENDA_CODE, "ADDENDA", NARRATIVE_CODE, "NARRATIVE", IMPRESSION_CODE, "IMPRESSION"
+            ADDENDA_CODE, "ADDENDA", NARRATIVE_CODE, "NARRATIVE", IMPRESSION_CODE, "IMPRESSION", SIGNATURE_CODE, "SIGNATURE"
     );
 
     @Override
@@ -130,13 +131,20 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         List<OBX> obxSegments = obs.getOBSERVATIONAll().stream().map(ORU_R01_OBSERVATION::getOBX).collect(Collectors.toList());
         int maximumNumberOfResults = obs.getOBSERVATIONAll().size();
         Map<String, List<OBX>> obxByIdentifier = new HashMap<>(maximumNumberOfResults);
-        // for report data, the expected order is "ADT", "GDT", "IMP". If there's a final GDT then we should add this to the IMP section
-        boolean impressionFound = false;
-
+        // for report data, the expected order is "ADT", "GDT", "IMP", "SIG
+        // SIG here is a GTD, which we're assuming to be 3 lines long and starts with "Signed by:
+        boolean signatureFound = false;
+        int signatureStartLine = maximumNumberOfResults - 3;
+        int obxLine = 0;
         for (OBX obx : obxSegments) {
             String rawIdentifier = getIdentifierTypeOrEmpty(obx);
-            if (narrativeResultAfterImpression(impressionFound, rawIdentifier)) {
-                rawIdentifier = IMPRESSION_CODE;
+            if (NARRATIVE_CODE.equals(rawIdentifier) && obxLine == signatureStartLine) {
+                signatureFound = true;
+            }
+            obxLine += 1;
+
+            if (signatureFound) {
+                rawIdentifier = SIGNATURE_CODE;
             }
 
             if (!RESULT_OBX_IDENTIFIERS.containsKey(rawIdentifier)) {
@@ -147,16 +155,11 @@ public final class ImageLabBuilder extends LabOrderBuilder {
 
             String textIdentifier = RESULT_OBX_IDENTIFIERS.get(rawIdentifier);
             obxByIdentifier.computeIfAbsent(textIdentifier, key -> new ArrayList<>(maximumNumberOfResults)).add(obx);
-            if (IMPRESSION_CODE.equals(rawIdentifier)) {
-                impressionFound = true;
-            }
+
         }
         return obxByIdentifier;
     }
 
-    private boolean narrativeResultAfterImpression(boolean impressionFound, String identifier) {
-        return impressionFound && NARRATIVE_CODE.equals(identifier);
-    }
 
     private String getIdentifierTypeOrEmpty(OBX obx) {
         String identifier = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
