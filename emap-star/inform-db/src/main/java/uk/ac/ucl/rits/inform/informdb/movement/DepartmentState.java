@@ -74,6 +74,7 @@ public class DepartmentState extends AuditCore<DepartmentState> {
         super(other);
         setValidFrom(other.getValidFrom());
         setStoredFrom(other.getStoredFrom());
+        departmentStateId = other.departmentStateId;
         departmentId = other.departmentId;
         status = other.status;
         speciality = other.speciality;
@@ -96,4 +97,18 @@ public class DepartmentState extends AuditCore<DepartmentState> {
         audit.setStoredUntil(storedUntil);
         return audit;
     }
+
+    /**
+     * Checks if this DepartmentState has been superseded by a new entry into the table
+     */
+    public boolean isPrevious(){
+        return getValidFrom() != null && getValidUntil() != null && getStoredFrom() != null && getStoredUntil() != null;
+    }
+    /**
+     * Is this the most up to date DepartmentState for a particular department?
+     */
+    public boolean isCurrent(){
+        return getValidFrom() != null && getValidUntil() != null && getStoredFrom() != null && getStoredUntil() != null;
+    }
+
 }
