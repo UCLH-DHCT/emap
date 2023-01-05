@@ -160,7 +160,7 @@ public class LocationController {
      * @param storedFrom time that emap core started processing the message
      */
     private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom) {
-        Instant validFrom = msg.getAuditDate() == null ? msg.getDepartmentUpdateDate() : msg.getAuditDate();
+        Instant validFrom = msg.getSpecialityUpdate() == null ? msg.getDepartmentUpdateDate() : msg.getSpecialityUpdate();
         DepartmentState currentState = new DepartmentState(
                 department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), validFrom, storedFrom);
 
@@ -175,7 +175,7 @@ public class LocationController {
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
             }
         // if the previous department speciality is not in the database
-        } else if (msg.getPreviousDepartmentSpeciality() != null && msg.getPreviousDepartmentSpeciality() != null) {
+        } else if (msg.getPreviousDepartmentSpeciality() != null) {
             DepartmentState previousState = new DepartmentState(
                     department, msg.getDepartmentRecordStatus().toString(), msg.getPreviousDepartmentSpeciality(),
                     msg.getDepartmentContactDate(), storedFrom);

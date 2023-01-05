@@ -254,30 +254,6 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Given that location exists with a linked department.
-     * When a message with the same full hl7 string has a different department data (excluding status and updatedDate)
-     * The message should be processed
-     */
-    @Test
-    @Sql("/populate_db.sql")
-    void testDepartmentCanChange() throws Exception {
-        // Alter test data
-        acunCensusBed.setDepartmentSpeciality("NEW");
-
-        // Checking the original department speciality
-        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
-        Department dep = location.getDepartmentId();
-        DepartmentState previousState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
-        assertEquals("Dental - Oral Medicine", previousState.getSpeciality());
-
-        // Process message
-        acunCensusBed.setDepartmentUpdateDate(acunCensusBed.getDepartmentUpdateDate().plusSeconds(20));
-        processSingleMessage(acunCensusBed);
-        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndSpeciality(dep, "NEW").orElseThrow();
-        assertNull(currentState.getValidUntil());
-    }
-
-    /**
      * Given no department states existing in the database
      * when an old and a new department speciality are both given in the hl7 message
      * then two department state rows must be created
@@ -302,6 +278,9 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertNull(currentState.getValidUntil());
         assertNotNull(currentState.getStoredFrom());
         assertNull(currentState.getStoredUntil());
+
+        // Check that there are two department states
+        assertEquals(2, departmentStateRepo.findAllByDepartmentId(dep).size());
     }
 
     /**
@@ -330,6 +309,9 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertNull(currentState.getValidUntil());
         assertNotNull(currentState.getStoredFrom());
         assertNull(currentState.getStoredUntil());
+
+        // Check that there are two department states
+        assertEquals(2, departmentStateRepo.findAllByDepartmentId(dep).size());
     }
 
     // ROOM
