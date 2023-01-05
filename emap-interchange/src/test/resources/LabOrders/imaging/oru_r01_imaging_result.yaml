@@ -2,6 +2,17 @@
 labResultMsgs:
   - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
     mimeType: "TEXT"
+    testItemLocalCode: "SIGNATURE"
+    testItemCodingSystem: "PACS"
+    observationSubId: "1"
+    stringValue:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      value: "Signed by:\nPanda ORANGE\n16/1/22"
+      status: "SAVE"
+    resultStatus: "FINAL"
+    resultTime: "2022-01-16T20:10:11Z"
+  - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+    mimeType: "TEXT"
     testItemLocalCode: "INDICATIONS"
     observationSubId: ""
     resultStatus: "FINAL"
@@ -21,7 +32,7 @@ labResultMsgs:
     stringValue:
       "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
       status: "SAVE"
-      value: "Study Date: 16/1/22  Accession No. RRV2666111\nRRV2666111\nExam Name: XR Chest\nXR Chest Nasogastric Tube Position \n\nClinical Indications: \nseptic screen, hypoactive delirium with increased burden of secretions ?LRTI ?aspiration\n\nFindings: \n\nTip of the NG tube is not included on the original film. The study was repeated. Satisfactory position of the NG tube.\nSigned by:\nPanda ORANGE\n16/1/22"
+      value: "Study Date: 16/1/22  Accession No. RRV2666111\nRRV2666111\nExam Name: XR Chest\nXR Chest Nasogastric Tube Position \n\nClinical Indications: \nseptic screen, hypoactive delirium with increased burden of secretions ?LRTI ?aspiration\n\nFindings: \n\nTip of the NG tube is not included on the original film. The study was repeated. Satisfactory position of the NG tube."
 questions:
   What is your team contact number?: "1111"
   How can the patient travel to the department?: "Bed"
