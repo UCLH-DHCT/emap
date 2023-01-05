@@ -47,22 +47,28 @@ class TestImagingLabs {
     }
 
     /**
-     * Given a message exists with an impression
+     * Given a message exists with an addenda
      * When the message is parsed
-     * The impression should have the "----..." lines and "Electrontically Signed by:..."
+     * The impression should have all addenda lines
      * @throws Exception shouldn't happen
      */
     @Test
     void testAddenda() throws Exception {
         LabOrderMsg labOrder = getLabOrder("oru_r01_imaging_multiple_results");
         String textResult = getTextResultByTestCode(labOrder, "ADDENDA");
-        assertEquals("report about an MDT summary", textResult);
+        String expectedResult = new StringJoiner("\n")
+                .add("---------------------------------------- ")
+                .add("report about an MDT summary ")
+                .add("Electronically Signed by: RABBIT PETER 12/12/12 ")
+                .add("----------------------------------------")
+                .toString();
+        assertEquals(expectedResult, textResult);
     }
 
     /**
      * Given a message exists with an initial `&GDT` narrative, then an `&IMP` impression, and a final `&GDT` result
      * When the message is parsed
-     * The final `&GDT` result which contains signing information should not have been parsed
+     * The final `&GDT` result which contains signing information should not have been added to the NARRATIVE
      * @throws Exception shouldn't happen
      */
     @Test
@@ -71,7 +77,10 @@ class TestImagingLabs {
         String textResult = getTextResultByTestCode(labOrder, "NARRATIVE");
         String expectedResult = new StringJoiner("\n")
                 .add("This is a summary report. The complete report is available in the patient's medical record. If you cannot access the medical record, please contact the sending organisation for a detailed fax or copy.")
-                .add("").add("Study Date: 16/1/22").add("more data").add("end of report")
+                .add("")
+                .add("Study Date: 16/1/22")
+                .add("more data")
+                .add("end of report")
                 .toString();
         assertEquals(expectedResult, textResult);
     }
@@ -79,13 +88,19 @@ class TestImagingLabs {
     /**
      * Given a message exists with an impression
      * When the message is parsed
-     * The impression should have the "OPINION:" line removed"
+     * The impression should have all `IPM` lines and the following `GDT` narrative with the signed by information
      * @throws Exception shouldn't happen
      */
     @Test
     void testImpression() throws Exception {
         LabOrderMsg labOrder = getLabOrder("oru_r01_imaging_multiple_results");
         String textResult = getTextResultByTestCode(labOrder, "IMPRESSION");
-        assertEquals("An actionable alert has been placed on the report and the referring clinician emailed.", textResult);
+        String expectedResult = new StringJoiner("\n")
+                .add("OPINION:")
+                .add("An actionable alert has been placed on the report and the referring clinician emailed.")
+                .add("Signed by:")
+                .add("Panda ORANGE")
+                .toString();
+        assertEquals(expectedResult, textResult);
     }
 }
