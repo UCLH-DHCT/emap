@@ -92,7 +92,7 @@ public class LocationMetadata extends EmapOperationMessage {
      * previous department speciality does not line up with what is currently in the
      * EMAP database.
      */
-    private Instant auditDate;
+    private Instant specialityUpdate;
     private String previousDepartmentSpeciality;
     private Instant departmentContactDate;
 
