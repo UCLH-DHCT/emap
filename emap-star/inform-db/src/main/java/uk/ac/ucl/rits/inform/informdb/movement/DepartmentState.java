@@ -99,15 +99,17 @@ public class DepartmentState extends AuditCore<DepartmentState> {
     }
 
     /**
-     * Checks if this DepartmentState has been superseded by a new entry into the table
+     * Checks if this DepartmentState has been superseded by a new entry into the table.
+     * @return boolean indicating if this is a previous state of the department.
      */
-    public boolean isPrevious(){
+    public boolean isPrevious() {
         return getValidFrom() != null && getValidUntil() != null && getStoredFrom() != null && getStoredUntil() != null;
     }
     /**
      * Is this the most up to date DepartmentState for a particular department?
+     * @return boolean indicating if this is the current departments state.
      */
-    public boolean isCurrent(){
+    public boolean isCurrent() {
         return getValidFrom() != null && getValidUntil() != null && getStoredFrom() != null && getStoredUntil() != null;
     }
 
