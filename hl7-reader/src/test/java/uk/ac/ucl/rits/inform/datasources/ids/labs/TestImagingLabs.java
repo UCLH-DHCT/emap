@@ -43,7 +43,7 @@ class TestImagingLabs {
     void testMultipleResultTypes() throws Exception {
         LabOrderMsg labOrder = getLabOrder("oru_r01_imaging_multiple_results");
         Set<String> resultTypes = labOrder.getLabResultMsgs().stream().map(LabResultMsg::getTestItemLocalCode).collect(Collectors.toSet());
-        assertEquals(Set.of("IMPRESSION", "ADDENDA", "INDICATIONS", "NARRATIVE"), resultTypes);
+        assertEquals(Set.of("IMPRESSION", "ADDENDA", "INDICATIONS", "NARRATIVE", "SIGNATURE"), resultTypes);
     }
 
     /**
@@ -88,7 +88,7 @@ class TestImagingLabs {
     /**
      * Given a message exists with an impression
      * When the message is parsed
-     * The impression should have all `IPM` lines and the following `GDT` narrative with the signed by information
+     * The impression should have all `IMP` lines
      * @throws Exception shouldn't happen
      */
     @Test
@@ -98,9 +98,27 @@ class TestImagingLabs {
         String expectedResult = new StringJoiner("\n")
                 .add("OPINION:")
                 .add("An actionable alert has been placed on the report and the referring clinician emailed.")
-                .add("Signed by:")
-                .add("Panda ORANGE")
                 .toString();
         assertEquals(expectedResult, textResult);
     }
+
+    /**
+     * Given an imaging message which contains a signature
+     * When processed
+     * The signature should be parsed from the last 3 lines of the message
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testSignature() throws Exception {
+        LabOrderMsg labOrder = getLabOrder("oru_r01_imaging_multiple_results");
+        String textResult = getTextResultByTestCode(labOrder, "SIGNATURE");
+        String expectedResult = new StringJoiner("\n")
+                .add("Signed by:")
+                .add("Panda ORANGE")
+                .add("16/1/22")
+                .toString();
+        assertEquals(expectedResult, textResult);
+
+    }
+
 }

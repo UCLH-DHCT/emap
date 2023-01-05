@@ -24,4 +24,5 @@ OBX|10|ST|&IMP|11|OPINION:||||||F|||||10021679^BEN^BIG
 OBX|11|ST|&IMP|12|An actionable alert has been placed on the report and the referring clinician emailed.||||||F|||||10021679^BEN^BIG
 OBX|12|ST|&GDT|13|Signed by:||||||F|||||10021679^BEN^BIG
 OBX|13|ST|&GDT|14|Panda ORANGE||||||F|||||10021679^BEN^BIG
+OBX|13|ST|&GDT|15|16/1/22||||||F|||||10021679^BEN^BIG
 ZDS|1.2.840.114350.2.525.2.798268.2.154412111.1^EPIC^APPLICATION^DICOM
