@@ -138,7 +138,7 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         int obxLine = 0;
         for (OBX obx : obxSegments) {
             String rawIdentifier = getIdentifierTypeOrEmpty(obx);
-            if (NARRATIVE_CODE.equals(rawIdentifier) && obxLine == signatureStartLine) {
+            if (startOfSignature(signatureStartLine, obxLine, obx, rawIdentifier)) {
                 signatureFound = true;
             }
             obxLine += 1;
@@ -158,6 +158,10 @@ public final class ImageLabBuilder extends LabOrderBuilder {
 
         }
         return obxByIdentifier;
+    }
+
+    private boolean startOfSignature(int signatureStartLine, int obxLine, OBX obx, String rawIdentifier) throws HL7Exception {
+        return NARRATIVE_CODE.equals(rawIdentifier) && obxLine == signatureStartLine && "Signed by:".equals(obx.getObx5_ObservationValue(0).encode());
     }
 
 
