@@ -1,0 +1,200 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "12345678"
+  mrn: "20017809"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72564
+      questionId: "UCLH#1167"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Here is my reasoining"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72565
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: true
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "22345677"
+  mrn: "20017888"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72569
+      questionId: "UCLH#1167"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "abcabc"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72570
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: true
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72571
+      questionId: "FAKE#0001"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: false
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72573
+      questionId: "FAKE#0003"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      dateValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2021-02-04"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2021-02-04"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72574
+      questionId: "FAKE#0004"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      utcDatetimeValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2020-04-05T01:02:00.00Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "2020-04-05T01:02:00.00Z"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72575
+      questionId: "FAKE#0005"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 1.01
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1.01"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72576
+      questionId: "FAKE#0006"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: -0.01
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "-0.01"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72577
+      questionId: "FAKE#0007"
+      context: "NOTE"
+      filedDatetime: "2018-11-01T15:39:15Z"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "22345677"
+  mrn: "20017888"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72577
+      questionId: "FAKE#0007"
+      context: "NOTE"
+      filedDatetime: "2018-11-02T15:39:15Z"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 3.14
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "3.14"
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "22345677"
+  mrn: "20017888"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72570
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      filedDatetime: "2019-05-01T15:39:15Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: false
+
+- "@class": "uk.ac.ucl.rits.inform.interchange.form.FormMsg"
+  sourceSystem: "ids"
+  formId: "2056"
+  firstFiledDatetime: "2018-11-01T15:39:15Z"
+  visitNumber: "22345677"
+  mrn: "20017888"
+  formAnswerMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg"
+      sourceMessageId: 72570
+      questionId: "UCLH#1205"
+      context: "NOTE"
+      filedDatetime: "2019-05-02T15:39:15Z"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "1"
+      booleanValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: true

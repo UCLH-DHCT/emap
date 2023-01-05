@@ -13,6 +13,7 @@ import java.util.Objects;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public abstract class EmapOperationMessage implements Serializable {
     private String sourceMessageId;
+
     /**
      * Application that the message is sent from.
      */
