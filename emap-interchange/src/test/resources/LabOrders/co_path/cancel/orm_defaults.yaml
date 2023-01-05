@@ -5,7 +5,7 @@ mrn: "40800000"
 visitNumber: "123234221"
 collectionDateTime: "2020-11-09T15:05:00Z"
 testBatteryCodingSystem: "CO_PATH"
-testBatteryLocalCode: "CO_PATH"
+testBatteryLocalCode: "UH"
 parentObservationIdentifier: ""
 parentSubId: ""
 epicCareOrderNumber:
