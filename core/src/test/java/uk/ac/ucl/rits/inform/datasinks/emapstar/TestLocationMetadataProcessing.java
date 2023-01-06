@@ -544,8 +544,10 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         // setup and process
         medSurgPoolBed.setBedCsn(1L);
         medSurgPoolBed.setBedContactDate(LATER_TIME);
+        medSurgPoolBed.setPreviousDepartmentSpeciality("Maternity - Well Baby");
         processSingleMessage(medSurgPoolBed);
         medSurgPoolBed.setBedCsn(2L);
+        medSurgPoolBed.setPreviousDepartmentSpeciality(null);
         processSingleMessage(medSurgPoolBed);
 
         // check previous state

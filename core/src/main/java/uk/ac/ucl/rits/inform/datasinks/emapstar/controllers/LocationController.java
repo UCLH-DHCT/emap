@@ -110,7 +110,7 @@ public class LocationController {
      * @param msg        message to be processed
      * @param storedFrom time that emap core started processing the message
      * @return department entity
-     * @throws IncompatibleDatabaseStateException if the department name or speciality changes
+     * @throws IncompatibleDatabaseStateException if the previous department speciality is inconsistent with what is currently in EMAP
      */
     private Department updateOrCreateDepartmentAndState(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Department dep = departmentRepo
@@ -158,8 +158,10 @@ public class LocationController {
      * @param msg        message to process
      * @param department parent department entity
      * @param storedFrom time that emap core started processing the message
+     * @throws IncompatibleDatabaseStateException if the previous department speciality is inconsistent with what is currently in EMAP
      */
-    private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom) {
+    private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom)
+            throws IncompatibleDatabaseStateException {
         Instant validFrom = msg.getSpecialityUpdate() == null ? msg.getDepartmentUpdateDate() : msg.getSpecialityUpdate();
         DepartmentState currentState = new DepartmentState(
                 department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), validFrom, storedFrom);
@@ -169,7 +171,13 @@ public class LocationController {
         // if a state already exists and is different from the current state then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
             DepartmentState previousState = possiblePreviousState.get();
+
             if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
+                // Throw an exception if the previous speciality doesn't align with what is currently in EMAP
+                if (!previousState.getSpeciality().equals(msg.getPreviousDepartmentSpeciality())) {
+                    throw new IncompatibleDatabaseStateException("Department speciality does not match what is already in the database");
+                }
+                // Add new department states to EMAP
                 previousState.setStoredUntil(currentState.getStoredFrom());
                 previousState.setValidUntil(currentState.getValidFrom());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
