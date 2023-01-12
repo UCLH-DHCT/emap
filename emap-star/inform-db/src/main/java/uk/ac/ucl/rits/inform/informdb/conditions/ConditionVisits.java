@@ -27,8 +27,8 @@ import javax.persistence.Table;
 @EqualsAndHashCode
 @NoArgsConstructor
 @ToString(callSuper = true)
-@Table(indexes = {@Index(name = "vo_hospital_visit_id", columnList = "hospitalVisitId"),
-        @Index(name = "vo_condition_visit_id", columnList = "conditionVisitsId")})
+@Table(indexes = {@Index(name = "cv_hospital_visit_id", columnList = "hospitalVisitId"),
+        @Index(name = "cv_condition_visit_id", columnList = "conditionVisitId")})
 public class ConditionVisits {
 
     /**
