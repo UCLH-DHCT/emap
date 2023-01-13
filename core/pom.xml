@@ -20,8 +20,8 @@
     <java.version>11</java.version>
     <checkstyle.version>9.3</checkstyle.version>
     <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
-    <inform-db.version>2.5</inform-db.version>
-    <emap-interchange.version>2.5</emap-interchange.version>
+    <inform-db.version>2.6</inform-db.version>
+    <emap-interchange.version>2.6</emap-interchange.version>
     <go-offline-maven-plugin.version>1.2.8</go-offline-maven-plugin.version>
   </properties>
 
