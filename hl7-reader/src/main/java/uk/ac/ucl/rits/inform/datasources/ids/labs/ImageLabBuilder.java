@@ -44,6 +44,16 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     private static final Logger logger = LoggerFactory.getLogger(ImageLabBuilder.class);
     private static final String QUESTION_SEPARATOR = "=";
     private static final Pattern QUESTION_PATTERN = Pattern.compile(QUESTION_SEPARATOR);
+    private static final String NARRATIVE_CODE = "GDT";
+    private static final String ADDENDA_CODE = "ADT";
+    private static final String IMPRESSION_CODE = "IMP";
+    private static final String SIGNATURE_CODE = "SIG";
+    /**
+     * OBX identifiers that will be used to build a report result.
+     */
+    private static final Map<String, String> RESULT_OBX_IDENTIFIERS = Map.of(
+            ADDENDA_CODE, "ADDENDA", NARRATIVE_CODE, "NARRATIVE", IMPRESSION_CODE, "IMPRESSION", SIGNATURE_CODE, "SIGNATURE"
+    );
 
     @Override
     protected void setLabSpecimenNumber(ORC orc) {
@@ -88,11 +98,13 @@ public final class ImageLabBuilder extends LabOrderBuilder {
         setOrderInformation(subMessageSourceId, patientHl7, obr, obs.getORC(), notes);
 
 
-        Map<String, List<OBX>> obxByIdentifier = getLatestValidResultByIdentifier(obs);
+        Map<String, List<OBX>> obxByIdentifier = getResultsByIdentifier(obs);
 
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (Map.Entry<String, List<OBX>> entries : obxByIdentifier.entrySet()) {
-            ImageLabResultBuilder labResult = new ImageLabResultBuilder(entries.getKey(), entries.getValue(), obr);
+            String identifier = entries.getKey();
+            boolean isTextResult = RESULT_OBX_IDENTIFIERS.containsValue(identifier);
+            ImageLabResultBuilder labResult = new ImageLabResultBuilder(isTextResult, identifier, entries.getValue(), obr);
             try {
                 labResult.constructMsg();
                 if (!labResult.isIgnored()) {
@@ -106,37 +118,52 @@ public final class ImageLabBuilder extends LabOrderBuilder {
     }
 
     /**
-     * Group OBX segments by identifier, and return the latest result before an IMP (OBX of opinion) segment.
+     * Group OBX segments by identifier with human-readable names.
      * <p>
-     * We receive multiple OBX segments for the same identifier, but EPIC only keeps the latest result, unless there's an IMP segment.
+     * For text results we can receive ADDENDA (&ADT), NARRATIVE (&GDT) and IMPRESSIONs (&IMP).
+     * To match with EPIC we do some further parsing, skipping some addenda and impression lines, and
+     * any narrative lines after an impression should be skipped.
      * @param obs observations
      * @return OBX segments grouped by their identifier (using primitive identifier as a fallback)
      * @throws HL7Exception if HAPI does
      */
-    private Map<String, List<OBX>> getLatestValidResultByIdentifier(ORU_R01_ORDER_OBSERVATION obs) throws HL7Exception {
+    private Map<String, List<OBX>> getResultsByIdentifier(ORU_R01_ORDER_OBSERVATION obs) throws HL7Exception {
         List<OBX> obxSegments = obs.getOBSERVATIONAll().stream().map(ORU_R01_OBSERVATION::getOBX).collect(Collectors.toList());
-
-        Map<String, List<OBX>> obxByIdentifier = new HashMap<>(obs.getOBSERVATIONAll().size());
-        String previousIdentifier = null;
-        String previousSubId = null;
+        int maximumNumberOfResults = obs.getOBSERVATIONAll().size();
+        Map<String, List<OBX>> obxByIdentifier = new HashMap<>(maximumNumberOfResults);
+        // for report data, the expected order is "ADT", "GDT", "IMP", "SIG
+        // SIG here is a GTD, which we're assuming to be 3 lines long and starts with "Signed by:
+        boolean signatureFound = false;
+        int signatureStartLine = maximumNumberOfResults - 3;
+        int obxLine = 0;
         for (OBX obx : obxSegments) {
-            String identifier = getIdentifierTypeOrEmpty(obx);
-            String subId = obx.getObx4_ObservationSubID().getValueOrEmpty();
-            if ("IMP".equals(identifier)) {
-                // stop processing if we encounter an IMP
-                break;
+            String rawIdentifier = getIdentifierTypeOrEmpty(obx);
+            if (startOfSignature(signatureStartLine, obxLine, obx, rawIdentifier)) {
+                signatureFound = true;
             }
-            if (!identifier.equals(previousIdentifier) || !subId.equals(previousSubId)) {
-                // Newer data for the identifier, so replace existing data if it exists
-                obxByIdentifier.put(identifier, new ArrayList<>(obs.getOBSERVATIONAll().size()));
+            obxLine += 1;
+
+            if (signatureFound) {
+                rawIdentifier = SIGNATURE_CODE;
             }
-            obxByIdentifier.get(identifier).add(obx);
-            // update previous tracing identifier data
-            previousIdentifier = identifier;
-            previousSubId = subId;
+
+            if (!RESULT_OBX_IDENTIFIERS.containsKey(rawIdentifier)) {
+                // non-text results should only have one OBX (e.g. INDICATIONS), so just make a singleton list
+                obxByIdentifier.put(rawIdentifier, List.of(obx));
+                continue;
+            }
+
+            String textIdentifier = RESULT_OBX_IDENTIFIERS.get(rawIdentifier);
+            obxByIdentifier.computeIfAbsent(textIdentifier, key -> new ArrayList<>(maximumNumberOfResults)).add(obx);
+
         }
         return obxByIdentifier;
     }
+
+    private boolean startOfSignature(int signatureStartLine, int obxLine, OBX obx, String rawIdentifier) throws HL7Exception {
+        return NARRATIVE_CODE.equals(rawIdentifier) && obxLine == signatureStartLine && "Signed by:".equals(obx.getObx5_ObservationValue(0).encode());
+    }
+
 
     private String getIdentifierTypeOrEmpty(OBX obx) {
         String identifier = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
