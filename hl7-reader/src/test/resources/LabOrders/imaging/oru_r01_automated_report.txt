@@ -10,19 +10,7 @@ NTE|2||How can the patient travel to the department?=Bed
 NTE|3||What is your team contact number?=1111
 NTE|4||NHS or private patient?=1 NHS Patient
 OBX|1|ST|INDICATIONS^Clinical indications:||NG positioning||||||F|||20220116165458|||||||||||||||QST
-OBX|2|ST|&ADT|1|---------------------------------------- ||||||F|||||10021679^BEN^BIG
-OBX|3|ST|&ADT|2|report about an MDT summary ||||||F|||||10021679^BEN^BIG
-OBX|3|ST|&ADT|3|Electronically Signed by: RABBIT PETER 12/12/12 ||||||F|||||10021679^BEN^BIG
-OBX|3|ST|&ADT|4|---------------------------------------- ||||||F|||||10021679^BEN^BIG
-OBX|4|ST|&GDT|5|This is a summary report. The complete report is available in the patient's medical record. If you cannot access the medical record, please contact the sending organisation for a detailed fax or copy.||||||F|||||10021679^BEN^BIG
-OBX|5|ST|&GDT|6|||||||F|||||10021679^BEN^BIG
-OBX|6|ST|&GDT|7|Study Date: 16/1/22||||||F|||||10021679^BEN^BIG
-OBX|7|ST|&GDT|8|more data||||||F|||||10021679^BEN^BIG
-OBX|8|ST|&GDT|9|end of report||||||F|||||10021679^BEN^BIG
-OBX|9|ST|&IMP|10|||||||F|||||10021679^BEN^BIG
-OBX|10|ST|&IMP|11|OPINION:||||||F|||||10021679^BEN^BIG
-OBX|11|ST|&IMP|12|An actionable alert has been placed on the report and the referring clinician emailed.||||||F|||||10021679^BEN^BIG
-OBX|12|ST|&GDT|13|Signed by:||||||F|||||10021679^BEN^BIG
-OBX|13|ST|&GDT|14|Panda ORANGE||||||F|||||10021679^BEN^BIG
-OBX|13|ST|&GDT|15|16/1/22||||||F|||||10021679^BEN^BIG
+OBX|2|ST|&GDT|1|This is an automated report. ||||||F|||||10021679^BEN^BIG
+OBX|3|ST|&GDT|2|If you require the clinical report for this scan, please see patient notes. ||||||F|||||10021679^BEN^BIG
+OBX|3|ST|&GDT|3|If you require further assistance please contact the Unit.||||||F|||||10021679^BEN^BIG
 ZDS|1.2.840.114350.2.525.2.798268.2.154412111.1^EPIC^APPLICATION^DICOM
