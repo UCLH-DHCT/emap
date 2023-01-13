@@ -27,18 +27,18 @@ import javax.persistence.Table;
 @EqualsAndHashCode
 @NoArgsConstructor
 @ToString(callSuper = true)
-@Table(indexes = {@Index(name = "vo_hospital_visit_id", columnList = "hospitalVisitId"),
-        @Index(name = "vo_condition_visit_id", columnList = "conditionVisitId")})
+@Table(indexes = {@Index(name = "cv_hospital_visit_id", columnList = "hospitalVisitId"),
+        @Index(name = "cv_condition_visit_id", columnList = "conditionVisitId")})
 public class ConditionVisits {
 
     /**
-     * \brief Unique identifier in EMAP for this link record.
+     * \brief Unique identifier in EMAP for this condition visit record.
      *
-     * This is the primary key for the PatientConditionVisitLink table.
+     * This is the primary key for the ConditionVisits table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long conditionVisitId;
+    private Long conditionVisitsId;
 
     /**
      * \brief Identifier for the HospitalVisit associated with this record.
