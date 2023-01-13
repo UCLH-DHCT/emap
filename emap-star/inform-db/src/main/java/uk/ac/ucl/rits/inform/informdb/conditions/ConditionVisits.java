@@ -28,7 +28,7 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @Table(indexes = {@Index(name = "cv_hospital_visit_id", columnList = "hospitalVisitId"),
-        @Index(name = "cv_condition_visit_id", columnList = "conditionVisitId")})
+        @Index(name = "cv_condition_visits_id", columnList = "conditionVisitsId")})
 public class ConditionVisits {
 
     /**
