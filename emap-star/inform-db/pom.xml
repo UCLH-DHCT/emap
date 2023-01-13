@@ -16,7 +16,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <inform-annotations.version>2.5</inform-annotations.version>
+    <inform-annotations.version>2.6</inform-annotations.version>
     <reflections.version>0.10.2</reflections.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <checkstyle.version>9.3</checkstyle.version>
