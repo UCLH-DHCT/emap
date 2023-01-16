@@ -157,18 +157,20 @@ manages the multiple repositories and configuration files.
     
     ```bash
     $ ls -la /gae/emap-live
-    total 16
-    drwxrws---+ 2 spiatek1 docker  173 Feb 10  2022 config
-    drwxrws---+ 8 spiatek1 docker 4096 Jan 13 11:15 Emap-Core
-    drwxrws---+ 5 spiatek1 docker 4096 Jan 13 11:08 emap-hl7-processor
-    drwxrws---+ 6 spiatek1 docker  131 Jan 13 11:08 Emap-Interchange
-    -rwxrwx---. 1 spiatek1 docker 2638 Jan 13 11:05 global-configuration.yaml
-    drwxrws---+ 8 spiatek1 docker 4096 Jan 13 11:08 hoover
-    drwxrws---+ 6 spiatek1 docker  152 Jan 13 11:08 Inform-DB
+    total 20
+    drwxrws---+  8 tomyoung docker 4096 Jan 16 09:27 .
+    drwxrwx---. 11 root     docker  179 Jan 13 16:26 ..
+    drwxrws---+  2 tomyoung docker  173 Feb 10  2022 config
+    drwxrws---+  8 tomyoung docker 4096 Jan 13 11:15 Emap-Core
+    drwxrws---+  5 tomyoung docker 4096 Jan 13 11:08 emap-hl7-processor
+    drwxrws---+  6 tomyoung docker  131 Jan 13 11:08 Emap-Interchange
+    -rwxrwx---.  1 tomyoung docker 2638 Jan 13 11:05 global-configuration.yaml
+    drwxrws---+  8 tomyoung docker 4096 Jan 13 11:08 hoover
+    drwxrws---+  6 tomyoung docker  152 Jan 13 11:08 Inform-DB
     ```
 
-    If files already exist in the directory, you might want to 
-    remove the `S` from the group permissions: `chmod g-s global.configuration.yaml`
+    If files already exist in the top-level directory, you might want to 
+    remove the `S` from the group permissions of each file, e.g. `chmod g-s global.configuration.yaml`
    
 </details>
 
