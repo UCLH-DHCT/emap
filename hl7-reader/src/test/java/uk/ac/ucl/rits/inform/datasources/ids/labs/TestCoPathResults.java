@@ -6,6 +6,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
@@ -15,6 +16,10 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -42,11 +47,8 @@ class TestCoPathResults {
      */
     @Test
     void testValueAsBytes() throws Exception {
-        File reportFile = new File(getClass().getResource("/LabOrders/co_path/report.pdf").getFile());
-        byte[] expectedBytes;
-        try (FileInputStream inputStream = new FileInputStream(reportFile)) {
-            expectedBytes = inputStream.readAllBytes();
-        }
+        URI uri = HL7Utils.getPathFromResource("LabOrders/co_path/report.pdf");
+        byte[] expectedBytes = Files.readAllBytes(Paths.get(uri));
 
         LabResultMsg result = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_copath")
                 .getLabResultMsgs().stream()
