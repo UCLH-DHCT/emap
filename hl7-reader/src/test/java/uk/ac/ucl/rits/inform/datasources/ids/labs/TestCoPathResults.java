@@ -14,11 +14,8 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
@@ -80,7 +77,7 @@ class TestCoPathResults {
     @TestFactory
     Stream<DynamicTest> testHl7Inconsistencies() {
         return List.of(
-                "oru_r01_id_change", "oru_r01_sub_id_change", "oru_r01_multiple_value_reps", "oru_r01_unrecognised_data_type")
+                        "oru_r01_id_change", "oru_r01_sub_id_change", "oru_r01_multiple_value_reps", "oru_r01_unrecognised_data_type")
                 .stream()
                 .map(filename -> DynamicTest.dynamicTest(
                         filename,
