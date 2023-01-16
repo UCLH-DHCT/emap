@@ -144,22 +144,33 @@ manages the multiple repositories and configuration files.
     ```bash
     mkdir /gae/emap-live
     chgrp -R docker /gae/emap-live
-    chmod -R g+rws /gae/emap-live <!-- Changed back from rwx as permissions weren't transferred as in the readme. If this is a problem again then we should think about it
-<img width="590" alt="image" src="https://user-images.githubusercontent.com/8124189/210367021-32ac429f-950e-4acb-a1f8-b095eb4616cd.png">
--->
+    chmod -R g+rws /gae/emap-live  # ensures that the group will be inherited for any new directories or files
     setfacl -R -m d:g::rwX /gae/emap-live
     ```
+    <!-- Changed back from chmod -R g+rwx as permissions weren't transferred as in the readme. If this is a problem again then we should think about it
+    <img width="590" alt="image" src="https://user-images.githubusercontent.com/8124189/210367021-32ac429f-950e-4acb-a1f8-b095eb4616cd.png">
+    -->
     
     to create, modify the group, change ownership and inherit permissions.
     
-    It should now look like e.g.
+    When you then create directories and files in this directory they should look like this:
     
     ```bash
     $ ls -la /gae/emap-live
-    total 8
-    drwxrws---+  2 jstein01 docker 4096 Oct 16 10:59 .
-    drwxrwx---. 22 root     docker 4096 Oct 16 10:52 ..
+    total 20
+    drwxrws---+  8 tomyoung docker 4096 Jan 16 09:27 .
+    drwxrwx---. 11 root     docker  179 Jan 13 16:26 ..
+    drwxrws---+  2 tomyoung docker  173 Feb 10  2022 config
+    drwxrws---+  8 tomyoung docker 4096 Jan 13 11:15 Emap-Core
+    drwxrws---+  5 tomyoung docker 4096 Jan 13 11:08 emap-hl7-processor
+    drwxrws---+  6 tomyoung docker  131 Jan 13 11:08 Emap-Interchange
+    -rwxrwx---.  1 tomyoung docker 2638 Jan 13 11:05 global-configuration.yaml
+    drwxrws---+  8 tomyoung docker 4096 Jan 13 11:08 hoover
+    drwxrws---+  6 tomyoung docker  152 Jan 13 11:08 Inform-DB
     ```
+
+    If files already exist in the top-level directory, you might want to 
+    remove the `S` from the group permissions of each file, e.g. `chmod g-s global.configuration.yaml`
    
 </details>
 
