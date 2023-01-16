@@ -170,8 +170,10 @@ class DockerRunner:
 
         output_lines = []
         self.run("ps glowroot-central", output_lines=output_lines)
+        glowroot_running = sum(" running " in line for line in output_lines) == 1
+        logger.info(f"Is glowroot-central running: {glowroot_running}")
 
-        return sum(" Up " in line for line in output_lines) == 1
+        return glowroot_running
 
 
 def _write_to_file(stdout: IO, filename: str) -> None:
