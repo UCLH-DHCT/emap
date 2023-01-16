@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
-from subprocess import Popen, PIPE, CalledProcessError
-from typing import List, Optional, IO
+from subprocess import CalledProcessError, PIPE, Popen
+from typing import IO, List, Optional
 
+from emap_runner.files import EnvironmentFile, File
 from emap_runner.log import logger
-from emap_runner.files import File, EnvironmentFile
 from emap_runner.utils import EMAPRunnerException
 
 
@@ -171,7 +171,9 @@ class DockerRunner:
         output_lines = []
         self.run("ps", output_lines=output_lines)
         # filter in expression to allow for no services to be running
-        glowroot_running = sum(" running " in line for line in output_lines if "glowroot-central" in line) == 1
+        glowroot_running = any(
+            " running " in line for line in output_lines if "glowroot-central" in line
+        )
 
         logger.info(f"Is glowroot-central running: {glowroot_running}")
         return glowroot_running
