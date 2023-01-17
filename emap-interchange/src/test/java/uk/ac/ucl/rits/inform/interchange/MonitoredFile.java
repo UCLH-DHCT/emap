@@ -1,8 +1,8 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -41,14 +41,13 @@ public class MonitoredFile {
         var path = getFilePathString();
         BufferedReader reader;
 
-        if (path.contains("jar!")){
+        if (path.contains("jar!")) {
             var stream = getClass().getResourceAsStream(path.split("jar!")[1]);
-            if (stream == null){
+            if (stream == null) {
                 throw new Exception("Failed to get the stream of " + path);
             }
             reader = new BufferedReader(new InputStreamReader(stream));
-        }
-        else{
+        } else {
             reader = new BufferedReader(new FileReader(path));
         }
 
@@ -63,7 +62,9 @@ public class MonitoredFile {
         return Optional.empty();
     }
 
-    public String getFilePathString(){
-        return filePath.toString();
+    public String getFilePathString() {
+        String windowsSeparator = "\\";
+        String unixSeparator = "/";
+        return filePath.toString().replace(windowsSeparator, unixSeparator);
     }
 }
