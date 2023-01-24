@@ -14,14 +14,16 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
 
 /**
  * \brief Represents patient conditions that start and can end.
- *
+ * <p>
  * Currently envisaged as storing infection control's patient infection information and problems from problem lists.
  * @author Anika Cawthorn
  * @author Stef Piatek
@@ -31,6 +33,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @NoArgsConstructor
+@Table(indexes = {@Index(name = "pc_internal_id", columnList = "internalId")})
 @AuditTable
 public class PatientCondition extends TemporalCore<PatientCondition, PatientConditionAudit> {
 
