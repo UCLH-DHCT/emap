@@ -173,7 +173,7 @@ public class PersonController {
         logger.debug("Getting or creating MRN: mrn {}, nhsNumber {}", mrnString, nhsNumber);
         return mrnRepo
                 .findByMrnOrNhsNumber(mrnString, nhsNumber)
-                .map(mrn -> updateIdentfiersAndGetLiveMrn(sourceSystem, mrnString, nhsNumber, mrn))
+                .map(mrn -> updateIdentifiersAndGetMrn(sourceSystem, mrnString, nhsNumber, mrn))
                 // otherwise create new mrn and mrn_to_live row
                 .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }
@@ -186,7 +186,7 @@ public class PersonController {
      * @param mrn          MRN entity
      * @return the live MRN entity
      */
-    private Mrn updateIdentfiersAndGetLiveMrn(final String sourceSystem, final String mrnString, final String nhsNumber, Mrn mrn) {
+    private Mrn updateIdentifiersAndGetMrn(final String sourceSystem, final String mrnString, final String nhsNumber, Mrn mrn) {
         if (DataSources.isTrusted(sourceSystem)) {
             if (nhsNumber != null && !nhsNumber.equals(mrn.getNhsNumber())) {
                 logger.debug("Updating NHS number to {} for MRN {}", nhsNumber, mrn);
@@ -223,7 +223,7 @@ public class PersonController {
         return mrnRepo
                 .findByMrnEquals(mrnString)
                 // mrn exists, update NHS number if message source is trusted, then get the live mrn
-                .map(mrn -> updateIdentfiersAndGetLiveMrn(sourceSystem, mrnString, nhsNumber, mrn))
+                .map(mrn -> updateIdentifiersAndGetMrn(sourceSystem, mrnString, nhsNumber, mrn))
                 // otherwise create new mrn and mrn_to_live row
                 .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }
