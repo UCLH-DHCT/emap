@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
@@ -38,15 +39,15 @@ class TestResearchOptOutProcessing extends MessageProcessingBase {
     private static final String SURVIVING_MERGE_MRN = "40800001";
 
     @BeforeEach
-    private void setUp() throws IOException {
+    void setUp() throws IOException {
         optOutMessages = messageFactory.getResearchOptOuts("all_opt_out.yaml");
         mergeMessage = messageFactory.getAdtMessage("generic/A40.yaml");
     }
 
     /**
      * Given that no patients exist in the database,
-     * when 5 research opt out messages are processed,
-     * then each patient is created with an opt-out.
+     * when 5 research opt out messages are processed (with one which has opt-out removed),
+     * then each patient is created, 4 of them having an opt-out recorded
      */
     @Test
     void testOptOutCreatesNewPatients() throws EmapOperationMessageProcessingException {
@@ -54,7 +55,8 @@ class TestResearchOptOutProcessing extends MessageProcessingBase {
 
         var mrns = getAllMrns();
         assertEquals(5, mrns.size());
-        mrns.forEach(mrn -> assertTrue(mrn.isResearchOptOut()));
+        long optOutCount = mrns.stream().filter(Mrn::isResearchOptOut).count();
+        assertEquals(4, optOutCount);
     }
 
     /**
