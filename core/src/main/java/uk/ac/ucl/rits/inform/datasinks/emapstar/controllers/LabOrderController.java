@@ -215,6 +215,7 @@ public class LabOrderController {
 
     private RowState<LabOrder, LabOrderAudit> createLabOrder(LabBattery battery, LabSample labSample, Instant validFrom, Instant storedFrom) {
         LabOrder order = new LabOrder(battery, labSample);
+        // If we receive a cancellation first, need to set the validity that we know about
         order.setValidFrom(validFrom);
         order.setStoredFrom(storedFrom);
         return new RowState<>(order, validFrom, storedFrom, true);
