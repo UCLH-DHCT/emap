@@ -128,8 +128,6 @@ public class LabController {
             // doesn't exist in database or cache, so create a new one
             // shouldn't cache the row state, just the entity so having to do this using exception handling
             LabTestDefinition testDefinition = new LabTestDefinition(labProvider, testLabCode);
-            testDefinition.setValidFrom(validFrom);
-            testDefinition.setStoredFrom(storedFrom);
             logger.trace("Creating new Lab Test Definition {}", testDefinition);
             return new RowState<>(testDefinition, validFrom, storedFrom, true);
         }
