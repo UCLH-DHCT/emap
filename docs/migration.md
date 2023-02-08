@@ -41,8 +41,8 @@ The new name column will be used for ALL purposes; that is, the docker service n
 | Inform-DB        | \[emap-star/\] emap-star | n/a | inform-db | `inform-db*.jar` |
 | Inform-DB     |   \[emap-star/\] emap-star-annotations |  n/a  |  inform-annotations | `inform-annotations*.jar`  |
 | Emap-Interchange | emap-interchange | n/a | emap-interchange | `emap-interchange*.jar` |
-| Emap-Core       | core-processor | emapstar  | EmapCore | `Emap-Core*.jar`  |
-| emap-hl7-processor | hl7-reader | hl7source | HL7Processor | HL7Processor*.jar |
+| Emap-Core       | core | emapstar  | EmapCore | `Emap-Core*.jar`  |
+| emap-hl7-processor | hl7-reader | hl7source | HL7Processor | `HL7Processor*.jar` |
 | hoover §     | hoover   | hoover  | hoover | `Hoover*.jar` |
 
 
