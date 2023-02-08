@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.messaging;
 
+import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 
@@ -10,21 +11,22 @@ import java.util.List;
  * @param <T> Any child of EmapOperationMessage so that you can pass in child class directly.
  * @author Stef Piatek
  */
+@Getter
 public class MessageBatch<T extends EmapOperationMessage> {
     /**
-     * @param batchId Unique ID for an entire batch. In most cases this can be the correlationIDs of the last item in the batch.
+     * Unique ID for an entire batch. In most cases this can be the correlationIDs of the last item in the batch.
      */
-    public final String batchId;
+    private final String batchId;
 
     /**
-     * @param batch List of paired messages and their correlationIDs
+     * List of paired messages and their correlationIDs.
      */
-    public final List<ImmutablePair<T, String>> batch;
+    private final List<ImmutablePair<T, String>> batch;
 
     /**
-     * @param callback Runnable to update processing state after all messages in the batch being successfully published.
+     * Runnable to update processing state after all messages in the batch being successfully published.
      */
-    public final Runnable callback;
+    private final Runnable callback;
 
     /**
      * @param batchId  Unique Id for the batch, in most cases this can be the correlationId.
@@ -36,7 +38,7 @@ public class MessageBatch<T extends EmapOperationMessage> {
      * @throws NullPointerException     callback or batch is null
      * @throws IllegalArgumentException empty batch or batchId contains a colon character
      */
-    public MessageBatch(String batchId, List<ImmutablePair<T, String>> batch, Runnable callback) {
+    MessageBatch(String batchId, List<ImmutablePair<T, String>> batch, Runnable callback) {
         if (callback == null) {
             throw new NullPointerException("Runnable is null");
         }
@@ -54,8 +56,29 @@ public class MessageBatch<T extends EmapOperationMessage> {
         this.callback = callback;
     }
 
+    int getNumberOfMessages() {
+        return batch.size();
+    }
+
     @Override
     public String toString() {
         return String.format("Batch{batchId=%s, batchSize=%d}", batchId, batch.size());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        MessageBatch<?> that = (MessageBatch<?>) obj;
+        return batchId.equals(that.batchId);
+    }
+
+    @Override
+    public int hashCode() {
+        return batchId.hashCode();
     }
 }

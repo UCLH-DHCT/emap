@@ -175,9 +175,9 @@ public class Publisher implements Runnable, Releasable {
         while (!isFinished) {
             try {
                 MessageBatch<? extends EmapOperationMessage> messageBatch = blockingQueue.take();
-                batchWaitingMap.put(messageBatch.batchId, new ImmutablePair<>(messageBatch.batch.size(), messageBatch.callback));
-                for (ImmutablePair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
-                    publish(pair.getLeft(), pair.getRight(), messageBatch.batchId);
+                batchWaitingMap.put(messageBatch.getBatchId(), new ImmutablePair<>(messageBatch.getNumberOfMessages(), messageBatch.getCallback()));
+                for (ImmutablePair<? extends EmapOperationMessage, String> pair : messageBatch.getBatch()) {
+                    publish(pair.getLeft(), pair.getRight(), messageBatch.getBatchId());
                 }
             } catch (AmqpException e) {
                 logger.error("AMQP Exception encountered, shutting down the publisher", e);
