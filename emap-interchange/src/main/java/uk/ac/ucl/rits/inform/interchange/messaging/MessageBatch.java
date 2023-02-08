@@ -2,9 +2,12 @@ package uk.ac.ucl.rits.inform.interchange.messaging;
 
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Bundles a batch of messages, batchId and callback together.
@@ -36,7 +39,7 @@ public class MessageBatch<T extends EmapOperationMessage> {
      * @param callback To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
      *                 Most likely to update the state of progress.
      * @throws NullPointerException     callback or batch is null
-     * @throws IllegalArgumentException empty batch or batchId contains a colon character
+     * @throws IllegalArgumentException empty batch or batchId contains a colon character, or duplicate correlationIds in the batch
      */
     MessageBatch(String batchId, List<ImmutablePair<T, String>> batch, Runnable callback) {
         if (callback == null) {
@@ -51,6 +54,11 @@ public class MessageBatch<T extends EmapOperationMessage> {
         if (batchId.contains(":")) {
             throw new IllegalArgumentException("batchId contains a colon character");
         }
+        Set<String> uniqueCorrelationIds = batch.stream().map(Pair::getRight).collect(Collectors.toSet());
+        if (uniqueCorrelationIds.size() != batch.size()) {
+            throw new IllegalArgumentException(String.format("Batch %s has non-unique correlationIds so would block publishing", batchId));
+        }
+
         this.batchId = batchId;
         this.batch = batch;
         this.callback = callback;
