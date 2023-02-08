@@ -120,7 +120,7 @@ public class Publisher implements Runnable, Releasable {
 
         // If queue is full for longer than the scan for new messages, then the progress would not have been updated
         // so check ensure that we're not adding a duplicate batchId of one in progress or a waiting batch
-        if (batchWaitingMap.containsKey(batchId) | blockingQueue.contains(submitBatch)) {
+        if (batchWaitingMap.containsKey(batchId) || blockingQueue.contains(submitBatch)) {
             logger.error("Queue with a batchId of {} already exists", batchId);
             return;
         }
