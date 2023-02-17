@@ -28,7 +28,7 @@ import java.util.Optional;
 public class PendingAdtController {
     private final Logger logger = LoggerFactory.getLogger(PendingAdtController.class);
     private LocationController locationController;
-    private PlannedMovementRepository plannedMovementRepo;
+    private final PlannedMovementRepository plannedMovementRepo;
     private final PlannedMovementAuditRepository plannedMovementAuditRepo;
 
     /**
@@ -138,7 +138,27 @@ public class PendingAdtController {
         plannedState.saveEntityOrAuditLogIfRequired(plannedMovementRepo, plannedMovementAuditRepo);
     }
 
+    /**
+     * Delete planned movements from a delete patient information message.
+     * @param visit            Hospital visit that should have their planned movements deleted
+     * @param invalidationTime Time of the delete information message
+     * @param deletionTime     time that emap-core started processing the message.
+     */
+    public void deletePlannedMovements(HospitalVisit visit, Instant invalidationTime, Instant deletionTime) {
+        plannedMovementRepo.findAllByHospitalVisitId(visit)
+                .forEach(plannedMovement -> deletePlannedMovement(plannedMovement, invalidationTime, deletionTime));
+    }
 
+    /**
+     * Audit and delete a planned movement.
+     * @param plannedMovement Planned movement to delete
+     * @param deletionTime    Hospital time that the planned movement was deleted at
+     * @param storedUntil     Time that emap-core started processing the message.
+     */
+    private void deletePlannedMovement(PlannedMovement plannedMovement, Instant deletionTime, Instant storedUntil) {
+        plannedMovementAuditRepo.save(plannedMovement.createAuditEntity(deletionTime, storedUntil));
+        plannedMovementRepo.delete(plannedMovement);
+    }
 }
 
 /**

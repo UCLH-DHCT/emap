@@ -14,7 +14,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.test.helpers.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 
@@ -25,7 +25,6 @@ import java.util.stream.StreamSupport;
 
 @SpringJUnitConfig
 @SpringBootTest
-@AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class MessageProcessingBase {

@@ -22,10 +22,10 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSampleAudit;
-import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -44,15 +44,14 @@ public class LabOrderController {
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final QuestionController questionController;
 
-
     /**
-     * @param labBatteryRepo     repository for LabBattery
-     * @param labSampleRepo      repository for LabSample
-     * @param labSampleAuditRepo repository for LabSampleAudit
-     * @param labOrderRepo       repository for LabOrder
-     * @param labResultRepo      repository for LabResult
-     * @param labOrderAuditRepo  repository for LabOrderAudit
-     * @param questionController controller for Question tables
+     * @param labBatteryRepo      repository for LabBattery
+     * @param labSampleRepo       repository for LabSample
+     * @param labSampleAuditRepo  repository for LabSampleAudit
+     * @param labOrderRepo        repository for LabOrder
+     * @param labResultRepo       repository for LabResult
+     * @param labOrderAuditRepo   repository for LabOrderAudit
+     * @param questionController  controller for Question tables
      */
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
@@ -65,17 +64,6 @@ public class LabOrderController {
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
-        createCoPathBattery();
-    }
-
-    private void createCoPathBattery() {
-        String coPathName = OrderCodingSystem.CO_PATH.name();
-        Instant now = Instant.now();
-        LabBattery coPathBattery = getOrCreateLabBattery(coPathName, coPathName, now, now);
-        coPathBattery.setDescription(new StringBuilder(2)
-                .append("CoPath does not use test batteries, all orders are filed under this battery code. ")
-                .append("The lab test definition lab department can be used to distinguish types of requested tests").toString());
-        labBatteryRepo.save(coPathBattery);
     }
 
     /**
@@ -227,6 +215,7 @@ public class LabOrderController {
 
     private RowState<LabOrder, LabOrderAudit> createLabOrder(LabBattery battery, LabSample labSample, Instant validFrom, Instant storedFrom) {
         LabOrder order = new LabOrder(battery, labSample);
+        // If we receive a cancellation first, need to set the validity that we know about
         order.setValidFrom(validFrom);
         order.setStoredFrom(storedFrom);
         return new RowState<>(order, validFrom, storedFrom, true);
@@ -294,4 +283,24 @@ public class LabOrderController {
         labOrderRepo.delete(labOrder);
     }
 
+    /**
+     * Returns all lab orders associated with a specific hospital visit.
+     * @param visit                 Hospital Visit Entity
+     * @return List of Lab Orders
+     */
+    public List<LabOrder> getLabOrdersForVisit(HospitalVisit visit) {
+        return labOrderRepo.findAllByHospitalVisitId(visit);
+    }
+
+    /**
+     * Deletes a single lab order.
+     * @param labOrder          Lab Order
+     * @param invalidationTime  Lab Battery
+     * @param deletionTime      Lab Sample entity
+     */
+    public void deleteLabOrder(LabOrder labOrder, Instant invalidationTime, Instant deletionTime) {
+        LabOrderAudit labOrderAudit = labOrder.createAuditEntity(invalidationTime, deletionTime);
+        labOrderAuditRepo.save(labOrderAudit);
+        labOrderRepo.delete(labOrder);
+    }
 }

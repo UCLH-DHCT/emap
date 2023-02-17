@@ -55,7 +55,7 @@ fi
 set -x
 # Order of docker-compose files can matter. Eg. env_file location is relative to
 # the directory of the *first* -f value.
-docker-compose \
+docker compose \
     -f "$SCRIPT_DIR/docker-compose.yml" \
     $FAKEUDS_ARG \
     $DBFILLER_ARG \

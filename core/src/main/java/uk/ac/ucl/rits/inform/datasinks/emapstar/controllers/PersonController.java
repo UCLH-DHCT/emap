@@ -17,14 +17,17 @@ import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
+import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -32,7 +35,7 @@ import java.util.List;
  */
 @Component
 public class PersonController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
@@ -58,7 +61,29 @@ public class PersonController {
     }
 
     /**
-     * Merge MRN from the message's pervious MRN into the surviving MRN.
+     * Update existing Mrns or create new Mrn with research opt-out set accordingly.
+     * @param msg        research opt out message
+     * @param storedFrom time that star started processing the message
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
+     */
+    public void updateOrCreateWithResearchOptOut(ResearchOptOut msg, Instant storedFrom) throws RequiredDataMissingException {
+        Mrn liveMrn = getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getLastUpdated(), storedFrom);
+        var allMrns = mrnToLiveRepo.getAllByLiveMrnIdEquals(liveMrn).stream()
+                .map(MrnToLive::getMrnId)
+                .collect(Collectors.toSet());
+        allMrns.forEach(mrn -> setOptOut(mrn, msg.isActive()));
+    }
+
+    private void setOptOut(Mrn mrn, boolean optOut) {
+        logger.trace("Adding opt out to {}", mrn);
+        mrn.setResearchOptOut(optOut);
+        mrnRepo.save(mrn);
+    }
+
+    /**
+     * Merge MRN from the message's previous MRN into the surviving MRN.
+     * <p>
+     * If any of the previous MRNs have a research opt-out, then the opt-out will be added to all MRNs for this patient.
      * @param msg          Merge message
      * @param survivingMrn live MRN to merge into
      * @param storedFrom   when the message has been read by emap core
@@ -90,6 +115,20 @@ public class PersonController {
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
                 .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, validFrom, storedFrom, mrnToLive));
+
+        Collection<Mrn> originalAndSurvivingMrns = new ArrayList<>(originalMrns.size() + 1);
+        originalAndSurvivingMrns.add(survivingMrn);
+        originalAndSurvivingMrns.addAll(originalMrns);
+
+        Collection<Mrn> allMrns = originalAndSurvivingMrns.stream()
+                .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
+                .map(MrnToLive::getMrnId)
+                .collect(Collectors.toSet());
+
+        boolean anyResearchOptOut = allMrns.stream().anyMatch(Mrn::isResearchOptOut);
+        if (anyResearchOptOut) {
+            allMrns.forEach(mrn -> setOptOut(mrn, true));
+        }
     }
 
     /**
@@ -137,7 +176,7 @@ public class PersonController {
         logger.debug("Getting or creating MRN: mrn {}, nhsNumber {}", mrnString, nhsNumber);
         return mrnRepo
                 .findByMrnOrNhsNumber(mrnString, nhsNumber)
-                .map(mrn -> updateIdentfiersAndGetLiveMrn(sourceSystem, mrnString, nhsNumber, mrn))
+                .map(mrn -> updateIdentifiersAndGetMrn(sourceSystem, mrnString, nhsNumber, mrn))
                 // otherwise create new mrn and mrn_to_live row
                 .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }
@@ -150,7 +189,7 @@ public class PersonController {
      * @param mrn          MRN entity
      * @return the live MRN entity
      */
-    private Mrn updateIdentfiersAndGetLiveMrn(final String sourceSystem, final String mrnString, final String nhsNumber, Mrn mrn) {
+    private Mrn updateIdentifiersAndGetMrn(final String sourceSystem, final String mrnString, final String nhsNumber, Mrn mrn) {
         if (DataSources.isTrusted(sourceSystem)) {
             if (nhsNumber != null && !nhsNumber.equals(mrn.getNhsNumber())) {
                 logger.debug("Updating NHS number to {} for MRN {}", nhsNumber, mrn);
@@ -187,7 +226,7 @@ public class PersonController {
         return mrnRepo
                 .findByMrnEquals(mrnString)
                 // mrn exists, update NHS number if message source is trusted, then get the live mrn
-                .map(mrn -> updateIdentfiersAndGetLiveMrn(sourceSystem, mrnString, nhsNumber, mrn))
+                .map(mrn -> updateIdentifiersAndGetMrn(sourceSystem, mrnString, nhsNumber, mrn))
                 // otherwise create new mrn and mrn_to_live row
                 .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }

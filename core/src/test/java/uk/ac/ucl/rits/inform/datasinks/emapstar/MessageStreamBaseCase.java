@@ -40,7 +40,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
  */
 @SpringJUnitConfig
 @SpringBootTest
-@AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class MessageStreamBaseCase {
