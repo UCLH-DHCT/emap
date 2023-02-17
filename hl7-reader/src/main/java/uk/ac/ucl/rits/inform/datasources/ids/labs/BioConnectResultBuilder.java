@@ -36,8 +36,6 @@ public class BioConnectResultBuilder extends LabResultBuilder {
 
     @Override
     void setResultTime() throws DataTypeException {
-        // OBR segments for sensitivities don't have an OBR-22 status change time
-        // so use the time from the parent?
         getMessage().setResultTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
     }
 

@@ -31,10 +31,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
+
 /**
  * Utilities for interpreting HL7 messages.
  * @author Jeremy Stein
  * @author Stef Piatek
+ * @author Tom Young
  */
 public final class HL7Utils {
 
@@ -59,10 +61,8 @@ public final class HL7Utils {
             return null;
         }
         valueAsCal.setTimeZone(TimeZone.getTimeZone(LONDON_TIMEZONE));
-
         return valueAsCal.toInstant();
     }
-
 
     /**
      * Process date value from HL7.
@@ -70,8 +70,8 @@ public final class HL7Utils {
      * @return Local date
      * @throws DataTypeException if date cannot be parsed correctly.
      */
-    static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
-        if (hl7Date == null) {
+    public static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
+        if (hl7Date.toString() == null) {
             return null;
         }
         return LocalDate.of(hl7Date.getYear(), hl7Date.getMonth(), hl7Date.getDay());
@@ -84,7 +84,7 @@ public final class HL7Utils {
      * @throws DataTypeException if date cannot be parsed correctly.
      */
     public static LocalDate interpretDate(DTM hl7Date) throws DataTypeException {
-        if (hl7Date == null) {
+        if (hl7Date.toString() == null) {
             return null;
         }
         return LocalDate.of(hl7Date.getYear(), hl7Date.getMonth(), hl7Date.getDay());
