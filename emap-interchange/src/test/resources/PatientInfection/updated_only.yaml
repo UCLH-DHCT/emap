@@ -3,12 +3,12 @@
   sourceMessageId: "1"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"
-  infectionCode: "Mumps"
-  infectionName:
+  conditionCode: "Mumps"
+  conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value:  "Mumps"
-  epicInfectionId:
+  epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
@@ -16,12 +16,12 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Active"
-  infectionAdded: "2019-06-02T10:31:05Z"
-  infectionResolved:
+  addedDatetime: "2019-06-02T10:31:05Z"
+  resolvedDatetime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-06-08T14:22:01Z"
-  infectionOnset:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-05"
@@ -34,12 +34,12 @@
   sourceMessageId: "2"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
-  infectionCode: "Varicella"
-  infectionName:
+  conditionCode: "Varicella"
+  conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value:  "Varicella"
-  epicInfectionId:
+  epicConditionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 2
@@ -47,12 +47,12 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Deleted"
-  infectionAdded: "2019-06-08T02:05:49Z"
-  infectionResolved:
+  addedDatetime: "2019-06-08T02:05:49Z"
+  resolvedDatetime:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "IGNORE"
     value: null
-  infectionOnset:
+  onsetDate:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-20"

@@ -8,8 +8,11 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
+import uk.ac.ucl.rits.inform.interchange.form.FormQuestionMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -75,6 +78,12 @@ public interface EmapOperationMessageProcessor {
     void processMessage(CancelPendingTransfer msg) throws EmapOperationMessageProcessingException;
 
     /**
+     * @param msg the ResearchOptOut msg to process.
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(ResearchOptOut msg) throws EmapOperationMessageProcessingException;
+
+    /**
      * @param msg the flowsheet message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
@@ -85,6 +94,12 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the PatientProblem message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(PatientProblem msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the FlowsheetMetadata message to process
@@ -106,10 +121,10 @@ public interface EmapOperationMessageProcessor {
 
     /**
      * Process mapping for consult code -> human readable name.
-     * @param consultMetadata consult metadata message to process
+     * @param msg consult metadata message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(ConsultMetadata consultMetadata) throws EmapOperationMessageProcessingException;
+    void processMessage(ConsultMetadata msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the AdvanceDecisionMessage to process
@@ -122,4 +137,28 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(LabMetadataMsg msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the Form msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(FormMsg msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the FormMetadataMsg msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(FormMetadataMsg msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the FormQuestionMetadataMsg msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(FormQuestionMetadataMsg msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the PatientAllergy message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(PatientAllergy msg) throws EmapOperationMessageProcessingException;
 }
