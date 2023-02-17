@@ -1,6 +1,9 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -13,16 +16,12 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import java.time.Instant;
 
 /**
  * \brief This table stores a mapping from every MRN known to the system, to its
  * currently live (in use) MRN.
- *
+ * <p>
  * Over time MRNs are merged into others as more is found out about a patient.
  * @author UCL RITS
  */
@@ -38,7 +37,7 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
     /**
      * \brief Unique identifier in EMAP for this mrnToLive record.
-     *
+     * <p>
      * This is the primary key for the MrnToLive table.
      */
     @Id
@@ -46,19 +45,17 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
     private Long mrnToLiveId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
-     *
+     * \brief Identifier for the Mrn associated with this record, can be merged into another Mrn.
+     * <p>
      * This is a foreign key that joins the mrnToLive table to the Mrn table.
      */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
-    ///////////// NOT SURE OF DIFFERENCE
-
     /**
-     * \brief Identifier for the Mrn associated with this record.
-     *
+     * \brief Identifier for the live Mrn that should be used (e.g. surviving Mrn after a merge).
+     * <p>
      * This is a foreign key that joins the mrnToLive table to the Mrn table.
      */
     @ManyToOne(cascade = CascadeType.ALL)
@@ -80,8 +77,8 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
     }
 
     @Override
-    public MrnToLiveAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new MrnToLiveAudit(this, validUntil, storedFrom);
+    public MrnToLiveAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new MrnToLiveAudit(this, validUntil, storedUntil);
     }
 
 }
