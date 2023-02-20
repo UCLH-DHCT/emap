@@ -22,6 +22,22 @@ Exclude:
 
 Any others I've forgotten?
 
+### Future code and migrations
+
+After the migration, further code that is "core" to Emap should go straight into the monorepo, even if it's incomplete or experimental (that's what branches are for).
+
+Non-core projects should go in their own separate repos - they can always be merged in if we decide they have become core.
+
+But what is core Emap code? More or less it's code that is essential in order to have a meaningful instance of Emap.
+
+So that includes anything (plus dependencies) that writes directly to Emap-Star tables. And Interchange, since you can't send data to Emap without knowing what format it should be in.
+
+Excluded would be anything that only reads from Emap, even if it creates its own mini-db for some project-specific purpose, eg HOCI or Inform-us.
+
+What about datasources that feed data into Emap? hoover does this and we'd consider it core (this is unrelated to the reason we're not merging it in right now). But some of its (meta)data is quite fundamental to an Emap instance - eg. locations are fundamental to ADT being useful.
+
+But what about a datasource reader for a very old ADT database that only one user cares about? Probably not core.
+
 ## Tasks/Requirements
 
 ### Phase 1a (essential tasks)
