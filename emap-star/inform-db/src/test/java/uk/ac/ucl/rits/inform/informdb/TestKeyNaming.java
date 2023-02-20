@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
 import static uk.ac.ucl.rits.inform.informdb.DBTestUtils.lowerCaseFirstCharacter;
 
 
@@ -47,7 +46,6 @@ class TestKeyNaming {
 
         assertEquals(className + "Id", fieldName);
     }
-
 
     /**
      * Assert that a field has the same name as the class it belongs to, plus the "Id" suffix
