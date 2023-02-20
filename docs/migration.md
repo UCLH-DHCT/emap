@@ -1,3 +1,13 @@
+## Why a monorepo for Emap?
+
+Allows atomic changes across the whole project. No more awkward branch naming conventions for what code works with what other version of another repo's code.
+
+Reduce duplication of config (eg. CI scripts, docker-compose files).
+
+Easier local environment setup (eg. less IDE config)
+
+## Repo scope
+
 Repos to include:
 - git@github.com:inform-health-informatics/Inform-DB.git
 - git@github.com:inform-health-informatics/Emap-Interchange.git
@@ -18,6 +28,9 @@ Any others I've forgotten?
 
 (Eg. code will fail to compile/run/deploy if we don't do them, or they're so integral to the merge it would almost be harder *not* to do them in the first phase)
 
+- Enable branch protection
+- Check repo permissions
+- Keep PRs small and/or manageable. The enormous PR(s) that bringing in each repo will generate should contain no other code changes.
 - Merge in `Inform-DB`
 - Merge in `Emap-Interchange`
 - Merge in `Emap-Core`
@@ -48,8 +61,6 @@ Any others I've forgotten?
 - Make sure auto doc generation for former `emap_documentation` repo is working
 - Merge in `emap-setup`
 
-
-
 ## Limitations
 
 Old PRs/issues won't get migrated
@@ -71,3 +82,25 @@ The new name column will be used for ALL purposes; that is, the docker service n
 
 
 §  not merging right now but can still rename things 
+
+## Mechanics of merging from other repos
+
+- Create new, empty, monorepo (this repo)
+- For each repo you want to bring in:
+    - Define a git remote for that repo and fetch it
+    - Add a commit to that tree that just does a `git mv` into a subdirectory
+    - From main, `git merge` the new branch
+
+### Why not do a `git filter-branch` instead of `git mv`?
+
+You could do, but it's slow and I don't think we need to rewrite history to make `git blame` and `git log` work properly.
+
+### Why aren't we using `git subtree`
+
+It breaks the output of `git blame` and `git log` (even with `--follow` option).
+
+It would look like whoever did the merge had written all the code on the date the merge happened.
+
+### What about `git submodule`?
+
+This relies on the referenced repos continuing to exist. However, we want to create a monorepo and eventually delete the original repos.
