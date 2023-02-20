@@ -3,28 +3,52 @@ Repos to include:
 - git@github.com:inform-health-informatics/Emap-Interchange.git
 - git@github.com:inform-health-informatics/Emap-Core.git
 - git@github.com:inform-health-informatics/emap-hl7-processor.git
+- git@github.com:inform-health-informatics/emap-setup.git
+- git@github.com:inform-health-informatics/emap_documentation.git (public docs)
 
-Exclude for now:
-- git@github.com:inform-health-informatics/hoover.git
+Exclude:
+- git@github.com:inform-health-informatics/hoover.git (temporarily exclude)
+- git@github.com:inform-health-informatics/internal_emap_docs.git (is internal)
 
-What about git@github.com:inform-health-informatics/emap-setup.git? Any others I've forgotten?
-
+Any others I've forgotten?
 
 ## Tasks/Requirements
+
+### Phase 1a (essential tasks)
+
+(Eg. code will fail to compile/run/deploy if we don't do them, or they're so integral to the merge it would almost be harder *not* to do them in the first phase)
+
+- Merge in `Inform-DB`
+- Merge in `Emap-Interchange`
+- Merge in `Emap-Core`
+- Merge in `emap-hl7-processor`
 - Preserve history - ensure git log and git blame give expected results
-- Bring in all tags, prefix them to avoid clashes
 - Make names match (and follow the same capitalisation+punctuation) between:
 	- docker service names
 	- module directories
 	- maven modules
 	- output jar
-- Merge Emap config
+- Merge Emap config files
 - Merge/simplify docker-compose files
 - Fix/simplify CI scripts, convert Circle to GHA
 - Fix/simplify glowroot config
+- Merge `inform-checker.xml` files (`hl7-reader` may need its own)
 - Rename project/JAR name in poms (`finalName` and `artifactId` tags)
+
+### Phase 1b (delayable tasks, but will attempt as phase 1 stretch goals)
+
+- Bring in all tags, prefix them to avoid clashes and signify oldness
 - Rename package names `rits.inform` -> `arc.emap`
-- Bring in user documentation
+- Merge in `emap_documentation` to docs subfolder
+
+### Phase 2 (delayed tasks)
+
+(Within scope of the project but things will work well enough without them)
+
+- Make sure auto doc generation for former `emap_documentation` repo is working
+- Merge in `emap-setup`
+
+
 
 ## Limitations
 
