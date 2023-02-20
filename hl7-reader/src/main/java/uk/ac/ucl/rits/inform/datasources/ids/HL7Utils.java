@@ -40,7 +40,6 @@ import java.util.TimeZone;
  */
 public final class HL7Utils {
 
-    private static final String LONDON_TIMEZONE = "Europe/London";
 
     /**
      * Can't instantiate a util class.
@@ -60,7 +59,7 @@ public final class HL7Utils {
         if (valueAsCal == null) {
             return null;
         }
-        valueAsCal.setTimeZone(TimeZone.getTimeZone(LONDON_TIMEZONE));
+        valueAsCal.setTimeZone(TimeZone.getDefault());
         return valueAsCal.toInstant();
     }
 
