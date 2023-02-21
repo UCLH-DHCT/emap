@@ -17,6 +17,7 @@ import static uk.ac.ucl.rits.inform.informdb.DBTestUtils.lowerCaseFirstCharacter
 
 /**
  * Ensure that all entities use the convention that a foreign key to another entity is <entityClass>Id.
+ * Also ensure that all primary keys have the form of <declaringClass>Id.
  * @author Tom Young
  */
 class TestKeyNaming {
@@ -54,10 +55,10 @@ class TestKeyNaming {
      */
     void assertHasClassNameAsPrefix(Field field) {
 
-        String declaringClass = field.getDeclaringClass().toString();
+        String declaringClass = field.getDeclaringClass().getSimpleName();
         String fieldName = field.getName();
-        String capitalizedFieldName = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-        assertTrue((declaringClass + "Id").endsWith(capitalizedFieldName));
+        String lowerClassName = declaringClass.substring(0, 1).toLowerCase() + declaringClass.substring(1);
+        assertEquals(lowerClassName + "Id", fieldName);
     }
 
     /**
