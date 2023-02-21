@@ -120,7 +120,7 @@ public class Publisher implements Runnable, Releasable {
 
         // If queue is full for longer than the scan for new messages, then the progress would not have been updated
         // so check ensure that we're not adding a duplicate batchId of one in progress or a waiting batch
-        if (batchWaitingMap.containsKey(batchId) | blockingQueue.contains(submitBatch)) {
+        if (batchWaitingMap.containsKey(batchId) || blockingQueue.contains(submitBatch)) {
             logger.error("Queue with a batchId of {} already exists", batchId);
             return;
         }
@@ -175,9 +175,9 @@ public class Publisher implements Runnable, Releasable {
         while (!isFinished) {
             try {
                 MessageBatch<? extends EmapOperationMessage> messageBatch = blockingQueue.take();
-                batchWaitingMap.put(messageBatch.batchId, new ImmutablePair<>(messageBatch.batch.size(), messageBatch.callback));
-                for (ImmutablePair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
-                    publish(pair.getLeft(), pair.getRight(), messageBatch.batchId);
+                batchWaitingMap.put(messageBatch.getBatchId(), new ImmutablePair<>(messageBatch.getNumberOfMessages(), messageBatch.getCallback()));
+                for (ImmutablePair<? extends EmapOperationMessage, String> pair : messageBatch.getBatch()) {
+                    publish(pair.getLeft(), pair.getRight(), messageBatch.getBatchId());
                 }
             } catch (AmqpException e) {
                 logger.error("AMQP Exception encountered, shutting down the publisher", e);
