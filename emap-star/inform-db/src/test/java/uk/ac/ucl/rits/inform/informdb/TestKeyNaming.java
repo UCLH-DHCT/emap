@@ -7,20 +7,27 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import javax.persistence.JoinColumn;
+import javax.persistence.Id;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import static uk.ac.ucl.rits.inform.informdb.DBTestUtils.lowerCaseFirstCharacter;
 
 
 /**
  * Ensure that all entities use the convention that a foreign key to another entity is <entityClass>Id.
+ * Also ensure that all primary keys have the form of <declaringClass>Id.
  * @author Tom Young
  */
-class TestForeignKeyNaming {
+class TestKeyNaming {
 
     boolean isAForeignKey(Field f) {
         return Arrays.stream(f.getDeclaredAnnotations()).anyMatch(a -> a.annotationType().equals(JoinColumn.class));
+    }
+
+    boolean isAPrimaryKey(Field f) {
+        return Arrays.stream(f.getDeclaredAnnotations()).anyMatch(a -> a.annotationType().equals(Id.class));
     }
 
     /**
@@ -42,6 +49,19 @@ class TestForeignKeyNaming {
     }
 
     /**
+     * Assert that a field has the same name as the class it belongs to, plus the "Id" suffix
+     * For example: A field in the ConditionType class should be called conditionTypeId.
+     * @param field  Class field
+     */
+    void assertHasClassNameAsPrefix(Field field) {
+
+        String declaringClass = field.getDeclaringClass().getSimpleName();
+        String fieldName = field.getName();
+        String lowerClassName = declaringClass.substring(0, 1).toLowerCase() + declaringClass.substring(1);
+        assertEquals(lowerClassName + "Id", fieldName);
+    }
+
+    /**
      * Ensure that every foreign key has the correct naming convention.
      */
     @ParameterizedTest
@@ -50,5 +70,13 @@ class TestForeignKeyNaming {
         Arrays.stream(entityClass.getDeclaredFields())
                 .filter(this::isAForeignKey)
                 .forEach(this::assertHasIdSuffix);
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.ac.ucl.rits.inform.informdb.DBTestUtils#findAllEntities")
+    void testPrimaryKeyNaming(Class<?> entityClass) {
+        Arrays.stream(entityClass.getDeclaredFields())
+                .filter(this::isAPrimaryKey)
+                .forEach(this::assertHasClassNameAsPrefix);
     }
 }
