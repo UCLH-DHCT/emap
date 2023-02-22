@@ -99,7 +99,51 @@ The new name column will be used for ALL purposes; that is, the docker service n
 
 §  not merging right now but can still rename things 
 
-## Mechanics of merging from other repos
+## Using `git filter-repo` to merge into this monorepo
+
+Since `git filter-repo` works on an entire repo, it's necessary to do the main rewriting work on a clone of each incoming repository.
+
+Create like so:
+```
+# clone the new repo (this repo)
+git clone git@github.com:UCLH-DHCT/emap.git
+
+# clone the old repos to adjacent directories, using their new names
+git clone git@github.com:inform-health-informatics/Inform-DB.git emap-star
+git clone git@github.com:inform-health-informatics/Emap-Interchange.git emap-interchange
+git clone git@github.com:inform-health-informatics/Emap-Core.git core
+git clone git@github.com:inform-health-informatics/emap-hl7-processor.git  hl7-reader
+```
+
+Run the actual filter-repo command. Moves everything to a subdir and gives all tags a prefix to avoid clashes.
+```
+for repo in emap-star emap-interchange core hl7-reader; do
+    ( cd $repo &&
+      git filter-repo --path-rename :${repo}/ --tag-rename :${repo}- )
+done
+```
+This runs in only a few seconds! (Compare to `git filter-branch` which takes forever).
+
+We don't push the modified versions back up to the original repos. In fact, `filter-repo` discourages you from doing so by deleting the `origin` remote.
+
+Therefore, in the new repo, instead of creating remotes that point to the incoming repos on github, we will point to the modified repos on the local disk. Then we can merge them in.
+
+Now switch back to the new repo and create remotes, fetch and merge:
+```
+cd ../emap
+for repo in emap-star emap-interchange core hl7-reader; do
+    git remote add -t develop -m develop --no-tags "$repo" ../"$repo"
+    git fetch --prune "$repo"
+    git merge --allow-unrelated-histories "$repo"/develop
+done
+```
+
+Bring in our renamed tags from earlier:
+```
+git fetch --all --tags
+```
+
+### Abandoned `git mv` + `git merge` method
 
 - Create new, empty, monorepo (this repo)
 - For each repo you want to bring in:
@@ -107,9 +151,11 @@ The new name column will be used for ALL purposes; that is, the docker service n
     - Add a commit to that tree that just does a `git mv` into a subdirectory
     - From main, `git merge` the new branch
 
+This worked ok, but causes problems with `git log`. The `--follow` option is necessary for traversing the commit history past a move, *however* it can only be used on individual files, not directories.
+
 ### Why not do a `git filter-branch` instead of `git mv`?
 
-You could do, but it's slow and I don't think we need to rewrite history to make `git blame` and `git log` work properly.
+You could do, but it's slow and strongly discouraged in favour of git filter-repo, which is a better way to rewrite history, which it turns out is necessary to make `git log` work properly.
 
 ### Why aren't we using `git subtree`
 
