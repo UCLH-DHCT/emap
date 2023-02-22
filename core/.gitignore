@@ -1,0 +1,29 @@
+# Temporary files
+*.swp
+*.swo
+*~
+*#
+
+# Editor files
+.classpath
+.project
+.settings/
+.checkstyle
+
+# Outputs
+*.class
+/target/
+
+# OS files
+.DS_Store
+
+# Secrets files and local config
+hl7-envs
+config-envs
+*-envs
+.env
+
+# IntelliJ files
+.idea/
+*.iml
+
