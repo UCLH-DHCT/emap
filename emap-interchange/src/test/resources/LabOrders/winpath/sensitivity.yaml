@@ -1,0 +1,207 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "URNC"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "URINE CULTURE REPORT"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      mimeType: "LAB_ISOLATE"
+      testItemLocalCode: "ISOLATE"
+      observationSubId: "1"
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "A"
+      labIsolate:
+        "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
+        sensitivities:
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VAK"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VAK"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VAC"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VAC"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VM"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VM"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VCN"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VCN"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VF"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VF"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+        isolateId: "1"
+        isolateCode: "KLEOXY"
+        isolateName: "Klebsiella oxytoca"
+        clinicalInformation:
+          "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+          status: "SAVE"
+          value: "Gentamicin resistant"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      mimeType: "LAB_ISOLATE"
+      testItemLocalCode: "ISOLATE"
+      observationSubId: "2"
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "A"
+      labIsolate:
+        "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
+        sensitivities:
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VAK"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VAK"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VM"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VM"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VFS"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VFS"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VCN"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VCN"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "I"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VF"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VF"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+        isolateId: "2"
+        isolateCode: "PROMIR"
+        isolateName: "Proteus mirabilis"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "URST"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "COMPLETE: 14/07/19"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "93939393"
+  testBatteryLocalCode: "URNC"
+  statusChangeTime: "2019-07-15T08:37:00Z"
+  clinicalInformation:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: ":-UTI??"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "URNM"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "URINE MICROSCOPY REPORT"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "UWBC"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Numerous"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "URBC"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Not seen"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "UEPC"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Few"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "UYEA"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Not seen"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "93939395"
+  testBatteryLocalCode: "URNM"
+  statusChangeTime: "2019-07-10T19:39:00Z"
+  clinicalInformation:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: ":-UTI??"
