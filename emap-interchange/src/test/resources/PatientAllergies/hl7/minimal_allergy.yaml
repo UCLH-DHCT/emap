@@ -1,0 +1,24 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
+  sourceSystem: "EPIC"
+  sourceMessageId: "0000000042"
+  updatedDateTime: "2019-06-08T10:32:05Z"
+  mrn: "8DcEwvqa8Q3"
+  subType:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "DRUG INGREDI"
+  conditionCode: "TRAMADOL"
+  conditionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "TRAMADOL"
+  addedDatetime: "2019-06-08T10:31:05Z"
+  onsetDate:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-07"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  action: "ADD"

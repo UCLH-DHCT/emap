@@ -1,0 +1,6 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.ConsultMetadata"
+sourceSystem: "clarity"
+sourceMessageId: "CON1"
+code: "CON1"
+name: "Inpatient consult to Colorectal Surgery"
+lastUpdatedDate: "2018-07-05T18:37:25Z"
