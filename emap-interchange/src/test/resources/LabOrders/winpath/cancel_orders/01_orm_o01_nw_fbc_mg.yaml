@@ -1,0 +1,13 @@
+testBatteryLocalCode: "FBC"
+labDepartment: "Lab"
+statusChangeTime: "2013-07-28T07:08:06Z"
+orderControlId: "NW"
+orderDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-07-28T07:08:06Z"
+sourceSystem: "Not in Message"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "91393666"

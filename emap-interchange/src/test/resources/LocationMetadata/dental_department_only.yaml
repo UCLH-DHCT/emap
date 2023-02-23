@@ -1,0 +1,9 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
+hl7String: "1000000059^null^null"
+sourceSystem: "clarity"
+# department
+departmentHl7: "1000000059"
+departmentName: "DENTAL: ORAL MEDICINE"
+departmentSpeciality: "Dental - Oral Medicine"
+departmentRecordStatus: "ACTIVE"
+departmentUpdateDate: "2018-08-22T00:00:00Z"

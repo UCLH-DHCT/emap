@@ -1,0 +1,26 @@
+name: Develop scheduled testing
+
+on:
+  schedule:
+    - cron: '0 0 * * *'    # At midnight every day
+
+jobs:
+  is_tagged:
+    id: is_tagged
+    uses: inform-health-informatics/emap-actions/.github/workflows/is_tagged.yml@main
+    with:
+      repo: "emap-hl7-processor"
+    secrets:
+      token: ${{ secrets.GH_ACCESS_TOKEN }}
+  test:
+    needs: is_tagged
+    if: { { needs.is_tagged.outputs.tag_exists } }
+    uses: inform-health-informatics/emap-hl7-processor/.github/workflows/test.yaml@develop
+  remove_tag:
+    needs: is_tagged
+    if: { { needs.is_tagged.outputs.tag_exists } }
+    uses: inform-health-informatics/emap-actions/.github/workflows/remove_tag.yml@main
+    with:
+      repo: "emap-hl7-processor"
+    secrets:
+      token: ${{ secrets.GH_ACCESS_TOKEN }}
