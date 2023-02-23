@@ -3,10 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ucl.rits.inform</groupId>
-  <artifactId>EmapCore</artifactId>
+  <artifactId>core</artifactId>
   <packaging>jar</packaging>
   <version>2.6</version>
-  <name>EmapCore</name>
+  <name>Emap Core Processor</name>
   <url>http://maven.apache.org</url>
 
   <parent>
@@ -20,7 +20,7 @@
     <java.version>11</java.version>
     <checkstyle.version>9.3</checkstyle.version>
     <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
-    <inform-db.version>2.6</inform-db.version>
+    <emap-star.version>2.6</emap-star.version>
     <emap-interchange.version>2.6</emap-interchange.version>
     <go-offline-maven-plugin.version>1.2.8</go-offline-maven-plugin.version>
   </properties>
@@ -38,8 +38,8 @@
   <dependencies>
     <dependency>
       <groupId>uk.ac.ucl.rits.inform</groupId>
-      <artifactId>inform-db</artifactId>
-      <version>${inform-db.version}</version>
+      <artifactId>emap-star</artifactId>
+      <version>${emap-star.version}</version>
     </dependency>
 
     <dependency>
@@ -133,7 +133,7 @@
   </dependencies>
 
   <build>
-    <finalName>Emap-Core</finalName>
+    <finalName>core</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -148,8 +148,8 @@
           <dynamicDependencies>
             <DynamicDependency>
               <groupId>uk.ac.ucl.rits.inform</groupId>
-              <artifactId>inform-db</artifactId>
-              <version>${inform-db.version}</version>
+              <artifactId>emap-star</artifactId>
+              <version>${emap-star.version}</version>
               <repositoryType>MAIN</repositoryType>
             </DynamicDependency>
             <DynamicDependency>

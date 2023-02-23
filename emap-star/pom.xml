@@ -22,8 +22,8 @@
   </properties>
 
   <modules>
-    <module>inform-db</module>
-    <module>inform-annotations</module>
+    <module>emap-star</module>
+    <module>emap-star-annotations</module>
   </modules>
 
   <build>
