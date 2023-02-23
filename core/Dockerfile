@@ -4,36 +4,36 @@ SHELL ["/bin/bash", "-c"]
 # Install zip & unzip for glowroot
 RUN apt update; apt install -yy zip
 # Set up the Maven proxy settings
-COPY Emap-Core/set_mvn_proxy.sh /app/
+COPY core/set_mvn_proxy.sh /app/
 # Download and extract glowroot
-WORKDIR /app/Emap-Core
+WORKDIR /app/core
 RUN curl -s https://api.github.com/repos/glowroot/glowroot/releases/latest \
   | grep browser_download_url | grep "\.zip" | grep -v "central" | cut -d '"' -f 4 \
   | xargs curl -L -o glowroot.zip; unzip glowroot.zip
-COPY Emap-Core/glowroot.properties glowroot/glowroot.properties
-COPY Emap-Core/config.json glowroot/config.json
-# Copy pom and checkstyle, then generate resources (requires inform-annotations to be installed)
-COPY Emap-Interchange/pom.xml /app/Emap-Interchange/
-COPY Emap-Interchange/inform-checker.xml /app/Emap-Interchange/
-RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/Emap-Interchange/pom.xml
-COPY Inform-DB/pom.xml /app/Inform-DB/
-COPY Inform-DB/inform-checker.xml /app/Inform-DB/
-COPY Inform-DB/inform-db/pom.xml /app/Inform-DB/inform-db/
-COPY Inform-DB/inform-annotations/ /app/Inform-DB/inform-annotations/
-RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -f /app/Inform-DB/inform-annotations/pom.xml
-RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/Inform-DB/pom.xml
-COPY Emap-Core/pom.xml /app/Emap-Core/
-COPY Emap-Core/inform-checker.xml /app/Emap-Core/
-RUN source /app/set_mvn_proxy.sh; mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -f /app/Emap-Core/pom.xml
-# Set up Inform-DB
-COPY Inform-DB/inform-db/src/ /app/Inform-DB/inform-db/src/
-RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -f /app/Inform-DB/pom.xml
-# Set up Emap-Interchange
-COPY Emap-Interchange/src/ /app/Emap-Interchange/src/
-RUN source /app/set_mvn_proxy.sh; mvn install -f /app/Emap-Interchange/pom.xml
-# Set up Emap-Core
-WORKDIR /app/Emap-Core
-COPY Emap-Core/src/ /app/Emap-Core/src/
+COPY core/glowroot.properties glowroot/glowroot.properties
+COPY core/config.json glowroot/config.json
+# Copy pom and checkstyle, then generate resources (requires emap-star-annotations to be installed)
+COPY emap-interchange/pom.xml /app/emap-interchange/
+COPY emap-interchange/inform-checker.xml /app/emap-interchange/
+RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/emap-interchange/pom.xml
+COPY emap-star/pom.xml /app/emap-star/
+COPY emap-star/inform-checker.xml /app/emap-star/
+COPY emap-star/emap-star/pom.xml /app/emap-star/emap-star/
+COPY emap-star/emap-star-annotations/ /app/emap-star/emap-star-annotations/
+RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -f /app/emap-star/emap-star-annotations/pom.xml
+RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/emap-star/pom.xml
+COPY core/pom.xml /app/core/
+COPY core/inform-checker.xml /app/core/
+RUN source /app/set_mvn_proxy.sh; mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -f /app/core/pom.xml
+# Set up emap-star
+COPY emap-star/emap-star/src/ /app/emap-star/emap-star/src/
+RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -f /app/emap-star/pom.xml
+# Set up emap-interchange
+COPY emap-interchange/src/ /app/emap-interchange/src/
+RUN source /app/set_mvn_proxy.sh; mvn install -f /app/emap-interchange/pom.xml
+# Set up core
+WORKDIR /app/core
+COPY core/src/ /app/core/src/
 # Create final jar
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Pemapstar -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
-CMD ["java", "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/Emap-Core.jar"]
+CMD ["java", "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/core.jar"]
