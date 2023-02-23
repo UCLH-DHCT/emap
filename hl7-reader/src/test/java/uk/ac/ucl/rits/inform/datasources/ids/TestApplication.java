@@ -8,7 +8,7 @@ import java.util.TimeZone;
 @Configuration
 public class TestApplication {
     /**
-     * Set time zone to be Europe/London to match docker containers
+     * Hardcode timezone to ensure that instant conversion will be consistent for test assertions
      */
     @PostConstruct
     public void init() {
