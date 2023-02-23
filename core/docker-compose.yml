@@ -1,9 +1,9 @@
 version: '3.2'
 services:
-  emapstar:
+  core:
     build:
       context: ..
-      dockerfile: Emap-Core/Dockerfile
+      dockerfile: core/Dockerfile
       args:
         HTTP_PROXY: ${HTTP_PROXY}
         http_proxy: ${http_proxy}
@@ -34,7 +34,7 @@ services:
   glowroot-central:
     build:
       context: ..
-      dockerfile: Emap-Core/Dockerfile.glowroot-central
+      dockerfile: core/Dockerfile.glowroot-central
       args:
         HTTP_PROXY: ${HTTP_PROXY}
         http_proxy: ${http_proxy}
