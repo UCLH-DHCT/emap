@@ -1,0 +1,9 @@
+MSH|^~\&|CoPath|UCH|EPIC|UCH|20201117170100||ORU^R01|3700001331282|P|2.3
+PID|1||40800000^^^MRENTR^MEDREC||ORANG^BLOD^^^^^D||19890909|F|||^^^^^ENGLAND^
+PV1|1||CTYA^MCCTYA ARRIVED|||||||MCCTHR^^^CC^^^^^^^DEPID|||||||||123234221|||||||||||||||||||||||||202011090944|202011091842
+ORC|RE|12121212|UH20-4444^CoPathPlus||CM||||202011111253|^Duck^Daffy||Vdd^Duck^Donald
+OBR|1|12121212|UH20-4444^CoPathPlus|H^Histopathology|||202011091505|||||||202011101419|^^Bone marrow trephine biopsy//24604|Vdd^Duck^Donald||||||202011171544||H^Histopathology|F|||||||^Duck^Donald|^Duck^Donald
+OBX|1|TX|UH20-4444&rpt^^99DHT||PATIENT NAME:||||||F
+OBX||TX|UH20-4444&rpt^^99DHT||...||||||F
+OBX|21|TX|UH20-4444&rpt^^99DHT||report end||||||F
+OBX|22|TX|UH20-4444&rpt^^99DHT||||||||F

@@ -1,0 +1,73 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "TISC"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "TISSUE CULTURE REPORT"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "LAB_ISOLATE"
+      testItemLocalCode: "ISOLATE"
+      observationSubId: "1"
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "A"
+      labIsolate:
+        "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
+        sensitivities:
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VDP"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VDP"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+        isolateId: "1"
+        isolateCode: "STAHAE"
+        isolateName: "Staphylococcus haemolyticus"
+        quantity:
+          "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+          status: "SAVE"
+          value: "Heavy growth of"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "LAB_ISOLATE"
+      testItemLocalCode: "ISOLATE"
+      observationSubId: "2"
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "A"
+      labIsolate:
+        "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
+        sensitivities:
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VM"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VM"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+        isolateId: "2"
+        isolateCode: "ENTFAM"
+        isolateName: "Enterococcus faecium"
+        quantity:
+          "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+          status: "SAVE"
+          value: "Light growth of"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "FSTA"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "INCOMPLETE - LAST UPDATED: 12/09/20"
+  testBatteryLocalCode: "TISC"
