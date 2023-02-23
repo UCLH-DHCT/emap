@@ -143,6 +143,18 @@ Bring in our renamed tags from earlier:
 git fetch --all --tags
 ```
 
+### What if we change the old repo after we've done the monorepo merge?
+
+This migration won't be instantaneous; a few changes will be going in to the old repos while it's still underway.
+
+I'll put detailed instructions here when I've actually done it, but for now
+we can note that you get the same results every time you repeat the `git filter-repo` process, as long as you're
+using the same parameters. That is, you get a new commit history with the same (new) hashes as before.
+This may not have been the case if eg. `filter-repo` was updating the CommitDate with the current time.
+
+Given this, it should be easy to repeat the same merging process, the only difference being that the `git merge` step won't be merging in as many commits, and you
+won't need the `--allow-unrelated-histories` option.
+
 ### Abandoned `git mv` + `git merge` method
 
 - Create new, empty, monorepo (this repo)
