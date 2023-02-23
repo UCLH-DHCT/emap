@@ -3,10 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ucl.rits.inform</groupId>
-  <artifactId>HL7Processor</artifactId>
+  <artifactId>hl7-reader</artifactId>
   <packaging>jar</packaging>
   <version>2.6</version>
-  <name>HL7Processor</name>
+  <name>HL7 Reader</name>
   <url>http://maven.apache.org</url>
 
 
@@ -142,7 +142,7 @@
   </dependencies>
 
   <build>
-    <finalName>HL7Processor</finalName>
+    <finalName>hl7-reader</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>

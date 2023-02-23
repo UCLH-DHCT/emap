@@ -5,7 +5,7 @@
   <groupId>uk.ac.ucl.rits.inform</groupId>
   <artifactId>emap-interchange</artifactId>
   <version>2.6</version>
-  <name>Emap-Interchange</name>
+  <name>Emap Interchange</name>
   <description>Emap interchange format for sending data to the core processor</description>
 
   <parent>
