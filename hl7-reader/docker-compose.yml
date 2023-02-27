@@ -1,9 +1,9 @@
 version: '3.2'
 services:
-  hl7source:
+  hl7-reader:
     build:
       context: ..
-      dockerfile: emap-hl7-processor/Dockerfile
+      dockerfile: hl7-reader/Dockerfile
       args:
         HTTP_PROXY: ${HTTP_PROXY}
         http_proxy: ${http_proxy}
