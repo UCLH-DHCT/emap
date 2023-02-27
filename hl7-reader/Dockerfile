@@ -13,10 +13,9 @@ RUN curl -s https://api.github.com/repos/glowroot/glowroot/releases/latest \
 COPY hl7-reader/glowroot.properties glowroot/glowroot.properties
 COPY hl7-reader/config.json glowroot/config.json
 # Copy pom and checkstyle, then all generate resources
-COPY emap-interchange/inform-checker.xml /app/emap-interchange/
+COPY emap-checker.xml /app/
 COPY emap-interchange/pom.xml /app/emap-interchange/
 RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/emap-interchange/pom.xml
-COPY hl7-reader/inform-checker.xml /app/hl7-reader/
 COPY hl7-reader/pom.xml /app/hl7-reader/
 RUN source /app/set_mvn_proxy.sh; mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -f /app/hl7-reader/pom.xml
 # Install emap-interchange
