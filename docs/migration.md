@@ -89,8 +89,9 @@ The new name column will be used for ALL purposes; that is, the docker service n
 
 | current repo name | NEW name | current docker service name  | current maven project name | current jar name  |
 | --- | --- | --- | --- | --- |
-| Inform-DB        | \[emap-star/\] emap-star | n/a | inform-db | `inform-db*.jar` |
-| Inform-DB     |   \[emap-star/\] emap-star-annotations |  n/a  |  inform-annotations | `inform-annotations*.jar`  |
+| Inform-DB        | emap-star (maven project = emap-star-parent) | n/a | emap-star | n/a |
+| Inform-DB        | emap-star/emap-star (maven project = emap-star) | n/a | inform-db | `inform-db*.jar` |
+| Inform-DB     |   emap-star/emap-star-annotations (maven project = emap-star-annotations) | n/a  |  inform-annotations | `inform-annotations*.jar`  |
 | Emap-Interchange | emap-interchange | n/a | emap-interchange | `emap-interchange*.jar` |
 | Emap-Core       | core | emapstar  | EmapCore | `Emap-Core*.jar`  |
 | emap-hl7-processor | hl7-reader | hl7source | HL7Processor | `HL7Processor*.jar` |
