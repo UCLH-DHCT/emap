@@ -36,7 +36,7 @@ hs_err_pid*
 
 # Outputs
 *.class
-/target/
+**/target/
 
 # OS files
 .DS_Store
