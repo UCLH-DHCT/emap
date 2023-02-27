@@ -1,16 +1,16 @@
 version: '3.2'
 services:
-  emapstar:
+  core:
     build:
       context: ..
-      dockerfile: Emap-Core/Dockerfile
+      dockerfile: core/Dockerfile
       args:
         HTTP_PROXY: ${HTTP_PROXY}
         http_proxy: ${http_proxy}
         HTTPS_PROXY: ${HTTPS_PROXY}
         https_proxy: ${https_proxy}
     env_file:
-      - ../config/emap-core-config-envs
+      - ../../config/core-config-envs
     logging:
       driver: "json-file"
     restart: on-failure
@@ -20,7 +20,7 @@ services:
   rabbitmq:
     image: rabbitmq:management
     env_file:
-      - ../config/rabbitmq-config-envs
+      - ../../config/rabbitmq-config-envs
     ports:
       - "${RABBITMQ_PORT}:5672"
       - "${RABBITMQ_ADMIN_PORT}:15672"
@@ -34,14 +34,14 @@ services:
   glowroot-central:
     build:
       context: ..
-      dockerfile: Emap-Core/Dockerfile.glowroot-central
+      dockerfile: core/Dockerfile.glowroot-central
       args:
         HTTP_PROXY: ${HTTP_PROXY}
         http_proxy: ${http_proxy}
         HTTPS_PROXY: ${HTTPS_PROXY}
         https_proxy: ${https_proxy}
     env_file:
-      - ../config/glowroot-config-envs
+      - ../../config/glowroot-config-envs
     ports:
       - "${GLOWROOT_ADMIN_PORT}:4000"
     restart: on-failure
