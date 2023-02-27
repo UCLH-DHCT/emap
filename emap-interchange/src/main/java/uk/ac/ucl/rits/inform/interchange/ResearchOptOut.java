@@ -30,6 +30,13 @@ public class ResearchOptOut extends EmapOperationMessage {
     private Instant lastUpdated;
 
     /**
+     * Is the opt-out active.
+     * <p>
+     * Patients can remove their opt-out status, if this happens then this should be set to false
+     */
+    private boolean active;
+
+    /**
      * Messages must call back out to the processor (double dispatch).
      * @param processor the Emap processor
      * @throws EmapOperationMessageProcessingException if message cannot be processed
