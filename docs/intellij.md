@@ -101,6 +101,6 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 
    ![checkstyle_setup](img/checkstyle_setup.png)
 
-    - Make a description and select the checkstyle file in `core/inform-checker.xml`. When done, in the bottom panel of the IntelliJ select the inform rules to make the new configuration active.
+    - Make a description and select the checkstyle file `emap/emap-checker.xml`. When done, in the bottom panel of the IntelliJ select the inform rules to make the new configuration active.
       ![checkstyle](img/checkstyle.png)
 </details>
