@@ -10,13 +10,13 @@
 
   <parent>
     <groupId>uk.ac.ucl.rits.inform</groupId>
-    <artifactId>emap-star</artifactId>
+    <artifactId>emap-star-parent</artifactId>
     <version>2.6</version>
   </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <inform-annotations.version>2.6</inform-annotations.version>
+    <emap-star-annotations.version>2.6</emap-star-annotations.version>
     <reflections.version>0.10.2</reflections.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <checkstyle.version>9.3</checkstyle.version>
@@ -59,8 +59,8 @@
     </dependency>
     <dependency>
       <groupId>uk.ac.ucl.rits.inform</groupId>
-      <artifactId>inform-annotations</artifactId>
-      <version>${inform-annotations.version}</version>
+      <artifactId>emap-star-annotations</artifactId>
+      <version>${emap-star-annotations.version}</version>
     </dependency>
   </dependencies>
 
