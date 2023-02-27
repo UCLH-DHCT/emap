@@ -2,15 +2,15 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>inform-annotations</artifactId>
+  <artifactId>emap-star-annotations</artifactId>
   <version>2.6</version>
-  <name>Inform Annotations</name>
+  <name>Emap Star Annotations</name>
   <packaging>jar</packaging>
   <description>Inform-DB Spring JPA Annotation Helpers</description>
 
   <parent>
     <groupId>uk.ac.ucl.rits.inform</groupId>
-    <artifactId>emap-star</artifactId>
+    <artifactId>emap-star-parent</artifactId>
     <version>2.6</version>
   </parent>
 

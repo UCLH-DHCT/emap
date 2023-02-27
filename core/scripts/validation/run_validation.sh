@@ -23,8 +23,8 @@ configure_time_window() {
             s/^(HOOVER_DATE_FROM)=.*$/$1=$ENV{"window_start"}/;
             s/^(HOOVER_DATE_UNTIL)=.*$/$1=$ENV{"window_end"}/;
         ' \
-        ../config/emap-hl7processor-config-envs \
-        ../config/emap-core-config-envs \
+        ../config/hl7-reader-config-envs \
+        ../config/core-config-envs \
         ../config/hoover-envs
 }
 

@@ -21,9 +21,8 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
-/target/
 
-Temporary files
+# Temporary files
 *.swp
 *.swo
 *~
@@ -35,8 +34,16 @@ Temporary files
 .settings/
 .checkstyle
 
+# Outputs
+*.class
+**/target/
+
 # OS files
 .DS_Store
+
+# Secrets files and local config
+*-envs
+.env
 
 # IntelliJ files
 .idea/

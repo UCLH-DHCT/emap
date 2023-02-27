@@ -4,7 +4,7 @@
                              http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ucl.rits.inform</groupId>
-  <artifactId>emap-star</artifactId>
+  <artifactId>emap-star-parent</artifactId>
   <packaging>pom</packaging>
   <version>2.6</version>
   <name>Emap Star Schema</name>
@@ -22,8 +22,8 @@
   </properties>
 
   <modules>
-    <module>inform-db</module>
-    <module>inform-annotations</module>
+    <module>emap-star</module>
+    <module>emap-star-annotations</module>
   </modules>
 
   <build>

@@ -29,12 +29,12 @@ for an overview of deploying a live instance of EMAP services
 Supply the required config files in the `config` directory required by the emap-core deployment. This service uses two
 of these config files:
 
-### `emap-hl7processor-config-envs` file
+### `hl7-reader-config-envs` file
 
 This file is used by hl7source (the hl7 processor's docker container) to point to the IDS and rabbitmq server.
 
 The required envs in this file with example values are found in
-[emap-hl7processor-config-envs.EXAMPLE](emap-hl7processor-config-envs.EXAMPLE)
+[hl7-reader-config-envs.EXAMPLE](hl7-reader-config-envs.EXAMPLE)
 
 # HAPI
 
