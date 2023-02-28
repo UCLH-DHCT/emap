@@ -14,16 +14,14 @@ COPY core/glowroot.properties glowroot/glowroot.properties
 COPY core/config.json glowroot/config.json
 # Copy pom and checkstyle, then generate resources (requires emap-star-annotations to be installed)
 COPY emap-interchange/pom.xml /app/emap-interchange/
-COPY emap-interchange/inform-checker.xml /app/emap-interchange/
+COPY emap-checker.xml /app/
 RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/emap-interchange/pom.xml
 COPY emap-star/pom.xml /app/emap-star/
-COPY emap-star/inform-checker.xml /app/emap-star/
 COPY emap-star/emap-star/pom.xml /app/emap-star/emap-star/
 COPY emap-star/emap-star-annotations/ /app/emap-star/emap-star-annotations/
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -f /app/emap-star/emap-star-annotations/pom.xml
 RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/emap-star/pom.xml
 COPY core/pom.xml /app/core/
-COPY core/inform-checker.xml /app/core/
 RUN source /app/set_mvn_proxy.sh; mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -f /app/core/pom.xml
 # Set up emap-star
 COPY emap-star/emap-star/src/ /app/emap-star/emap-star/src/
