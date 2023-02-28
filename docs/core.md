@@ -1,4 +1,4 @@
-# Emap Core
+# Emap Core Processor (`core`)
 
 This service takes messages from a queue and compares this data to the current data in the EMAP database.
 Generally, if a message has newer information that is different, then the message will update the database data,
@@ -6,43 +6,7 @@ otherwise the message will have no effect. This is important because the HL7 mes
 
 ## IntelliJ setup
 
-See [here for IntelliJ setup](../docs/intellij.md)
-
-## Running tests
-
-Emap-Core and the other repositories include unit tests in `<repo-name>/src/test/java`.  Run all the tests by
-
-1. <details>
-    <summary>Creating a configuration</summary>
-   
-    - <b>Run > Edit Configurations</b>
-    - Click on the `+` at the top left-hand side of the window
-      ![new run](img/new_run.png)
-    - Select `Junit` from the drop down
-        - Set Test kind to `All in package`
-        - Set the package to `uk.ac.ucl.rits.inform.datasinks.emapstar`. Or set the module to e.g. Emap-Core and the package to `uk.ac.ucl.rits.inform`
-        - You may also want to set logging level to TRACE for our classes by defining the environmental variable:
-          `LOGGING_LEVEL_UK_AC_UCL=TRACE`
-
-</details>
-
-2. <details>
-    <summary>Compiling and running</summary>
-    
-    Go to <b>Run > Run</b>, which should create a window in the bottom pane
-    ![tests pass](img/test_pass.png)
-
-    - If this fails to compile, you may need to go to the maven pane on the right-hand side and
-      run the Lifecycle `clean` goal for: `Inform Annotations` and `Inform-DB`.
-      Then `clean` and then `install` on `Emap Star Schema`
-    - After this then select the `Reload All Maven Projects` icon at the top of the same pane as shown below
-
-      ![reload](img/reload_maven.png)
-
-    - You may also need to run `Generate Sources and Update Folders For All Projects`
-</details>
-
-Tests can also be run individually by clicking the play button on a class within an IDE editor window.
+See [here for IntelliJ setup](intellij.md)
 
 ## Deploying a live version
 
