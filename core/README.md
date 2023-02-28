@@ -4,90 +4,9 @@ This service takes messages from a queue and compares this data to the current d
 Generally, if a message has newer information that is different, then the message will update the database data,
 otherwise the message will have no effect. This is important because the HL7 messages can be received out of order.
 
-## Local setup instructions using IntelliJ IDEA
+## IntelliJ setup
 
-These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.jetbrains.com/idea/), but hopefully should be similar in [Eclipse](https://www.eclipse.org/downloads/).
-
-1. <details>
-    <summary>Create a parent directory</summary>
-   
-    Create a directory where all the repositories, including this one, will be cloned
-    e.g.
-   
-    ```bash
-    mkdir ~/projects/EMAP
-    ```
-</details>
-
-2. <details>
-    <summary>Clone repositories</summary>
-   
-    Emap-Core depends on both [Inform-DB](https://github.com/inform-health-informatics/Inform-DB) and [Emap-Interchange](https://github.com/inform-health-informatics/Emap-Interchange).
-    Clone each of them with e.g.
-
-    ```bash
-    cd ~/projects/EMAP
-    git clone https://github.com/inform-health-informatics/Emap-Core.git
-    git clone https://github.com/inform-health-informatics/Emap-Interchange.git
-    git clone https://github.com/inform-health-informatics/Inform-DB.git
-    git clone https://github.com/inform-health-informatics/emap-hl7-processor.git
-    git clone https://github.com/inform-health-informatics/hoover.git
-    ```
-   
-   This could also be achieved with [emap-setup](https://github.com/inform-health-informatics/emap-setup) by, once installed, running `emap setup --init`
-
-</details>
-
-3. <details>
-    <summary>Open project in IntelliJ IDEA</summary>
-   
-    <b>File > New > New Project From existing sources</b> and select the parent directory (e.g. `~/projects/EMAP`). If prompted, choose "Create project from existing sources" and "Unmark All" if prompted to select source files for the project.
-</details>
-
-4. <details>
-    <summary>Add Maven projects</summary>
-   
-    In the project pane on the top left of the IDE, switch to "Project Files" mode, right-click `Emap-Core/pom.xml` and select <b>Add as Maven project</b>.
-    Do the same with `Emap-Interchange/pom.xml` and `Inform-DB/pom.xml` - not to be confused with `Inform-DB/inform-db/pom.xml` (which contains the Hibernate entity definitions, but requires the annotation preprocessor)! Likewise with `hoover/pom.xml` and `emap-hl7-processor/pom.xml` 
-    If you add something by mistake use "Unlink Maven projects" in the Maven pane, which is the opposite of "Add..."
-</details>
-
-5. <details>
-    <summary>Allow annotation processing</summary>
-   
-    Go to <b>File > Settings > and searching for `processor`</b>
-    - Check `enable annotation preprocessing`
-    - Change the production sources directory to `classes` as below
-   
-    ![preprocessor](img/annotation_processor.png)
-</details>
-
-6. <details>
-    <summary>Reload Maven projects</summary>
-   
-    In the `Maven` pane (which should now have appeared on the top right of the IDE),
-    click **Reimport all maven projects** or **Reload**
-</details>
-
-7. <details>
-    <summary>Add lombok and checkstyle plugins</summary>
-   
-    Go to <b>File > Settings > search for plugins</b>, search lombok and checkstyle and install them
-</details>
-
-8. <details>
-    <summary>Setup checkstyle</summary>
-   
-    To allow checkstyle to be run go to <b>File > settings > search for checkstyle</b>
-    - Set the version of checkstyle to the latest version
-    - Click on the `+` to add a new checkstyle configuration
-
-    ![checkstyle_setup](img/checkstyle_setup.png)
-
-    - Make a description and select the checkstyle file in `Emap-Core/inform-checker.xml`. When done, in the bottom panel of the IntelliJ select the inform rules to make the new configuration active.
-    ![checkstyle](img/checkstyle.png)
-</details>
-
+See [here for IntelliJ setup](../docs/intellij.md)
 
 ## Running tests
 
