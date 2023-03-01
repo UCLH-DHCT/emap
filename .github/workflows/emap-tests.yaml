@@ -21,22 +21,38 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
-  emap-star-tests:
+  emap-star-build:
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
-      - name: Build and test
+      - name: Build only
         working-directory: emap-star
-        run: mvn clean test
+        run: mvn clean install
+  emap-star-tests:
+    needs: [emap-star-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        working-directory: emap-star
+        run: mvn test
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
         if: always() # always run even if the previous step fails
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
-  emap-interchange-tests:
+  emap-interchange-build:
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
-      - name: Build and test
-        run: mvn clean test
+      - name: Build only
+        run: mvn clean install
+        working-directory: emap-interchange
+  emap-interchange-tests:
+    needs: [emap-interchange-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        run: mvn test
         working-directory: emap-interchange
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
@@ -44,7 +60,7 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   hl7-reader-tests:
-    needs: [emap-star-tests, emap-interchange-tests]
+    needs: [emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
     steps:
       - name: Test hl7-reader
@@ -58,7 +74,7 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   core-tests:
-    needs: [emap-star-tests, emap-interchange-tests]
+    needs: [emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
     steps:
       - name: Build and test core
