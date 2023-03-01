@@ -10,7 +10,7 @@ permissions:
   checks: write
   id-token: write
 jobs:
-  emap-star-tests:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -21,6 +21,9 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
+  emap-star-tests:
+    runs-on: ubuntu-latest
+    steps:
       - name: Build and test
         working-directory: emap-star
         run: mvn clean test
@@ -32,14 +35,6 @@ jobs:
   emap-interchange-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-      - name: Set up JDK 11 # also enables caching
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin' # adopt has moved to Eclipse Temurin
-          cache: 'maven'
       - name: Build and test
         run: mvn clean test
         working-directory: emap-interchange
@@ -52,14 +47,6 @@ jobs:
     needs: [emap-star-tests, emap-interchange-tests]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Set up JDK 11 # also enables caching
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin' # adopt has moved to Eclipse Temurin
-          cache: 'maven'
       - name: Test hl7-reader
         run: mvn clean test
         working-directory: hl7-reader
@@ -74,14 +61,6 @@ jobs:
     needs: [emap-star-tests, emap-interchange-tests]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-      - name: Set up JDK 11 # also enables caching
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-          cache: 'maven'
       - name: Build and test core
         run: mvn clean -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
         working-directory: core
