@@ -60,9 +60,6 @@ jobs:
           java-version: '11'
           distribution: 'temurin' # adopt has moved to Eclipse Temurin
           cache: 'maven'
-      - name: Build emap-interchange
-        run: mvn clean install # run tests so that test classes can be used in current testing
-        working-directory: emap-interchange
       - name: Test hl7-reader
         run: mvn clean test
         working-directory: hl7-reader
@@ -85,12 +82,6 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
-      - name: Build emap-star
-        run: mvn clean install -Dmaven.test.skip=true
-        working-directory: emap-star
-      - name: Build emap-interchange
-        run: mvn clean install # run tests so that test classes can be used in current testing
-        working-directory: emap-interchange
       - name: Build and test core
         run: mvn clean -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
         working-directory: core
