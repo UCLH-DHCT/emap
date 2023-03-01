@@ -25,6 +25,8 @@ jobs:
     needs: [setup]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: Build only
         working-directory: emap-star
         run: mvn clean install
@@ -32,6 +34,8 @@ jobs:
     needs: [emap-star-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: Run tests
         working-directory: emap-star
         run: mvn test
@@ -44,6 +48,8 @@ jobs:
     needs: [setup]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: Build only
         run: mvn clean install
         working-directory: emap-interchange
@@ -51,6 +57,8 @@ jobs:
     needs: [emap-interchange-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: Run tests
         run: mvn test
         working-directory: emap-interchange
@@ -63,6 +71,8 @@ jobs:
     needs: [emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: Test hl7-reader
         run: mvn clean test
         working-directory: hl7-reader
@@ -77,6 +87,8 @@ jobs:
     needs: [emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: Build and test core
         run: mvn clean -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
         working-directory: core
