@@ -25,12 +25,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
+        id: star-cache
         with:
           path: 'emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Build only
         working-directory: emap-star
-        run: echo Cache hit? ${{ output.cache-hit }}; mvn clean install
+        run: echo Cache hit? ${{ steps.star-cache.output.cache-hit }}; mvn clean install
 
   emap-star-tests:
     needs: [emap-star-build]
