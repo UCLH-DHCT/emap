@@ -28,11 +28,11 @@ jobs:
       - uses: actions/cache@v3
         id: star-cache
         with:
-          path: 'emap-star/target'
+          path: 'emap-star/emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Build only
         working-directory: emap-star
-        run: echo Cache hit? ${{ steps.star-cache.output.cache-hit }}; mvn clean install
+        run: mvn clean install
 
   emap-star-tests:
     needs: [emap-star-build]
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           fail-on-cache-miss: true
-          path: 'emap-star/target'
+          path: 'emap-star/emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Run tests
         working-directory: emap-star
@@ -95,7 +95,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           fail-on-cache-miss: true
-          path: 'emap-star/target'
+          path: 'emap-star/emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Test hl7-reader
         run: mvn clean test
@@ -120,7 +120,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           fail-on-cache-miss: true
-          path: 'emap-star/target'
+          path: 'emap-star/emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Build and test core
         run: mvn clean -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
