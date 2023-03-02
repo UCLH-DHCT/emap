@@ -33,6 +33,7 @@ jobs:
       - name: Build only
         working-directory: emap-star
         run: mvn clean install
+      - run: ls -laR ~/.m2
 
   emap-star-tests:
     needs: [emap-star-build]
@@ -64,6 +65,7 @@ jobs:
       - name: Build only
         run: mvn clean install
         working-directory: emap-interchange
+      - run: ls -laR ~/.m2
   emap-interchange-tests:
     needs: [emap-interchange-build]
     runs-on: ubuntu-latest
