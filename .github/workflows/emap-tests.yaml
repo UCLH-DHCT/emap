@@ -41,6 +41,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
         with:
+          fail-on-cache-miss: true
           path: 'emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Run tests
@@ -70,6 +71,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
         with:
+          fail-on-cache-miss: true
           path: 'emap-interchange/target'
           key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/') }}
       - name: Run tests
@@ -87,10 +89,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
         with:
+          fail-on-cache-miss: true
           path: 'emap-interchange/target'
           key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/') }}
       - uses: actions/cache@v3
         with:
+          fail-on-cache-miss: true
           path: 'emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Test hl7-reader
@@ -110,10 +114,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
         with:
+          fail-on-cache-miss: true
           path: 'emap-interchange/target'
           key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/') }}
       - uses: actions/cache@v3
         with:
+          fail-on-cache-miss: true
           path: 'emap-star/target'
           key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
       - name: Build and test core
