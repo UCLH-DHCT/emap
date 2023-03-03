@@ -15,10 +15,14 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.filter.outputs.all }}
+      core: ${{ steps.filter.outputs.core }}
+      hl7-reader: ${{ steps.filter.outputs.hl7-reader }}
     steps:
       - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
-        id: detect-changes
+        id: filter
         with:
           filters: |
             all:
@@ -50,9 +54,9 @@ jobs:
         run: mvn clean install
 
   emap-star-tests:
-    needs: [emap-star-build]
+    needs: [setup, emap-star-build]
     runs-on: ubuntu-latest
-    if: jobs.setup.steps.detect-changes.outputs.all == 'true'
+    if: needs.setup.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -81,9 +85,9 @@ jobs:
         run: mvn clean install
         working-directory: emap-interchange
   emap-interchange-tests:
-    needs: [emap-interchange-build]
+    needs: [setup, emap-interchange-build]
     runs-on: ubuntu-latest
-    if: jobs.setup.steps.detect-changes.outputs.all == 'true'
+    if: needs.setup.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -100,9 +104,9 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   hl7-reader-tests:
-    needs: [emap-star-build, emap-interchange-build]
+    needs: [setup, emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
-    if: jobs.setup.steps.detect-changes.outputs.hl7-reader == 'true' || jobs.setup.steps.detect-changes.outputs.all == 'true'
+    if: needs.setup.outputs.hl7-reader == 'true' || needs.setup.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -126,9 +130,9 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   core-tests:
-    needs: [emap-star-build, emap-interchange-build]
+    needs: [setup, emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
-    if: jobs.setup.steps.detect-changes.outputs.core == 'true' || jobs.setup.steps.detect-changes.outputs.all == 'true'
+    if: needs.setup.outputs.core == 'true' || needs.setup.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
