@@ -17,6 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: detect-changes
+        with:
+          filters: |
+            all:
+              # changes that should trigger a full rebuild regardless
+              - '.github/**'
+              - 'emap-star/**'
+              - 'emap-interchange/**'
+            core:
+              - 'core/**'
+            hl7-reader:
+              - 'hl7-reader/**'
       - name: Set up JDK 11 # also enables caching
         uses: actions/setup-java@v3
         with:
@@ -35,11 +48,11 @@ jobs:
       - name: Build only
         working-directory: emap-star
         run: mvn clean install
-      - run: ls -laR ~/.m2
 
   emap-star-tests:
     needs: [emap-star-build]
     runs-on: ubuntu-latest
+    if: jobs.setup.steps.detect-changes.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -67,10 +80,10 @@ jobs:
       - name: Build only
         run: mvn clean install
         working-directory: emap-interchange
-      - run: ls -laR ~/.m2
   emap-interchange-tests:
     needs: [emap-interchange-build]
     runs-on: ubuntu-latest
+    if: jobs.setup.steps.detect-changes.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -89,6 +102,7 @@ jobs:
   hl7-reader-tests:
     needs: [emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
+    if: jobs.setup.steps.detect-changes.outputs.hl7-reader == 'true' || jobs.setup.steps.detect-changes.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -114,6 +128,7 @@ jobs:
   core-tests:
     needs: [emap-star-build, emap-interchange-build]
     runs-on: ubuntu-latest
+    if: jobs.setup.steps.detect-changes.outputs.core == 'true' || jobs.setup.steps.detect-changes.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
