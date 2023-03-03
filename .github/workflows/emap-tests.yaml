@@ -49,7 +49,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: '$star_build'
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
+          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**') }}
       - name: Build only
         working-directory: emap-star
         run: mvn clean install
@@ -64,7 +64,7 @@ jobs:
         with:
           fail-on-cache-miss: true
           path: '$star_build'
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
+          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**') }}
       - name: Run tests
         working-directory: emap-star
         run: mvn test
@@ -81,7 +81,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: '$interchange_build'
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/') }}
+          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**') }}
       - name: Build only
         run: mvn clean install
         working-directory: emap-interchange
@@ -95,7 +95,7 @@ jobs:
         with:
           fail-on-cache-miss: true
           path: '$interchange_build'
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/') }}
+          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**') }}
       - name: Run tests
         run: mvn test
         working-directory: emap-interchange
@@ -114,12 +114,12 @@ jobs:
         with:
           fail-on-cache-miss: true
           path: '$interchange_build'
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/') }}
+          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**') }}
       - uses: actions/cache@v3
         with:
           fail-on-cache-miss: true
           path: '$star_build'
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
+          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**') }}
       - name: Test hl7-reader
         run: mvn clean test
         working-directory: hl7-reader
@@ -140,12 +140,12 @@ jobs:
         with:
           fail-on-cache-miss: true
           path: '$interchange_build'
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/') }}
+          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**') }}
       - uses: actions/cache@v3
         with:
           fail-on-cache-miss: true
           path: '$star_build'
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/') }}
+          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**') }}
       - name: Build and test core
         run: mvn clean -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
         working-directory: core
