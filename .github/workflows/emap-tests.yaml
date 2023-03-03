@@ -9,6 +9,7 @@ permissions:
   contents: read
   checks: write
   id-token: write
+  pull-requests: read # needed by paths-filter
 env:
   interchange_build: '~/.m2/repository/uk/ac/ucl/rits/inform/emap-interchange/'
   star_build: '~/.m2/repository/uk/ac/ucl/rits/inform/emap-star*'
