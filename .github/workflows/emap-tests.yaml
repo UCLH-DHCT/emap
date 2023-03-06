@@ -37,12 +37,6 @@ jobs:
               - 'hl7-reader/**'
       - run: mvn --version || true
       - run: java --version || true
-      - name: Set up JDK 11 # also enables caching
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: 'maven'
       - run: mvn --version || true
       - run: java --version || true
   emap-star-build:
