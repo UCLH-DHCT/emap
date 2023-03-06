@@ -37,13 +37,13 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.setup.outputs.all == 'true'
     steps:
+      - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
         uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
-      - uses: actions/checkout@v3
       - name: Run emap-star tests
         working-directory: emap-star
         run: mvn clean test
@@ -57,13 +57,13 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.setup.outputs.all == 'true'
     steps:
+      - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
         uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
-      - uses: actions/checkout@v3
       - name: Run emap-interchange tests
         working-directory: emap-interchange
         run: mvn clean test
@@ -77,13 +77,13 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.setup.outputs.hl7-reader == 'true' || needs.setup.outputs.all == 'true'
     steps:
+      - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
         uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
-      - uses: actions/checkout@v3
       - name: Build emap-star
         working-directory: emap-star
         run: mvn clean install
@@ -105,13 +105,13 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.setup.outputs.core == 'true' || needs.setup.outputs.all == 'true'
     steps:
+      - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
         uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
-      - uses: actions/checkout@v3
       - name: Build emap-star
         working-directory: emap-star
         run: mvn clean install
