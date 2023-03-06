@@ -103,16 +103,22 @@ The new name column will be used for ALL purposes; that is, the docker service n
 
 §  not merging right now but can still rename things 
 
-## Using `git filter-repo` to merge into this monorepo
+## Using `git filter-repo` to prepare repo for merging into this monorepo
 
 Since `git filter-repo` works on an entire repo, it's necessary to do the main rewriting work on a clone of each incoming repository.
 
 Create like so:
 ```
-# clone the new repo (this repo)
+# clone the new repo (this repo) if not already done
+cd ~/YOUR_PROJECTS_DIR/emap
 git clone git@github.com:UCLH-DHCT/emap.git
 
-# clone the old repos to adjacent directories, using their new names
+# Recommended to make a dated directory to put all these repos in,
+# in case you need to repeat the process to bring in subsequent changes to these repos
+mkdir ~/emap.filter.repo.2023TODAYSDATE
+cd ~/emap.filter.repo.2023TODAYSDATE
+
+# clone the old repos using their new names
 git clone git@github.com:inform-health-informatics/Inform-DB.git emap-star
 git clone git@github.com:inform-health-informatics/Emap-Interchange.git emap-interchange
 git clone git@github.com:inform-health-informatics/Emap-Core.git core
@@ -134,17 +140,25 @@ Therefore, in the new repo, instead of creating remotes that point to the incomi
 
 Now switch back to the new repo and create remotes, fetch and merge:
 ```
-cd ../emap
+# (you should manually delete any pre-existing remotes from previous attempts, likely everything except origin)
+incoming_dir=~/emap.filter.repo.2023TODAYSDATE
+cd ~/YOUR_PROJECTS_DIR/emap/emap
 for repo in emap-star emap-interchange core hl7-reader; do
-    git remote add -t develop -m develop --no-tags "$repo" ../"$repo"
+    git remote add -t develop -m develop --no-tags "$repo" $incoming_dir/"$repo"
     git fetch --prune "$repo"
+    # --allow-unrelated-histories only needed the first time you're bringing this repo in
     git merge --allow-unrelated-histories "$repo"/develop
 done
 ```
 
-Bring in our renamed tags from earlier:
+Check that your merge commit looks like you expected it to look! If this is a "top-up" merge,
+it should include just the changes done since last time. Protect yourself from errors by not
+using the `--allow-unrelated-histories` option beyond the first merge.
+
+Bring in our renamed tags from earlier, then push them to the monorepo:
 ```
 git fetch --all --tags
+git push --tags origin
 ```
 
 ### What if we change the old repo after we've done the monorepo merge?
