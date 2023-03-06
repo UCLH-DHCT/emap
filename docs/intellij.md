@@ -157,11 +157,4 @@ Tests can also be run individually by clicking the play button on a class within
 
 ### For components which require a docker container to run tests
 
-hoover needs fake Clarity and Caboodle, and perhaps fake UDS?
-
-See hoover repo for instructions:
-https://github.com/inform-health-informatics/hoover#readme
-
-**Still need to shuffle the docker-compose files around**
-
-emap-in-a-box needs fakeuds, so the latter can't be deleted.
+Don't delete the fakeuds definition because it's needed for emap-in-a-box, and it will be needed if we bring the non-proprietary bits of hoover into this repo.
