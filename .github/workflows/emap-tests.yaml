@@ -23,19 +23,30 @@ jobs:
         id: filter
         with:
           filters: |
-            all:
-              # changes that should trigger a full rebuild regardless
+            emap-star:
               - '.github/**'
+              - 'emap-checker.xml'
               - 'emap-star/**'
+            emap-interchange:
+              - '.github/**'
+              - 'emap-checker.xml'
               - 'emap-interchange/**'
             core:
+              - '.github/**'
+              - 'emap-checker.xml'
+              - 'emap-interchange/**'
+              - 'emap-star/**'
               - 'core/**'
             hl7-reader:
+              - '.github/**'
+              - 'emap-checker.xml'
+              - 'emap-interchange/**'
+              - 'emap-star/**'
               - 'hl7-reader/**'
   emap-star-tests:
     needs: [setup]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.all == 'true'
+    if: needs.setup.outputs.emap-star == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
@@ -55,7 +66,7 @@ jobs:
   emap-interchange-tests:
     needs: [setup]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.all == 'true'
+    if: needs.setup.outputs.emap-interchange == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
@@ -75,7 +86,7 @@ jobs:
   hl7-reader-tests:
     needs: [setup]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.hl7-reader == 'true' || needs.setup.outputs.all == 'true'
+    if: needs.setup.outputs.hl7-reader == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
@@ -103,7 +114,7 @@ jobs:
   core-tests:
     needs: [setup]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.core == 'true' || needs.setup.outputs.all == 'true'
+    if: needs.setup.outputs.core == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
