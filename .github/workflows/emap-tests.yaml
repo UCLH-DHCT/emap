@@ -10,9 +10,6 @@ permissions:
   checks: write
   id-token: write
   pull-requests: read # needed by paths-filter
-env:
-  interchange_build: '~/.m2/repository/uk/ac/ucl/rits/inform/emap-interchange/'
-  star_build: '~/.m2/repository/uk/ac/ucl/rits/inform/emap-star*'
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -35,94 +32,67 @@ jobs:
               - 'core/**'
             hl7-reader:
               - 'hl7-reader/**'
-      - name: Set up JDK 11 # also enables caching
+  emap-star-tests:
+    needs: [setup]
+    runs-on: ubuntu-latest
+    if: needs.setup.outputs.all == 'true'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Ensure we use JDK 11
         uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
-  emap-star-build:
-    needs: [setup]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-star*"
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**', '!emap-star/*/target/**') }}
-      - name: Build only
+      - name: Run emap-star tests
         working-directory: emap-star
-        run: mvn clean install
-
-  emap-star-tests:
-    needs: [setup, emap-star-build]
-    runs-on: ubuntu-latest
-    if: needs.setup.outputs.all == 'true'
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          fail-on-cache-miss: true
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-star*"
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**', '!emap-star/*/target/**') }}
-      - name: Run tests
-        working-directory: emap-star
-        run: mvn test
+        run: mvn clean test
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
         if: success() || failure()
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
-  emap-interchange-build:
-    needs: [setup]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-interchange/"
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**', '!emap-interchange/target/**') }}
-      - name: Build only
-        run: mvn clean install
-        working-directory: emap-interchange
   emap-interchange-tests:
-    needs: [setup, emap-interchange-build]
+    needs: [setup]
     runs-on: ubuntu-latest
     if: needs.setup.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - name: Ensure we use JDK 11
+        uses: actions/setup-java@v3
         with:
-          fail-on-cache-miss: true
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-interchange/"
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**', '!emap-interchange/target/**') }}
-      - name: Run tests
-        run: mvn test
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Run emap-interchange tests
         working-directory: emap-interchange
+        run: mvn clean test
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
         if: success() || failure()
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   hl7-reader-tests:
-    needs: [setup, emap-star-build, emap-interchange-build]
+    needs: [setup]
     runs-on: ubuntu-latest
     if: needs.setup.outputs.hl7-reader == 'true' || needs.setup.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - name: Ensure we use JDK 11
+        uses: actions/setup-java@v3
         with:
-          fail-on-cache-miss: true
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-interchange/"
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**', '!emap-interchange/target/**') }}
-      - uses: actions/cache@v3
-        with:
-          fail-on-cache-miss: true
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-star*"
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**', '!emap-star/*/target/**') }}
-      - name: Test hl7-reader
-        run: mvn clean test
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Build emap-star
+        working-directory: emap-star
+        run: mvn clean install
+      - name: Build emap-interchange
+        working-directory: emap-interchange
+        run: mvn clean install
+      - name: Run hl7-reader tests
         working-directory: hl7-reader
+        run: mvn clean test
         env:
           TZ: "America/Chicago"
       - name: Publish Test Report
@@ -131,21 +101,23 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   core-tests:
-    needs: [setup, emap-star-build, emap-interchange-build]
+    needs: [setup]
     runs-on: ubuntu-latest
     if: needs.setup.outputs.core == 'true' || needs.setup.outputs.all == 'true'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - name: Ensure we use JDK 11
+        uses: actions/setup-java@v3
         with:
-          fail-on-cache-miss: true
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-interchange/"
-          key: ${{ runner.os }}-emap-interchange-${{ hashFiles('emap-interchange/**', '!emap-interchange/target/**') }}
-      - uses: actions/cache@v3
-        with:
-          fail-on-cache-miss: true
-          path: "~/.m2/repository/uk/ac/ucl/rits/inform/emap-star*"
-          key: ${{ runner.os }}-emap-star-${{ hashFiles('emap-star/**', '!emap-star/*/target/**') }}
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Build emap-star
+        working-directory: emap-star
+        run: mvn clean install
+      - name: Build emap-interchange
+        working-directory: emap-interchange
+        run: mvn clean install
       - name: Build and test core
         run: mvn clean -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
         working-directory: core
