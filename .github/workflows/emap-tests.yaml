@@ -14,7 +14,8 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      all: ${{ steps.filter.outputs.all }}
+      emap-star: ${{ steps.filter.outputs.emap-star }}
+      emap-interchange: ${{ steps.filter.outputs.emap-interchange }}
       core: ${{ steps.filter.outputs.core }}
       hl7-reader: ${{ steps.filter.outputs.hl7-reader }}
     steps:
