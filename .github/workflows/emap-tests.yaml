@@ -11,7 +11,7 @@ permissions:
   id-token: write
   pull-requests: read # needed by paths-filter
 jobs:
-  setup:
+  filter:
     runs-on: ubuntu-latest
     outputs:
       emap-star: ${{ steps.filter.outputs.emap-star }}
@@ -45,9 +45,9 @@ jobs:
               - 'emap-star/**'
               - 'hl7-reader/**'
   emap-star-tests:
-    needs: [setup]
+    needs: [filter]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.emap-star == 'true'
+    if: needs.filter.outputs.emap-star == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
@@ -65,9 +65,9 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   emap-interchange-tests:
-    needs: [setup]
+    needs: [filter]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.emap-interchange == 'true'
+    if: needs.filter.outputs.emap-interchange == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
@@ -85,9 +85,9 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   hl7-reader-tests:
-    needs: [setup]
+    needs: [filter]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.hl7-reader == 'true'
+    if: needs.filter.outputs.hl7-reader == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
@@ -113,9 +113,9 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
   core-tests:
-    needs: [setup]
+    needs: [filter]
     runs-on: ubuntu-latest
-    if: needs.setup.outputs.core == 'true'
+    if: needs.filter.outputs.core == 'true'
     steps:
       - uses: actions/checkout@v3
       - name: Ensure we use JDK 11
