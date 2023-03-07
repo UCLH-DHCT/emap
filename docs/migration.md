@@ -44,31 +44,34 @@ But what about a datasource reader for a very old ADT database that only one use
 
 (Eg. code will fail to compile/run/deploy if we don't do them, or they're so integral to the merge it would almost be harder *not* to do them in the first phase)
 
-- Enable branch protection
+- &check; Enable branch protection
 - Check repo permissions
 - Keep PRs small and/or manageable. The enormous PR(s) that bringing in each repo will generate should contain no other code changes.
-- Merge in `Inform-DB`
-- Merge in `Emap-Interchange`
-- Merge in `Emap-Core`
-- Merge in `emap-hl7-processor`
-- Preserve history - ensure git log and git blame give expected results
+- &check; Merge in `Inform-DB`
+- &check; Merge in `Emap-Interchange`
+- &check; Merge in `Emap-Core`
+- &check; Merge in `emap-hl7-processor`
+- &check;? Preserve history - ensure git log and git blame give expected results
 - Make names match (and follow the same capitalisation+punctuation) between:
-	- docker service names
-	- module directories
-	- maven modules
-	- output jar
+    - &check; docker service names
+    - &check; module directories
+    - &check; maven modules
+    - &check; output jar
 - Merge Emap config files
 - Merge/simplify docker-compose files
-- Fix/simplify CI scripts, convert Circle to GHA
+- &check; Fix/simplify GHA scripts
+- Hoover: changes to adapt to changes in this repo
+- Hoover: convert Circle to GHA
 - Fix/simplify glowroot config
-- Merge `inform-checker.xml` files (`hl7-reader` may need its own)
-- Rename project/JAR name in poms (`finalName` and `artifactId` tags)
+- &check; Merge `inform-checker.xml` files (`hl7-reader` may need its own)
+- Bring in any changes to old repos that have happened since this migration started, and update instructions for how to do it
 
 ### Phase 1b (delayable tasks, but will attempt as phase 1 stretch goals)
 
-- Bring in all tags, prefix them to avoid clashes and signify oldness
+- &check; Bring in pre-existing tags, prefix them to avoid clashes and signify oldness
 - Rename package names `rits.inform` -> `arc.emap`
 - Merge in `emap_documentation` to docs subfolder
+- Ensure PR templates are read from docs repo
 
 ### Phase 2 (delayed tasks)
 
@@ -113,7 +116,7 @@ git clone git@github.com:UCLH-DHCT/emap.git
 git clone git@github.com:inform-health-informatics/Inform-DB.git emap-star
 git clone git@github.com:inform-health-informatics/Emap-Interchange.git emap-interchange
 git clone git@github.com:inform-health-informatics/Emap-Core.git core
-git clone git@github.com:inform-health-informatics/emap-hl7-processor.git  hl7-reader
+git clone git@github.com:inform-health-informatics/emap-hl7-processor.git hl7-reader
 ```
 
 Run the actual filter-repo command. Moves everything to a subdir and gives all tags a prefix to avoid clashes.

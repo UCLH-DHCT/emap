@@ -1,5 +1,7 @@
 # IntelliJ project setup
 
+For all code in monorepo + hoover.
+
 ## Local setup instructions using IntelliJ IDEA
 
 These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.jetbrains.com/idea/), but hopefully should be similar in [Eclipse](https://www.eclipse.org/downloads/).
@@ -104,3 +106,55 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
     - Make a description and select the checkstyle file `emap/emap-checker.xml`. When done, in the bottom panel of the IntelliJ select the inform rules to make the new configuration active.
       ![checkstyle](img/checkstyle.png)
 </details>
+
+## Running unit tests
+
+Most repositories include unit tests in `<repo-name>/src/test/java`. 
+You will probably want to set up a separate run config for each component so you can just
+run the tests that are relevant.
+
+The following modules can be set up in the same, very simple way:
+- core
+- hl7-reader
+- emap-star
+
+Others require some "fake" services which run in docker containers.
+
+### Setting up modules that don't require docker containers to run
+
+Creating a configuration as follows:
+   - <b>Run > Edit Configurations</b>
+   - Click on the `+` at the top left-hand side of the window
+     ![new run](img/new_run.png)
+   - Select `Junit` from the drop down
+      - Set Test kind to `All in package`
+      - Set the package to `uk.ac.ucl.rits.inform.datasinks.emapstar`. Or set the module to e.g. `core` and the package to `uk.ac.ucl.rits.inform`
+      - You may also want to set logging level to TRACE for our classes by defining the environmental variable:
+        `LOGGING_LEVEL_UK_AC_UCL=TRACE`
+
+You can just copy this configuration for the other modules, changing the module name each time.
+
+### Compiling and running tests
+
+   Go to <b>Run > Run</b>, which should create a window in the bottom pane
+   ![tests pass](img/test_pass.png)
+
+<details>
+   <summary>Expand here if this gives you a compilation error</summary>
+
+This may be fixable like so:
+   - Go to the maven pane on the right-hand side and
+     run the Lifecycle `clean` goal for: `Inform Annotations` and `Inform-DB`.
+     Then `clean` and then `install` on `Emap Star Schema`
+   - After this then select the `Reload All Maven Projects` icon at the top of the same pane as shown below
+
+     ![reload](img/reload_maven.png)
+
+   - You may also need to run `Generate Sources and Update Folders For All Projects`
+</details>
+
+Tests can also be run individually by clicking the play button on a class within an IDE editor window.
+
+### For components which require a docker container to run tests
+
+Don't delete the fakeuds definition because it's needed for emap-in-a-box, and it will be needed if we bring the non-proprietary bits of hoover into this repo.
