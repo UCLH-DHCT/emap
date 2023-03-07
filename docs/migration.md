@@ -64,7 +64,7 @@ But what about a datasource reader for a very old ADT database that only one use
 - Hoover: convert Circle to GHA
 - Fix/simplify glowroot config
 - &check; Merge `inform-checker.xml` files (`hl7-reader` may need its own)
-- Bring in any changes to old repos that have happened since this migration started, and update instructions for how to do it
+- &check; Bring in any changes to old repos that have happened since this migration started, and update instructions for how to do it
 
 ### Phase 1b (delayable tasks, but will attempt as phase 1 stretch goals)
 
@@ -103,7 +103,7 @@ The new name column will be used for ALL purposes; that is, the docker service n
 
 §  not merging right now but can still rename things 
 
-## Using `git filter-repo` to prepare repo for merging into this monorepo
+## Using `git filter-repo` to prepare repos for merging into this monorepo
 
 Since `git filter-repo` works on an entire repo, it's necessary to do the main rewriting work on a clone of each incoming repository.
 
@@ -150,6 +150,9 @@ for repo in emap-star emap-interchange core hl7-reader; do
     git merge --allow-unrelated-histories "$repo"/develop
 done
 ```
+Merge conflicts are possible here, not due to the mass renaming that filter-repo performs, but
+due to the changes that were done as part of the migration (consolidating CI, for example).
+Just fix them in the normal way.
 
 Check that your merge commit looks like you expected it to look! If this is a "top-up" merge,
 it should include just the changes done since last time. Protect yourself from errors by not
