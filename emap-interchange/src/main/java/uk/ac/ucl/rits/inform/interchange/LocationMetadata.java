@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -95,6 +96,11 @@ public class LocationMetadata extends EmapOperationMessage {
     private Instant specialityUpdate;
     private String previousDepartmentSpeciality;
     private Instant departmentContactDate;
+
+    @JsonIgnore
+    public Instant getDepartmentContactDate() {
+        return departmentContactDate;
+    }
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
