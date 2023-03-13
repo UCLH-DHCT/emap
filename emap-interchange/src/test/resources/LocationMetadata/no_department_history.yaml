@@ -1,0 +1,25 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
+hl7String: "1020100002^null^null"
+sourceSystem: "clarity"
+# department
+departmentHl7: "1020100002"
+departmentName: "UCH ROI"
+departmentSpeciality: null
+departmentRecordStatus: "ACTIVE"
+departmentUpdateDate: "2022-12-08T00:00:00Z"
+roomCsn: null
+isRoomReady: null
+roomContactDate: null
+roomRecordState: null
+roomHl7: null
+roomName: null
+bedCsn: null
+bedHl7: null
+bedContactDate: null
+bedRecordState: null
+isPoolBed: null
+isBunkBed: null
+bedIsInCensus: null
+bedFacility: null
+specialityUpdate: null
+previousDepartmentSpeciality: null
