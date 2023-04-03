@@ -57,15 +57,15 @@ INSERT INTO public.hospital_visit (
 
 -- locations
 
-INSERT INTO public.department (department_id, hl7string, name, speciality) VALUES
-(11001, 'ACUN', 'EGA E03 ACU NURSERY', 'Maternity - Well Baby'),
-(11002, 'MEDSURG', 'EMH MED SURG', null);
+INSERT INTO public.department (department_id, hl7string, name) VALUES
+(11001, 'ACUN', 'EGA E03 ACU NURSERY'),
+(11002, 'MEDSURG', 'EMH MED SURG');
 
 
 INSERT INTO public.department_state
-(department_state_id, status, stored_from, stored_until, valid_from, valid_until, department_id) VALUES
-(12001, 'Active', '2012-09-17 14:00:00', null, '2018-02-08 00:00:00', null, 11001),
-(12202, 'Deleted and Hidden', '2012-09-17 14:00:00', null, '2021-04-23 09:00:00', null, 11002);
+(department_state_id, status, stored_from, stored_until, valid_from, valid_until, department_id, speciality) VALUES
+(12001, 'Active', '2022-09-17 14:00:00', null, '2018-02-08 00:00:00', null, 11001, 'Dental - Oral Medicine'),
+(12202, 'Deleted and Hidden', '2012-09-17 14:00:00', null, '2021-04-23 09:00:00', null, 11002, 'Maternity - Well Baby');
 
 INSERT INTO public.room(room_id, hl7string, name, department_id) VALUES
 (13001, 'E03ACUN BY12', 'BY12', 11001),
