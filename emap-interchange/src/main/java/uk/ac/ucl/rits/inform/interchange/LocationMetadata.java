@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -85,6 +86,21 @@ public class LocationMetadata extends EmapOperationMessage {
      */
     private Boolean bedIsInCensus;
     private String bedFacility;
+
+    /**
+     * In order to update the department speciality correctly we need to date it
+     * changed (i.e. the auditDate).  Department contact date is only used when the
+     * previous department speciality does not line up with what is currently in the
+     * EMAP database.
+     */
+    private Instant specialityUpdate;
+    private String previousDepartmentSpeciality;
+    private Instant departmentContactDate;
+
+    @JsonIgnore
+    public Instant getDepartmentContactDate() {
+        return departmentContactDate;
+    }
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
