@@ -97,11 +97,6 @@ public class LocationMetadata extends EmapOperationMessage {
     private String previousDepartmentSpeciality;
     private Instant departmentContactDate;
 
-    @JsonIgnore
-    public Instant getDepartmentContactDate() {
-        return departmentContactDate;
-    }
-
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
