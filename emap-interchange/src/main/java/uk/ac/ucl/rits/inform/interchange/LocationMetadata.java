@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
