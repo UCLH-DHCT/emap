@@ -51,15 +51,21 @@ public class DepartmentState extends AuditCore<DepartmentState> {
     private String status;
 
     /**
+     * \brief Current speciality of the department.
+     */
+    private String speciality;
+    /**
      * Create valid department state.
      * @param department parent department
      * @param status     status of department
      * @param validFrom  time that the message was valid from
      * @param storedFrom time that emap core stared processing the message
+     * @param speciality name of the current speciality of this department
      */
-    public DepartmentState(Department department, String status, Instant validFrom, Instant storedFrom) {
+    public DepartmentState(Department department, String status, String speciality, Instant validFrom, Instant storedFrom) {
         departmentId = department;
         this.status = status;
+        this.speciality = speciality;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
@@ -68,8 +74,10 @@ public class DepartmentState extends AuditCore<DepartmentState> {
         super(other);
         setValidFrom(other.getValidFrom());
         setStoredFrom(other.getStoredFrom());
+        departmentStateId = other.departmentStateId;
         departmentId = other.departmentId;
         status = other.status;
+        speciality = other.speciality;
     }
 
     @Override
@@ -89,4 +97,20 @@ public class DepartmentState extends AuditCore<DepartmentState> {
         audit.setStoredUntil(storedUntil);
         return audit;
     }
+
+    /**
+     * Checks if this DepartmentState has been superseded by a new entry into the table.
+     * @return boolean indicating if this is a previous state of the department.
+     */
+    public boolean isPrevious() {
+        return getValidFrom() != null && getValidUntil() != null && getStoredFrom() != null && getStoredUntil() != null;
+    }
+    /**
+     * Is this the most up to date DepartmentState for a particular department?
+     * @return boolean indicating if this is the current departments state.
+     */
+    public boolean isCurrent() {
+        return getValidFrom() != null && getValidUntil() != null && getStoredFrom() != null && getStoredUntil() != null;
+    }
+
 }
