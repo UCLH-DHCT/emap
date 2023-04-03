@@ -42,19 +42,12 @@ public class Department implements Serializable {
     private String name;
 
     /**
-     * \brief Speciality of this department.
-     */
-    private String speciality;
-
-    /**
      * Create department.
      * @param hl7String  hl7 string
      * @param name       name of department
-     * @param speciality name of speciality
      */
-    public Department(String hl7String, String name, String speciality) {
+    public Department(String hl7String, String name) {
         this.hl7String = hl7String;
         this.name = name;
-        this.speciality = speciality;
     }
 }
