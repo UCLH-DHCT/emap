@@ -99,6 +99,7 @@ The new name column will be used for ALL purposes; that is, the docker service n
 | Emap-Core       | core | emapstar  | EmapCore | `Emap-Core*.jar`  |
 | emap-hl7-processor | hl7-reader | hl7source | HL7Processor | `HL7Processor*.jar` |
 | hoover §     | hoover   | hoover  | hoover | `Hoover*.jar` |
+| emap-setup     | emap-setup   | n/a  | n/a | n/a |
 
 
 §  not merging right now but can still rename things 
@@ -123,11 +124,12 @@ git clone git@github.com:inform-health-informatics/Inform-DB.git emap-star
 git clone git@github.com:inform-health-informatics/Emap-Interchange.git emap-interchange
 git clone git@github.com:inform-health-informatics/Emap-Core.git core
 git clone git@github.com:inform-health-informatics/emap-hl7-processor.git hl7-reader
+git clone git@github.com:inform-health-informatics/emap-setup.git emap-setup
 ```
 
 Run the actual filter-repo command. Moves everything to a subdir and gives all tags a prefix to avoid clashes.
 ```
-for repo in emap-star emap-interchange core hl7-reader; do
+for repo in emap-star emap-interchange core hl7-reader emap-setup; do
     ( cd $repo &&
       git filter-repo --path-rename :${repo}/ --tag-rename :${repo}- )
 done
@@ -144,6 +146,7 @@ Now switch back to the new repo and create remotes, fetch and merge:
 incoming_dir=~/emap.filter.repo.2023TODAYSDATE
 cd ~/YOUR_PROJECTS_DIR/emap/emap
 for repo in emap-star emap-interchange core hl7-reader; do
+    # emap-setup doesn't have a develop branch
     git remote add -t develop -m develop --no-tags "$repo" $incoming_dir/"$repo"
     git fetch --prune "$repo"
     # --allow-unrelated-histories only needed the first time you're bringing this repo in

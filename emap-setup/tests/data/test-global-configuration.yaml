@@ -1,0 +1,61 @@
+
+
+main_git_dir:
+  https://github.com/inform-health-informatics
+
+EMAP_PROJECT_NAME:
+  my_project_name
+
+repositories:
+  InformDB:
+    branch:  develop
+  hl7-vitals:
+    branch:  main
+    repo_name: Emap-Core
+  hoover:
+
+# Configuration data for the rabbitmq instance used by Spring in the pipeline
+
+rabbitmq:
+  SPRING_RABBITMQ_HOST: rabbitmq
+  SPRING_RABBITMQ_PORT: 5672
+  SPRING_RABBITMQ_USERNAME: my_name
+  SPRING_RABBITMQ_PASSWORD: my_pw
+  RABBITMQ_DEFAULT_USER : my_name
+  RABBITMQ_DEFAULT_PASS: my_pw
+
+# Configuration used by global configuration
+
+global:
+  RABBITMQ_PORT: 5672
+  RABBITMQ_ADMIN_PORT: 5679
+
+# Configuration for the IDS
+ids:
+  IDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+  IDS_SCHEMA: schemaname
+  IDS_USERNAME: someuserids
+  IDS_PASSWORD: redactedids
+
+# These dates are used to set the start and end dates between which data should be collected
+dates:
+  start: 2020-06-04T00:00:00.00Z
+  end:
+
+informdb:
+  common:
+    UDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+  Emap-Core:
+    UDS_SCHEMA: inform_schema
+    UDS_USERNAME: someuser
+    UDS_PASSWORD: redacted
+  OMOP-ETL:
+    UDS_SCHEMA: inform_schema
+    UDS_USERNAME: someuser_omop
+    UDS_PASSWORD: redacted_omop
+    UDS_DDL_AUTO: update
+    INFORM_INIT_MODE: always
+  hl7-vitals:
+    UDS_SCHEMA: inform_schema_for_branch
+    UDS_USERNAME: someuseraaa
+    UDS_PASSWORD: redactedaaa

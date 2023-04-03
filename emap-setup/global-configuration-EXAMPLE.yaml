@@ -1,0 +1,86 @@
+# This is an example of the global-configuration.yaml file
+# that needs to be created in the emap-setup directory
+
+###############################################################################
+
+## Please edit sections with information for your setup.
+
+###############################################################################
+
+
+main_git_dir:
+  https://github.com/inform-health-informatics
+
+# note that the project name is used in naming docker containers, so this is how you will find them later!
+EMAP_PROJECT_NAME:
+  my_project_name
+
+# list of required repositories and the branch you require
+# the list below shows those needed for a standard installation
+# you may wish to add others e.g. DBFiller for synthetic data
+
+# To add a repository use the following syntax
+# name_of_dir - should match name_of_repo_on_github unless we need two branches of same
+#   branch:  name_of_branch_you_wish_to_use
+#   repo_name: name_of_repo_on_github (only needed if we have a second branch of a repo
+#               and the name_of_dir is different
+repositories:
+  Emap-Core:
+    branch:  develop
+  hoover:
+    branch:  develop
+  emap-hl7-processor:
+    branch:  develop
+  Emap-Interchange:
+    branch:  develop
+  Inform-DB:
+    branch:  develop
+
+# Configuration data for the rabbitmq instance used by Spring in the pipeline
+rabbitmq:
+  SPRING_RABBITMQ_HOST: rabbitmq
+  SPRING_RABBITMQ_PORT: 5672
+  SPRING_RABBITMQ_USERNAME: my_name
+  SPRING_RABBITMQ_PASSWORD: my_pw
+  RABBITMQ_DEFAULT_USER : my_name
+  RABBITMQ_DEFAULT_PASS: my_pw
+
+# Configuration used by global configuration
+global:
+  RABBITMQ_PORT: 5672
+  RABBITMQ_ADMIN_PORT: 5679
+  CLARITY_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/clarity
+  CLARITY_USERNAME: clarity_user
+  CLARITY_PASSWORD: clearity_readaccess
+  CABOODLE_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/caboodle
+  CABOODLE_USERNAME: caboodle_username
+  CABOODLE_PASSWORD: caboodle_readaccess
+
+
+# Configuration for the IDS
+ids:
+  IDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+  IDS_SCHEMA: schemaname
+  IDS_USERNAME: someuserids
+  IDS_PASSWORD: redactedids
+
+# These dates are used to set the start and end dates between which data
+# should be collected. These are NOT used for validation runs
+dates:
+  start: 2020-06-04T00:00:00.00Z
+  end:
+
+# Configurations for the UDS.
+uds:
+  UDS_JDBC_URL: jdbc:postgresql://uds_db:5432/uds
+  UDS_SCHEMA: schemaname
+  UDS_USERNAME: schemauser
+  UDS_PASSWORD: schemapw
+
+# These are the configurations for glowroot (a Java application performance
+# management system).
+glowroot:
+  DOMAIN: glowroot_domain
+  GLOWROOT_USERNAME: glowrootuser
+  GLOWROOT_PASSWORD: glowrootpw
+  GLOWROOT_ADMIN_PORT: 4000
