@@ -50,7 +50,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
    - `emap-interchange/pom.xml`
    - `emap-star/pom.xml` - NOT to be confused with `emap/emap-star/emap-star/pom.xml` (which contains the Hibernate entity definitions, but requires the annotation preprocessor)!
    - `hl7-reader/pom.xml`
-   - `../hoover/pom.xml` (outside this repo)
+   - `../hoover/pom.xml` (optional for running within UCLH, outside this repo)
 
    If you add one by mistake, you can delete the project
 
