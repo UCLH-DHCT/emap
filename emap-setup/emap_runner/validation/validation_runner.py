@@ -18,13 +18,13 @@ class ValidationRunner:
         docker_runner: "DockerRunner",
         time_window: "TimeWindow",
         should_build: bool = True,
-        use_hl7source: bool = True,
+        use_hl7_reader: bool = True,
         use_hoover: bool = True,
     ):
         """Validation runner that will be run over a time window"""
 
         self.should_build = should_build
-        self.use_hl7source = use_hl7source
+        self.use_hl7_reader = use_hl7_reader
         self.use_hoover = use_hoover
 
         self.start_time = None
@@ -132,21 +132,21 @@ class ValidationRunner:
         self.docker.run("ps")
 
         """
-        Running emapstar before data sources requires RabbitMQ to be up and running. A time delay was added to overcome
-        the time delay required for RabbitMQ to be there. Should this proof not to be sufficient, then the running order
+        Running core before data sources requires RabbitMQ to be up and running. A time delay was added to overcome
+        the time delay required for RabbitMQ to be there. Should this prove not to be sufficient, then the running order
         may need to change, i.e. the data sources to be started first (as background services though!).
         """
         _ = Popen(
             "sleep 180 && "
             + self.docker.base_docker_compose_command
-            + "up -d emapstar",
+            + "up -d core",
             shell=True,
         )
 
-        if self.use_hl7source:
+        if self.use_hl7_reader:
             self.docker.run(
-                "up --exit-code-from hl7source hl7source",
-                output_filename=f"{self.log_file_prefix}_hl7source.txt",
+                "up --exit-code-from hl7-reader hl7-reader",
+                output_filename=f"{self.log_file_prefix}_hl7-reader.txt",
             )
 
         if self.use_hoover:
@@ -234,7 +234,7 @@ class ValidationRunner:
         """Save the logs of the required docker containers"""
 
         self.docker.run("ps")
-        for name in ("emapstar", "rabbitmq"):
+        for name in ("core", "rabbitmq"):
             self.docker.run(
                 f"logs {name}", output_filename=f"{self.log_file_prefix}_{name}.txt"
             )

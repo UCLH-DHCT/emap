@@ -25,4 +25,4 @@ RUN source /app/set_mvn_proxy.sh; mvn install -f /app/emap-interchange/pom.xml
 WORKDIR /app/hl7-reader
 COPY hl7-reader/src/ /app/hl7-reader/src/
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7
-CMD ["java",  "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/HL7Processor.jar"]
+CMD ["java",  "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/hl7-reader.jar"]

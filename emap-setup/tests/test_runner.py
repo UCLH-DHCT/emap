@@ -93,11 +93,11 @@ def test_validation_source_arguments_set_correct_runner_attributes():
     runner = ValidationRunner(
         docker_runner=DockerRunner(project_dir=Path.cwd(), config=global_config),
         time_window=TimeWindow(args.start_date, args.end_date),
-        use_hl7source=not args.use_only_hoover,
-        use_hoover=not args.use_only_hl7source,
+        use_hl7_reader=not args.use_only_hoover,
+        use_hoover=not args.use_only_hl7_reader,
     )
 
-    assert runner.use_hl7source and not runner.use_hoover
+    assert runner.use_hl7_reader and not runner.use_hoover
 
 
 @pytest.mark.parametrize("queue_length,expected", [(0, True), (1, False)])
