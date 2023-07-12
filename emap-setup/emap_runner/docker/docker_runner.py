@@ -15,11 +15,12 @@ class DockerRunnerException(EMAPRunnerException):
 class DockerRunner:
     """Orchestration for multiple services using docker"""
 
-    def __init__(self, main_dir: Path, config: "GlobalConfiguration"):
+    def __init__(self, project_dir: Path, config: "GlobalConfiguration"):
         """Initialise a docker runner with docker-compose.yml files relative
         to the main directory given a specific configuration"""
 
-        self.main_dir = main_dir
+        self.project_dir = project_dir
+        self.emap_dir = project_dir / "emap"
         self.config = config
 
     def run(
@@ -81,15 +82,15 @@ class DockerRunner:
 
         paths = [
             self.core_docker_compose_path,
-            Path(self.main_dir, "emap-hl7-processor", "docker-compose.yml"),
-            Path(self.main_dir, "hoover", "docker-compose.yml"),
+            Path(self.emap_dir, "hl7-reader", "docker-compose.yml"),
+            Path(self.project_dir, "hoover", "docker-compose.yml"),
         ]
 
         return paths
 
     @property
     def core_docker_compose_path(self) -> Path:
-        return Path(self.main_dir, "Emap-Core", "docker-compose.yml")
+        return Path(self.emap_dir, "core", "docker-compose.yml")
 
     def inject_ports(self) -> None:
         """Inject the required ports into the docker-compose yamls"""

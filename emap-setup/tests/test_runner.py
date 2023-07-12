@@ -56,7 +56,7 @@ def test_time_window_is_set():
     config = GlobalConfiguration(Path("test-global-configuration-only-docs.yaml"))
 
     runner = ValidationRunner(
-        docker_runner=DockerRunner(main_dir=Path.cwd(), config=config),
+        docker_runner=DockerRunner(project_dir=Path.cwd(), config=config),
         time_window=TimeWindow(start_date="today", end_date="7 days ago"),
     )
 
@@ -91,7 +91,7 @@ def test_validation_source_arguments_set_correct_runner_attributes():
     global_config = GlobalConfiguration(config_path)
 
     runner = ValidationRunner(
-        docker_runner=DockerRunner(main_dir=Path.cwd(), config=global_config),
+        docker_runner=DockerRunner(project_dir=Path.cwd(), config=global_config),
         time_window=TimeWindow(args.start_date, args.end_date),
         use_hl7source=not args.use_only_hoover,
         use_hoover=not args.use_only_hl7source,

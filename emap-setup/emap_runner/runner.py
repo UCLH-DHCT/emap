@@ -179,7 +179,7 @@ class EMAPRunner:
     def docker(self) -> None:
         """Run a docker instance"""
 
-        runner = DockerRunner(main_dir=Path.cwd(), config=self.global_config)
+        runner = DockerRunner(project_dir=Path.cwd(), config=self.global_config)
 
         if "up" in self.args.docker_compose_args and not runner.glowroot_is_up:
             runner.setup_glowroot_password()
@@ -193,7 +193,7 @@ class EMAPRunner:
         """Run a validation run of EMAP"""
 
         runner = ValidationRunner(
-            docker_runner=DockerRunner(main_dir=Path.cwd(), config=self.global_config),
+            docker_runner=DockerRunner(project_dir=Path.cwd(), config=self.global_config),
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),

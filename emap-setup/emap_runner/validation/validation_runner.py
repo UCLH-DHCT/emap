@@ -47,7 +47,7 @@ class ValidationRunner:
 
     @property
     def env_dir_path(self) -> Path:
-        return Path(self.docker.main_dir, "config")
+        return Path(self.docker.project_dir, "config")
 
     @property
     def log_file_prefix(self) -> Path:
@@ -56,7 +56,7 @@ class ValidationRunner:
 
     @property
     def logs_directory(self) -> Path:
-        return Path(self.docker.main_dir, "validation_logs")
+        return Path(self.docker.project_dir, "validation_logs")
 
     def _create_logs_directory(self) -> None:
         """Create a directory just for logging"""
