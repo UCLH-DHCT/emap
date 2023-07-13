@@ -1,7 +1,7 @@
 # emap-setup
 
 Code to initialise, update and run EMAP. Includes ability to:
-1. Clone repos
+1. Clone repos if they don't exist
 2. Set up configuration
 3. Run pipeline (live and validation runs)
 4. Update code (`git pull`)
@@ -9,20 +9,29 @@ Code to initialise, update and run EMAP. Includes ability to:
 
 ## Usage: GAE
 
-`emap-setup` is already installed on GAE01 - activate the environment with
-```bash
-source /gae/emap_setup/venv/bin/activate
+`emap-setup` should be installed on each deployment of emap, this is created 
+from the directory for the EMAP deployment:
+
+```shell
+python -m venv venv --prompt "<prompt-name>"
 ```
-which may be helpful to place in your bash_profile, so it's activated on login.
+
+This can then be activated by running
+
+```shell
+source venv/bin/activate
+```
 
 The required `global-configuration.yaml` files exist in schema specific folders
 e.g. `/gae/emap-<schema name>`.
 
 ## Usage: Local
 
-1. Create your working directory 
-2. Clone emap-setup into that directory
-3. Copy global-configuration-EXAMPLE.yaml as global-configuration.yaml and adjust for your own requirements
+1. Create your top-level working directory 
+1. Clone emap into that directory
+1. Install the emap setup package to a virtual environment
+1. Copy global-configuration-EXAMPLE.yaml as global-configuration.yaml to the top top-level working directory  
+   and adjust for your own requirements
 
 For example, create and activate a virtual environment first with either:
 
@@ -46,10 +55,10 @@ source ~/.local/venvs/emap/bin/activate
 
 then clone and install 
 ```bash
-git clone https://github.com/inform-health-informatics/emap-setup.git
+git clone https://github.com/UCLH-DHCT/emap
 cd emap-setup
 pip install -e . -r requirements.txt
-cp global-configuration-EXAMPLE.yaml ../global-configuration.yaml
+cp global-configuration-EXAMPLE.yaml ../../global-configuration.yaml
 ```
 
 ***

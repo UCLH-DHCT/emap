@@ -59,7 +59,7 @@ class GlobalConfiguration(dict):
 
             repo = Repository(
                 name=data.get("repo_name", name),
-                main_git_url=self["main_git_dir"],
+                main_git_url=self["git_org_url"],
                 branch=data.get("branch", default_branch_name),
                 fallback_branch=default_branch_name,
             )

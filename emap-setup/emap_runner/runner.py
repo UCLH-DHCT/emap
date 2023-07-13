@@ -103,15 +103,15 @@ def create_parser() -> Parser:
     validation_source_group = validation_parser.add_mutually_exclusive_group()
     validation_source_group.add_argument(
         "--only-hl7",
-        dest="use_only_hl7source",
-        help="Use only the hl7source service (no hoover)",
+        dest="use_only_hl7_reader",
+        help="Use only the hl7-reader service (no hoover)",
         default=False,
         action="store_true",
     )
     validation_source_group.add_argument(
         "--only-hoover",
         dest="use_only_hoover",
-        help="Use only the hoover service (no hl7source)",
+        help="Use only the hoover service (no hl7-reader)",
         default=False,
         action="store_true",
     )
@@ -179,7 +179,7 @@ class EMAPRunner:
     def docker(self) -> None:
         """Run a docker instance"""
 
-        runner = DockerRunner(main_dir=Path.cwd(), config=self.global_config)
+        runner = DockerRunner(project_dir=Path.cwd(), config=self.global_config)
 
         if "up" in self.args.docker_compose_args and not runner.glowroot_is_up:
             runner.setup_glowroot_password()
@@ -191,15 +191,17 @@ class EMAPRunner:
 
     def validation(self) -> None:
         """Run a validation run of EMAP"""
+        # allow for hoover not to be defined in global config
+        use_hoover = ("hoover" in self.global_config["repositories"]) and (not self.args.use_only_hl7_reader)
 
         runner = ValidationRunner(
-            docker_runner=DockerRunner(main_dir=Path.cwd(), config=self.global_config),
+            docker_runner=DockerRunner(project_dir=Path.cwd(), config=self.global_config),
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),
             should_build=not self.args.skip_build,
-            use_hl7source=not self.args.use_only_hoover,
-            use_hoover=not self.args.use_only_hl7source,
+            use_hl7_reader=not self.args.use_only_hoover,
+            use_hoover=use_hoover,
         )
 
         runner.run()
