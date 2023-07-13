@@ -145,10 +145,18 @@ class Repository:
 
             path = Path(self.path, item)
 
-            if path.is_file() and str(path).endswith("-envs.EXAMPLE"):
-                files.append(EnvironmentFile.from_example_file(path))
+            self._add_env_to_files(path, files)
+            # in emap monorepo, need to also look in submodules
+            if path.is_dir():
+                for subdir_path in path.iterdir():
+                    self._add_env_to_files(subdir_path, files)
 
         return files
+
+    @staticmethod
+    def _add_env_to_files(path: Path, files: List[EnvironmentFile]):
+        if path.is_file() and str(path).endswith("-envs.EXAMPLE"):
+            files.append(EnvironmentFile.from_example_file(path))
 
     @staticmethod
     def _base_url_from_https(string) -> str:
