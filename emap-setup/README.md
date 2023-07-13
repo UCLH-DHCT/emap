@@ -13,7 +13,7 @@ Code to initialise, update and run EMAP. Includes ability to:
 from the directory for the EMAP deployment:
 
 ```shell
-python -m venv venv --prompt "."
+python -m venv venv --prompt "<prompt-name>"
 ```
 
 This can then be activated by running
