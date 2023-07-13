@@ -83,8 +83,10 @@ class DockerRunner:
         paths = [
             self.core_docker_compose_path,
             Path(self.emap_dir, "hl7-reader", "docker-compose.yml"),
-            Path(self.project_dir, "hoover", "docker-compose.yml"),
         ]
+        # allow for hoover and to be optional compose path
+        if "hoover" in self.config["repositories"]:
+            paths.append(Path(self.project_dir, "hoover", "docker-compose.yml"))
 
         return paths
 
