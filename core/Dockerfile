@@ -1,4 +1,4 @@
-FROM maven:3.8.4-openjdk-11-slim
+FROM maven:3.8.5-openjdk-17-slim
 # Run commands through bash so source is found
 SHELL ["/bin/bash", "-c"]
 # Install zip & unzip for glowroot
