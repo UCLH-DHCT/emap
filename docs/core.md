@@ -44,12 +44,9 @@ manages the multiple repositories and configuration files.
     drwxrws---+  8 tomyoung docker 4096 Jan 16 09:27 .
     drwxrwx---. 11 root     docker  179 Jan 13 16:26 ..
     drwxrws---+  2 tomyoung docker  173 Feb 10  2022 config
-    drwxrws---+  8 tomyoung docker 4096 Jan 13 11:15 Emap-Core
-    drwxrws---+  5 tomyoung docker 4096 Jan 13 11:08 emap-hl7-processor
-    drwxrws---+  6 tomyoung docker  131 Jan 13 11:08 Emap-Interchange
+    drwxrws---+  8 tomyoung docker 4096 Jan 13 11:15 emap
     -rwxrwx---.  1 tomyoung docker 2638 Jan 13 11:05 global-configuration.yaml
     drwxrws---+  8 tomyoung docker 4096 Jan 13 11:08 hoover
-    drwxrws---+  6 tomyoung docker  152 Jan 13 11:08 Inform-DB
     ```
 
     If files already exist in the top-level directory, you might want to 
@@ -106,15 +103,25 @@ manages the multiple repositories and configuration files.
     This will result in the following directory structure
 
     ```bash
-    $ tree -L 1
+    $ tree -L 2
     .
-    ├── Emap-Core
-    ├── Emap-Interchange
-    ├── Inform-DB
+    .
     ├── config
-    ├── emap-hl7-processor
+    │     ├── ...
+    ├── emap
+    │     ├── README.md
+    │     ├── core
+    │     ├── docs
+    │     ├── emap-checker.xml
+    │     ├── emap-interchange
+    │     ├── emap-setup
+    │     ├── emap-star
+    │     ├── global-config-envs.EXAMPLE
+    │     ├── glowroot-config-envs.EXAMPLE
+    │     └── hl7-reader
     ├── global-configuration.yaml
-    └── hoover 
+    ├── hoover
+          ├── ...
    ```
 
 </details>
@@ -136,10 +143,10 @@ manages the multiple repositories and configuration files.
     $ emap docker ps
     Name                    Command                State                                               Ports                                           
     ---------------------------------------------------------------------------------------------------------------------------------------------------------
-    jes1_emapstar_1    /usr/local/bin/mvn-entrypo ...   Up                                                                                                   
-    jes1_fakeuds_1     docker-entrypoint.sh postgres    Up         0.0.0.0:5433->5432/tcp                                                                    
-    jes1_hl7source_1   /usr/local/bin/mvn-entrypo ...   Up                                                                                                   
-    jes1_rabbitmq_1    docker-entrypoint.sh rabbi ...   Up         15671/tcp, 0.0.0.0:15972->15672/tcp, 25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5972->5672/tcp
+    jes1_core_1         /usr/local/bin/mvn-entrypo ...   Up                                                                                                   
+    jes1_fakeuds_1      docker-entrypoint.sh postgres    Up         0.0.0.0:5433->5432/tcp                                                                    
+    jes1_hl7-reader_1   /usr/local/bin/mvn-entrypo ...   Up                                                                                                   
+    jes1_rabbitmq_1     docker-entrypoint.sh rabbi ...   Up         15671/tcp, 0.0.0.0:15972->15672/tcp, 25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5972->5672/tcp
     ```
    
 </details>

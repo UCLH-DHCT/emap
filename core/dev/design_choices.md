@@ -63,7 +63,7 @@ Most likely exists in the RxJava ecosystem
 
 ## Decision
 
-*State Wrapper* - Created RowState class in Emap-Core. 
+*State Wrapper* - Created RowState class in core. 
 
 ## Consequences
 

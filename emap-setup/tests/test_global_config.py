@@ -41,4 +41,4 @@ def test_get_data_for(config: GlobalConfiguration):
     """Test data for an entry we know exists"""
 
     assert config.get_first("RABBITMQ_PORT", "global") is not None
-    assert config.get_first("RABBITMQ_PORT", "Emap-Core") is not None
+    assert config.get_first("RABBITMQ_PORT", "core") is not None
