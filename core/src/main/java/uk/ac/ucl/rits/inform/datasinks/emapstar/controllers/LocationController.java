@@ -172,8 +172,7 @@ public class LocationController {
         if (possiblePreviousState.isPresent()) {
             DepartmentState previousState = possiblePreviousState.get();
 
-            if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
-                // Throw an exception if the previous speciality doesn't align with what is currently in EMAP
+            if (stateIsDifferent(currentState, previousState)) {
                 if (!Objects.equals(previousState.getSpeciality(), msg.getPreviousDepartmentSpeciality())) {
                     throw new IncompatibleDatabaseStateException("Department speciality does not match what is already in the database");
                 }
@@ -182,7 +181,7 @@ public class LocationController {
                 previousState.setValidUntil(currentState.getValidFrom());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
             }
-        // if the previous department speciality is not in the database
+            // if the previous department speciality is not in the database
         } else if (msg.getPreviousDepartmentSpeciality() != null) {
             DepartmentState previousState = new DepartmentState(
                     department, msg.getDepartmentRecordStatus().toString(), msg.getPreviousDepartmentSpeciality(),
@@ -190,15 +189,14 @@ public class LocationController {
             previousState.setStoredUntil(currentState.getStoredFrom());
             previousState.setValidUntil(currentState.getValidFrom());
             departmentStateRepo.saveAll(List.of(previousState, currentState));
-        // if no state already exists then just save the state as is
+            // if no state already exists then just save the state as is
         } else {
             departmentStateRepo.save(currentState);
         }
     }
 
-    private boolean stateIsDifferentOrMessageIsLater(DepartmentState currentState, DepartmentState previousState) {
+    private boolean stateIsDifferent(DepartmentState currentState, DepartmentState previousState) {
         return !previousState.getStatus().equals(currentState.getStatus())
-                || previousState.getValidFrom().isBefore(currentState.getValidFrom())
                 || !Objects.equals(currentState.getSpeciality(), previousState.getSpeciality());
     }
 

@@ -314,6 +314,26 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertEquals(2, departmentStateRepo.findAllByDepartmentId(dep).size());
     }
 
+    /**
+     * Given no department states existing in the database
+     * When a message with no previous speciality is processed, then a later message that also has no previous speciality is updated
+     * Then only one department state should exist
+     */
+    @Test
+    void testNoPreviousSpecialityForFirstAndSecondMessages() throws Exception {
+        // Process message
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(null);
+        processSingleMessage(acunCensusBed);
+        acunCensusBed.setDepartmentUpdateDate(acunCensusBed.getDepartmentUpdateDate().plusSeconds(1));
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(null);
+        processSingleMessage(acunCensusBed);
+
+        // Check that there are two department states
+        assertEquals(1L, departmentStateRepo.count());
+    }
+
     // ROOM
 
     /**
