@@ -174,7 +174,7 @@ public class LocationController {
 
             if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
                 // Throw an exception if the previous speciality doesn't align with what is currently in EMAP
-                if (!previousState.getSpeciality().equals(msg.getPreviousDepartmentSpeciality())) {
+                if (!Objects.equals(previousState.getSpeciality(), msg.getPreviousDepartmentSpeciality())) {
                     throw new IncompatibleDatabaseStateException("Department speciality does not match what is already in the database");
                 }
                 // Add new department states to EMAP
