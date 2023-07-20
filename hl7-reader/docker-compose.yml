@@ -15,6 +15,6 @@ services:
       driver: "json-file"
     restart: "no"
     depends_on:
-      # Uses services from Emap-Core. will need to run from Emap-Core/emap-live.sh or emap setup package
+      # Uses services from core, orchestrate using the EMAP setup package
       - glowroot-central
       - rabbitmq

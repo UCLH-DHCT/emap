@@ -1,4 +1,4 @@
-Design decisions relating specifically to emap-core are tracked here. Roughly following the
+Design decisions relating specifically to core are tracked here. Roughly following the
 [architecture decision record template by Michael Nygard](https://github.com/joelparkerhenderson/architecture_decision_record/edit/master/adr_template_by_michael_nygard.md).
 
 
@@ -63,7 +63,7 @@ Most likely exists in the RxJava ecosystem
 
 ## Decision
 
-*State Wrapper* - Created RowState class in Emap-Core. 
+*State Wrapper* - Created RowState class in core. 
 
 ## Consequences
 

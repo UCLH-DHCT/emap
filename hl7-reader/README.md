@@ -1,14 +1,13 @@
 # Local setup instructions using IntelliJ IDEA
 
-- You can follow the [Emap-Core repository](https://github.com/inform-health-informatics/Emap-Core/)
-  steps for setting up a local instance, cloning `emap-hl7-processor` and `Emap-Interchange`
-  and adding their maven `pom.xml` files.
+- You can follow the [main setup guide](https://github.com/UCLH-DHCT/emap/blob/main/docs/intellij.md)
+  steps for setting up a local instance, only requiring to import `hl7-reader` and `emap-interchange`
+  into maven using their `pom.xml` files.
 - If you are creating a directory only for hl7 processing, then you don't need to set up annotation preprocessing
 
 # How to deploy a live version
 
-Please see the [emap-core repository](https://github.com/inform-health-informatics/Emap-Core/)
-for an overview of deploying a live instance of EMAP services
+Use the [emap setup](https://github.com/UCLH-DHCT/emap/tree/main/emap-setup) tool to create a live version
 
 ## Dependencies
 
@@ -20,8 +19,7 @@ for an overview of deploying a live instance of EMAP services
   if in doubt ask the author of that code.
 
 ```shell script
- git clone --branch develop https://github.com/inform-health-informatics/emap-hl7-processor.git
- git clone --branch develop https://github.com/inform-health-informatics/Emap-Interchange.git
+ git clone --branch develop https://github.com/UCLH-DHCT/emap.git
 ```
 
 ## config
@@ -31,7 +29,7 @@ of these config files:
 
 ### `hl7-reader-config-envs` file
 
-This file is used by hl7source (the hl7 processor's docker container) to point to the IDS and rabbitmq server.
+This file is used by hl7-reader (the docker container) to point to the IDS and rabbitmq server.
 
 The required envs in this file with example values are found in
 [hl7-reader-config-envs.EXAMPLE](hl7-reader-config-envs.EXAMPLE)
