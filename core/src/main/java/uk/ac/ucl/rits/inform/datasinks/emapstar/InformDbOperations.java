@@ -45,7 +45,7 @@ import javax.annotation.PostConstruct;
 import java.time.Instant;
 
 /**
- * All the operations that can be performed on Inform-db.
+ * All the operations that can be performed on EMAP star db.
  */
 @Component
 @EntityScan({"uk.ac.ucl.rits.inform.datasinks.emapstar.repos", "uk.ac.ucl.rits.inform.informdb"})

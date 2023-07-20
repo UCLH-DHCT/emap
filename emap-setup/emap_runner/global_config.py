@@ -71,7 +71,7 @@ class GlobalConfiguration(dict):
     def get(self, *keys: str) -> str:
         """
         Get a value from this configuration based on a set of descending
-        keys. e.g. repositories -> Emap-Core -> branch
+        keys. e.g. repositories -> core -> branch
         """
 
         if len(keys) == 0:

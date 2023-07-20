@@ -131,7 +131,7 @@ You can just copy this configuration for the other modules, changing the module 
 
 This may be fixable like so:
    - Go to the maven pane on the right-hand side and
-     run the Lifecycle `clean` goal for: `Inform Annotations` and `Inform-DB`.
+     run the Lifecycle `clean` goal for: `Emap Star Annotations` and `Emap Star Database Definition`.
      Then `clean` and then `install` on `Emap Star Schema`
    - After this then select the `Reload All Maven Projects` icon at the top of the same pane as shown below
 

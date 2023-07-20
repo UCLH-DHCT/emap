@@ -11,7 +11,8 @@ relational database. We have chosen a relational structure for ease of use and e
 
 ## Package structure
 
-- We are using a parent maven package (`Emap Star Schema`) with two child-packages: `Inform Annotations` and `Inform-DB`
+- We are using a parent maven package (`Emap Star Schema`) with two child-packages: 
+  `Emap Star Annotations` and `Emap Star Database Definition`
   - Inform Annotations defines an annotation preprocessor which allows audit classes to be written during compilation
   - Inform-DB defines the Hibernate entities and uses the annotation preprocessor
 

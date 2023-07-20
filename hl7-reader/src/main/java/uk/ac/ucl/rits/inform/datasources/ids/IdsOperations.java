@@ -337,7 +337,7 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Wrapper for the entire transaction that performs: - read latest processed ID
-     * from Inform-db (ETL metadata) - process the message and write to Inform-db -
+     * from EMAP star (ETL metadata) - process the message and write to EMAP star -
      * write the latest processed ID to reflect the above message. Blocks until
      * there are new messages.
      *
