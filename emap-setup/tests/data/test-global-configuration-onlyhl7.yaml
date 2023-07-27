@@ -6,7 +6,7 @@ EMAP_PROJECT_NAME:
   my_project_name
 
 repositories:
-  Emap-Core:
+  core:
     branch:  main
 
 rabbitmq:
@@ -34,7 +34,7 @@ dates:
 common:
   UDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
 
-Emap-Core:
+core:
   UDS_SCHEMA: inform_schema
   UDS_USERNAME: someuser
   UDS_PASSWORD: redacted

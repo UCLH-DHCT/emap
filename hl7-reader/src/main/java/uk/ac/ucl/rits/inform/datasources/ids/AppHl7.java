@@ -33,7 +33,7 @@ public class AppHl7 {
     /**
      * The entry point for processing HL7 messages and writing interchange messages to the queue.
      * @param publisher the local AMQP handling class
-     * @param idsOps    Inform-db operations object
+     * @param idsOps    Emap star operations object
      * @return The CommandLineRunner
      */
     @Bean

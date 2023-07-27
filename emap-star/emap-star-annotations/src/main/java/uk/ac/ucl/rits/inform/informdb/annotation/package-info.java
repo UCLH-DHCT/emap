@@ -1,5 +1,5 @@
 /**
- * Helper annotations to help define classes in Inform-DB.
+ * Helper annotations to help define classes in emap star.
  *
  * @author Roma Klapaukh
  *

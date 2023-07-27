@@ -12,7 +12,7 @@ import java.io.StringWriter;
 import java.time.Instant;
 
 /**
- * What effect did each IDS message have on Inform-db?
+ * What effect did each IDS message have on EMAP star db?
  * <p>
  * Useful for debugging, seeing why a particular message didn't have the
  * intended effect, etc

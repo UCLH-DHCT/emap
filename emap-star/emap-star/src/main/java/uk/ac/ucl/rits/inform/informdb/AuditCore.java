@@ -12,7 +12,7 @@ import lombok.ToString;
 /**
  * This models the core temporal until values for an audit table.
  * <p>
- * These temporal columns form the core of Inform-DBs reproducibility
+ * These temporal columns form the core of emap star's reproducibility
  * functionality. We record separately the time that this data was considered
  * true from the point of view of the hospital records (i.e. data loaded at a
  * later date may be considered true from when the original event happened), and

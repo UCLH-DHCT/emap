@@ -21,7 +21,7 @@ RUN source /app/set_mvn_proxy.sh; mvn de.qaware.maven:go-offline-maven-plugin:re
 # Install emap-interchange
 COPY emap-interchange/src/ /app/emap-interchange/src/
 RUN source /app/set_mvn_proxy.sh; mvn install -f /app/emap-interchange/pom.xml
-# Install hl7-processor
+# Install hl7-reader
 WORKDIR /app/hl7-reader
 COPY hl7-reader/src/ /app/hl7-reader/src/
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7

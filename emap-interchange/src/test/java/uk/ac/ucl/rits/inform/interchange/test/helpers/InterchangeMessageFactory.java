@@ -35,7 +35,7 @@ import java.util.List;
 
 /**
  * Builds interchange messages from yaml files.
- * Allows for easier setup for integration testing in hl7 sources and emap star
+ * Allows for easier setup for integration testing in hl7 sources and EMAP star
  */
 @NoArgsConstructor
 public class InterchangeMessageFactory {

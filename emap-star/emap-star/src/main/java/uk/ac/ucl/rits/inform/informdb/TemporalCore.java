@@ -9,9 +9,9 @@ import java.time.Instant;
 
 /**
  * This models the common core of the temporal variables stored in almost all
- * Inform-DB tables.
+ * emap star tables.
  * <p>
- * These temporal columns form the core of Inform-DBs reproducibility
+ * These temporal columns form the core of EMAP star's reproducibility
  * functionality. We record separately the time that this data was considered
  * true from the point of view of the hospital records (i.e. data loaded at a
  * later date may be considered true from when the original event happened), and
