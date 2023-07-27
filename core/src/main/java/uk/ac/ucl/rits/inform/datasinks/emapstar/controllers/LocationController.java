@@ -167,6 +167,10 @@ public class LocationController {
                 department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), validFrom, storedFrom);
 
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo.findFirstByDepartmentIdOrderByStoredFromDesc(department);
+        if (departmentStateRepo.existsByDepartmentIdAndSpecialityAndValidFrom(department, msg.getDepartmentSpeciality(), validFrom)) {
+            logger.debug("State already exists in the database, no need to process further");
+            return;
+        }
 
         // if a state already exists and is different from the current state then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
