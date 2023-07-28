@@ -13,7 +13,8 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface DepartmentStateRepository extends CrudRepository<DepartmentState, Long> {
-    Optional<DepartmentState> findFirstByDepartmentIdOrderByStoredFromDesc(Department dep);
+    Optional<DepartmentState> findFirstByDepartmentIdAndValidFromLessThanOrderByValidFromDesc(Department dep, Instant validFrom);
+    Optional<DepartmentState> findFirstByDepartmentIdAndValidFromGreaterThanOrderByValidFrom(Department dep, Instant validFrom);
 
     boolean existsByDepartmentIdAndSpecialityAndValidFrom(Department dep, String speciality, Instant validFrom);
 
