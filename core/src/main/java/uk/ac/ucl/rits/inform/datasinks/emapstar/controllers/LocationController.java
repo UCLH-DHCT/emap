@@ -164,7 +164,7 @@ public class LocationController {
      */
     private void processDepartmentStates(LocationMetadata msg, Department department, Instant storedFrom)
             throws IncompatibleDatabaseStateException {
-        Instant validFrom = msg.getSpecialityUpdate() == null ? msg.getDepartmentUpdateDate() : msg.getSpecialityUpdate();
+        Instant validFrom = msg.getSpecialityUpdate() == null ? msg.getDepartmentContactDate() : msg.getSpecialityUpdate();
         DepartmentState currentState = new DepartmentState(
                 department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), validFrom, storedFrom);
 
