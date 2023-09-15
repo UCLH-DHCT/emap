@@ -190,8 +190,14 @@ public class LocationController {
             previousState.setValidUntil(currentState.getValidFrom());
             departmentStateRepo.saveAll(List.of(previousState, currentState));
         } else {
-            // no previous state, so just save the current state
-            departmentStateRepo.save(currentState);
+            // previous state doesn't exist
+            if (possibleNextState.isPresent() && !stateIsDifferent(currentState, possibleNextState.get())) {
+                // next state is the same as the current, should just update the next state to be valid earlier, at the current state's valid from
+                possibleNextState.get().setValidFrom(currentState.getValidFrom());
+            } else {
+                // no previous state, so just save the current state
+                departmentStateRepo.save(currentState);
+            }
         }
 
         // if there's a next state and its different, then we should invalidate the current state

@@ -251,6 +251,47 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertNull(currentState.getValidUntil());
     }
 
+
+    /**
+     * Given nothing in the database
+     * When two location metadata messages for the same department (different speciality update time, but same information) are processed out of order
+     * The final department state should have the earlier speciality validFrom
+     */
+    @Test
+    void testSameDepartmentStateOutOfOrderMerged() throws Exception {
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME.plusSeconds(1));
+        processSingleMessage(acunCensusBed);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME);
+        processSingleMessage(acunCensusBed);
+
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+
+        // only single state for the department and status, and uses the earlier time (that was received second)
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+        assertEquals(SPECIALITY_UPDATE_TIME, currentState.getValidFrom());
+    }
+
+    /**
+     * Given nothing in the database
+     * When two location metadata messages for the same department (different speciality update time, but same information) are processed in order
+     * The final department state should have the earlier speciality validFrom
+     */
+    @Test
+    void testSameDepartmentStateInOrderMerged() throws Exception {
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME);
+        processSingleMessage(acunCensusBed);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME.plusSeconds(1));
+        processSingleMessage(acunCensusBed);
+
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+
+        // only single state for the department and status, and uses the earlier time (that was received second)
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+        assertEquals(SPECIALITY_UPDATE_TIME, currentState.getValidFrom());
+    }
+
     /**
      * Given no department states existing in the database
      * when an old and a new department speciality are both given in the hl7 message
