@@ -18,8 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LocationMetadata extends EmapOperationMessage implements MinimalDepartment {
     private String hl7String;
-    private String departmentHl7;
-    private String departmentName;
+    private Long departmentId;
     private RoomMetadata roomMetadata;
     private BedMetadata bedMetadata;
 

@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Adds or updates location metadata (department, room, bed pool, bed, and their states).
@@ -89,7 +90,7 @@ public class LocationController {
      */
     @Transactional
     public void processMessage(DepartmentMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
-        Department dep = departmentController.getOrCreateDepartment(msg);
+        Department dep = departmentController.getOrCreateFullDepartment(msg);
 
         createDepartmentOnlyLocationIfRequired(dep);
         departmentController.processDepartmentStates(msg, dep, storedFrom);
@@ -127,7 +128,7 @@ public class LocationController {
     @CacheEvict(value = "location", key = "{#msg.hl7String}")
     public void processMessage(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Location location = getOrCreateLocation(msg.getHl7String());
-        Department department = departmentController.getOrCreateDepartment(msg);
+        Department department = departmentController.getOrCreateMinimalDepartment(msg);
 
         Room room = null;
         if (msg.getRoomMetadata() != null) {
@@ -197,12 +198,52 @@ class DepartmentController {
         this.departmentRepo = departmentRepo;
     }
 
-    Department getOrCreateDepartment(MinimalDepartment msg) {
+    /**
+     * Get or create minomal department entity.
+     * @param msg minimal department message
+     * @return saved department entity
+     */
+    Department getOrCreateMinimalDepartment(MinimalDepartment msg) {
         return departmentRepo
-                .findByHl7StringAndName(msg.getDepartmentHl7(), msg.getDepartmentName())
+                .findByInternalId(msg.getDepartmentId())
                 .orElseGet(() -> departmentRepo.save(
-                        new Department(msg.getDepartmentHl7(), msg.getDepartmentName())));
+                        new Department(msg.getDepartmentId())));
     }
+
+    /**
+     * Get or create department entity and update fields if they're different.
+     * @param msg DepartmentMetadata
+     * @return saved department entity
+     * @throws IncompatibleDatabaseStateException if department name or Hl7 string changes
+     */
+    Department getOrCreateFullDepartment(DepartmentMetadata msg) throws IncompatibleDatabaseStateException {
+        Department department = departmentRepo
+                .findByInternalId(msg.getDepartmentId())
+                .orElseGet(() -> departmentRepo.save(new Department(msg.getDepartmentId())));
+        addMissingDataAndSave(msg, department);
+        return department;
+    }
+
+    private void addMissingDataAndSave(DepartmentMetadata msg, Department department) throws IncompatibleDatabaseStateException {
+        boolean updated = updateFieldIfNull(department.getHl7String(), msg.getDepartmentHl7(), department::setHl7String);
+        updated = updateFieldIfNull(department.getName(), msg.getDepartmentName(), department::setName) || updated;
+        if (updated) {
+            departmentRepo.save(department);
+        }
+    }
+
+    private static boolean updateFieldIfNull(String currentData, String newdata, Consumer<String> setter) throws IncompatibleDatabaseStateException {
+        if (!Objects.equals(currentData, newdata)) {
+            if (currentData != null) {
+                String errorMessage = String.format("Unexpected department name change '%s' to '%s'", currentData, newdata);
+                throw new IncompatibleDatabaseStateException(errorMessage);
+            }
+            setter.accept(newdata);
+            return true;
+        }
+        return false;
+    }
+
 
     /**
      * Create state from department and if it's different from an existing state, invalidate the previous state.

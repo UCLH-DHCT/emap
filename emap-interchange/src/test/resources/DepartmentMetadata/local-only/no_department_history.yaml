@@ -3,6 +3,7 @@ sourceSystem: "clarity"
 # department
 departmentHl7: "1020100002"
 departmentName: "UCH ROI"
+departmentId: "1020100002"
 departmentSpeciality: null
 departmentRecordStatus: "ACTIVE"
 departmentContactDate: "2022-12-08T00:00:00Z"

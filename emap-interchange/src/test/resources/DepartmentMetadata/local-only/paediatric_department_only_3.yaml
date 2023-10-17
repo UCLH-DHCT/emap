@@ -3,6 +3,7 @@ sourceSystem: "clarity"
 # department
 departmentHl7: "100000060"
 departmentName: "OFF SE5PC"
+departmentId: "1020610068"
 departmentSpeciality: "Paediatric - RESPOND"
 previousDepartmentSpeciality: "Paediatric - Infectious Diseases"
 departmentRecordStatus: "ACTIVE"

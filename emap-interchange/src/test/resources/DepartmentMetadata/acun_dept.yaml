@@ -2,6 +2,7 @@
 sourceSystem: "clarity"
 departmentHl7: "ACUN"
 departmentName: "EGA E03 ACU NURSERY"
+departmentId: "2"
 departmentSpeciality: "Maternity - Well Baby"
 departmentRecordStatus: "ACTIVE"
 previousDepartmentSpeciality: "Dental - Oral Medicine"

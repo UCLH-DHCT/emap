@@ -3,6 +3,7 @@ sourceSystem: "clarity"
 # department
 departmentHl7: "1000000059"
 departmentName: "DENTAL: ORAL MEDICINE"
+departmentId: "13"
 departmentRecordStatus: "ACTIVE"
 departmentContactDate: "2018-08-22T00:00:00Z"
 departmentSpeciality: "Dental - Oral Medicine"

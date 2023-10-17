@@ -1,9 +1,7 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.location.LocationMetadata"
 hl7String: "MEDSURG^MED/SURG^Med/Surg"
 sourceSystem: "clarity"
-# department
-departmentHl7: "MEDSURG"
-departmentName: "EMH MED SURG"
+departmentId: "1"
 roomMetadata:
   "@class": "uk.ac.ucl.rits.inform.interchange.location.RoomMetadata"
   roomCsn: 274

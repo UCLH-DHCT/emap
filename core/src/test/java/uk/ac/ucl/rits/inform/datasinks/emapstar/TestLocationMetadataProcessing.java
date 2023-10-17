@@ -2,6 +2,8 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
@@ -59,10 +61,10 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Autowired
     private LocationHelper locationHelper;
 
-    private static final String ACUN_DEPT_HL7_STRING = "ACUN";
+    private static final Long ACUN_DEPT_INTERNAL_ID = 2L;
     private static final String ACUN_ROOM_HL7_STRING = "E03ACUN BY12";
     private static final String ACUN_BED_HL7_STRING = "BY12-C49";
-    private static final String ACUN_LOCATION_HL7_STRING = String.join("^", ACUN_DEPT_HL7_STRING, ACUN_ROOM_HL7_STRING, ACUN_BED_HL7_STRING);
+    private static final String ACUN_LOCATION_HL7_STRING = String.join("^", "ACUN", ACUN_ROOM_HL7_STRING, ACUN_BED_HL7_STRING);
 
     private LocationMetadata acunCensusBed;
 
@@ -110,8 +112,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
 
         Location location = locationHelper.getLocation(ACUN_LOCATION_HL7_STRING);
         Department dep = location.getDepartmentId();
-        assertEquals(ACUN_DEPT_HL7_STRING, dep.getHl7String());
-        assertEquals("EGA E03 ACU NURSERY", dep.getName());
+        assertEquals(ACUN_DEPT_INTERNAL_ID, dep.getInternalId());
     }
 
     /**
@@ -357,6 +358,40 @@ class TestDepartmentMetadata extends MessageProcessingBase {
 
         // Check that there is one department state
         assertEquals(1L, departmentStateRepo.count());
+    }
+
+    /**
+     * Given a department with non-minimal fields exist in the database
+     * When a department metadata message is processed that has the same data in one non-minimal field and a different value in another non-minimal field
+     * Then an exception should be thrown because non-minimal fields shouldn't change
+     * @param hl7Data data for HL7
+     * @param nameData data for name
+     * @throws Exception shouldn't happen
+     */
+    @ParameterizedTest
+    @CsvSource({"A,B", "B,A"})
+    void testNonMinimalFieldsCantChange(String hl7Data, String nameData) throws Exception {
+        // setup
+        var minimalData = messageFactory.getDepartmentMetadata("acun_dept.yaml");
+        minimalData.setDepartmentHl7(hl7Data);
+        minimalData.setDepartmentName(nameData);
+        processSingleMessage(minimalData);
+        // action & test
+        acunDepartment.setDepartmentName("B");
+        acunDepartment.setDepartmentHl7("B");
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunDepartment));
+    }
+
+    @Test
+    void testMinimalFieldsCanBeAddedTo() throws Exception {
+        var minimalData = messageFactory.getDepartmentMetadata("acun_dept.yaml");
+        minimalData.setDepartmentHl7(null);
+        minimalData.setDepartmentName(null);
+        processSingleMessage(minimalData);
+
+        acunDepartment.setDepartmentName("value");
+        acunDepartment.setDepartmentHl7("value");
+        assertDoesNotThrow(() -> processSingleMessage(acunDepartment));
     }
 
 }

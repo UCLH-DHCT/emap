@@ -3,6 +3,7 @@ sourceSystem: "clarity"
 # department
 departmentHl7: "100000060"
 departmentName: "OFF SE5PC"
+departmentId: "1020610068"
 departmentSpeciality: "Paediatric - Respiratory Medicine"
 departmentRecordStatus: "ACTIVE"
 departmentContactDate: "2021-08-25T23:00:00Z"

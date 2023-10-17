@@ -1,9 +1,7 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.location.LocationMetadata"
 hl7String: "ACUN^E03ACUN BY12^BY12-Cxyz"
 sourceSystem: "clarity"
-# department
-departmentHl7: "ACUN"
-departmentName: "EGA E03 ACU NURSERY"
+departmentId: "2"
 roomMetadata:
   "@class": "uk.ac.ucl.rits.inform.interchange.location.RoomMetadata"
   roomCsn: 1158

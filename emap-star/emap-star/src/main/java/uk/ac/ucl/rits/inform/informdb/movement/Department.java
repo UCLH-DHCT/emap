@@ -23,7 +23,7 @@ public class Department implements Serializable {
 
     /**
      * \brief Unique identifier in EMAP for this department record.
-     *
+     * <p>
      * This is the primary key for the department table.
      */
     @Id
@@ -33,21 +33,20 @@ public class Department implements Serializable {
     /**
      * \brief Text name used by HL7 for this department.
      */
-    @Column(nullable = false)
     private String hl7String;
 
+    @Column(nullable = false)
+    private Long internalId;
     /**
      * \brief Name of this department.
      */
     private String name;
 
     /**
-     * Create department.
-     * @param hl7String  hl7 string
-     * @param name       name of department
+     * Create minimal department.
+     * @param internalId ID of the department in EPIC.
      */
-    public Department(String hl7String, String name) {
-        this.hl7String = hl7String;
-        this.name = name;
+    public Department(Long internalId) {
+        this.internalId = internalId;
     }
 }

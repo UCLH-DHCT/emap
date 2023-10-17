@@ -32,6 +32,7 @@ public class DepartmentMetadata extends EmapOperationMessage implements MinimalD
     private EpicRecordStatus departmentRecordStatus;
     private Instant departmentContactDate;
     private String departmentName;
+    private Long departmentId;
     /**
      * In order to update the department speciality correctly we need to date it
      * changed (i.e. the auditDate).  Department contact date is only used when the
