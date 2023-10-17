@@ -130,11 +130,11 @@ public class LocationController {
         Department department = departmentController.getOrCreateDepartment(msg);
 
         Room room = null;
-        if (msg.getRoomMetadata().getRoomCsn() != null) {
+        if (msg.getRoomMetadata() != null) {
             room = roomController.updateOrCreateRoomAndState(department, msg.getRoomMetadata(), storedFrom);
         }
         Bed bed = null;
-        if (msg.getBedMetadata().getBedCsn() != null) {
+        if (msg.getBedMetadata() != null) {
             bed = bedController.processBedStateAndFacility(room, msg.getBedMetadata(), storedFrom);
         }
         addLocationForeignKeys(location, department, room, bed);

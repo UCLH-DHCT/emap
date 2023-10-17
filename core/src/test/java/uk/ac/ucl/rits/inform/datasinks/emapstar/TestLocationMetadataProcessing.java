@@ -99,8 +99,6 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertEquals(preProcessingCount, locationHelper.count());
     }
 
-    // DEPARTMENT
-
     /**
      * Given no departments exist in database
      * when a location metadata message is processed
@@ -114,6 +112,26 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         Department dep = location.getDepartmentId();
         assertEquals(ACUN_DEPT_HL7_STRING, dep.getHl7String());
         assertEquals("EGA E03 ACU NURSERY", dep.getName());
+    }
+
+    /**
+     * Given no data in the database
+     * when a location metadata message with only the department is processed
+     * Then a location, and a department should be created, but no room or bed
+     */
+    @Test
+    void testNoRoomAndNoBed() throws Exception {
+        acunCensusBed.setRoomMetadata(null);
+        acunCensusBed.setBedMetadata(null);
+        String acunLocation = "ACUN^null^null";
+        acunCensusBed.setHl7String(acunLocation);
+        processSingleMessage(acunCensusBed);
+
+        Location location = locationHelper.getLocation(acunLocation);
+
+        assertNotNull(location.getDepartmentId());
+        assertNull(location.getRoomId());
+        assertNull(location.getBedId());
     }
 }
 
