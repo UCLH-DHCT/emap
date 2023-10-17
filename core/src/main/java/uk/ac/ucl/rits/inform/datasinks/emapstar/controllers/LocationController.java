@@ -8,19 +8,30 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedFacilityRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
+import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.movement.Bed;
+import uk.ac.ucl.rits.inform.informdb.movement.BedFacility;
+import uk.ac.ucl.rits.inform.informdb.movement.BedState;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.Room;
 import uk.ac.ucl.rits.inform.informdb.movement.RoomState;
-import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.BedMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.MinimalDepartment;
+import uk.ac.ucl.rits.inform.interchange.location.RoomMetadata;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -36,31 +47,20 @@ public class LocationController {
     private static final Logger logger = LoggerFactory.getLogger(LocationController.class);
 
     private final LocationRepository locationRepo;
-    private final DepartmentRepository departmentRepo;
-    private final DepartmentStateRepository departmentStateRepo;
-    private final RoomRepository roomRepo;
-    private final RoomStateRepository roomStateRepo;
-    private final BedController bedController;
+    @Resource
+    private DepartmentController departmentController;
+    @Resource
+    private RoomController roomController;
+    @Resource
+    private BedController bedController;
 
 
     /**
      * Interaction with hospital locations.
-     * @param locationRepo        repository for Location
-     * @param departmentRepo      repository for Department
-     * @param departmentStateRepo repository for DepartmentState
-     * @param roomRepo            repository for Room
-     * @param roomStateRepo       repository for RoomState
-     * @param bedController       controller for Bed tables
+     * @param locationRepo repository for Location
      */
-    public LocationController(
-            LocationRepository locationRepo, DepartmentRepository departmentRepo, DepartmentStateRepository departmentStateRepo,
-            RoomRepository roomRepo, RoomStateRepository roomStateRepo, BedController bedController) {
+    public LocationController(LocationRepository locationRepo) {
         this.locationRepo = locationRepo;
-        this.departmentRepo = departmentRepo;
-        this.departmentStateRepo = departmentStateRepo;
-        this.roomRepo = roomRepo;
-        this.roomStateRepo = roomStateRepo;
-        this.bedController = bedController;
     }
 
     /**
@@ -79,6 +79,44 @@ public class LocationController {
     }
 
     /**
+     * Create department if it doesn't exist and update state.
+     * <p>
+     * Status is the only thing that can change for a department state and we're not expecting them to start with a valid from.
+     * This means that the best we can do is order them in the order that we receive them and if the state has changed, make this the active state.
+     * @param msg        message to be processed
+     * @param storedFrom time that emap core started processing the message
+     * @throws IncompatibleDatabaseStateException if previous state speciality is different from the database's previous speciality
+     */
+    @Transactional
+    public void processMessage(DepartmentMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
+        Department dep = departmentController.getOrCreateDepartment(msg);
+
+        createDepartmentOnlyLocationIfRequired(dep);
+        departmentController.processDepartmentStates(msg, dep, storedFrom);
+    }
+
+    /**
+     * Create location string with no room and bed if it doesn't already exist.
+     * <p>
+     * Useful to add because we derive all possible hl7 strings from EPIC,
+     * but if rooms or beds exist for a department then it won't create a hl7 string for location for the
+     * department alone.
+     * @param department department entity
+     */
+    private void createDepartmentOnlyLocationIfRequired(Department department) {
+        String departmentOnlyHl7 = String.format("%s^null^null", department.getHl7String());
+        if (locationRepo.existsByLocationStringEquals(departmentOnlyHl7)) {
+            return;
+        }
+        Location departmentLocation = getOrCreateLocation(departmentOnlyHl7);
+        if (departmentLocation.getDepartmentId() == null) {
+            departmentLocation.setDepartmentId(department);
+            locationRepo.save(departmentLocation);
+        }
+    }
+
+
+    /**
      * Process location metadata, saving and updating states for department, room and bed.
      * Updates location ForeignKeys if they don't already exist.
      * @param msg        message to process
@@ -89,68 +127,81 @@ public class LocationController {
     @CacheEvict(value = "location", key = "{#msg.hl7String}")
     public void processMessage(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Location location = getOrCreateLocation(msg.getHl7String());
-        Department department = updateOrCreateDepartmentAndState(msg, storedFrom);
+        Department department = departmentController.getOrCreateDepartment(msg);
 
         Room room = null;
-        if (msg.getRoomCsn() != null) {
-            room = updateOrCreateRoomAndState(department, msg, storedFrom);
+        if (msg.getRoomMetadata().getRoomCsn() != null) {
+            room = roomController.updateOrCreateRoomAndState(department, msg.getRoomMetadata(), storedFrom);
         }
         Bed bed = null;
-        if (msg.getBedCsn() != null) {
-            bed = bedController.processBedStateAndFacility(room, msg, storedFrom);
+        if (msg.getBedMetadata().getBedCsn() != null) {
+            bed = bedController.processBedStateAndFacility(room, msg.getBedMetadata(), storedFrom);
         }
         addLocationForeignKeys(location, department, room, bed);
     }
 
+
     /**
-     * Create department if it doesn't exist and update state.
-     * <p>
-     * Status is the only thing that can change for a department state and we're not expecting them to start with a valid from.
-     * This means that the best we can do is order them in the order that we receive them and if the state has changed, make this the active state.
-     * @param msg        message to be processed
-     * @param storedFrom time that emap core started processing the message
-     * @return department entity
-     * @throws IncompatibleDatabaseStateException if the previous department speciality is inconsistent with what is currently in EMAP
+     * Add foreign keys to location if they are currently null and save.
+     * @param location   location entity
+     * @param department department entity
+     * @param room       nullable room entity
+     * @param bed        nullable bed entity
+     * @throws IncompatibleDatabaseStateException if an existing foreign key has changed
      */
-    private Department updateOrCreateDepartmentAndState(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
-        Department dep = departmentRepo
+    private void addLocationForeignKeys(Location location, Department department, @Nullable Room room, @Nullable Bed bed)
+            throws IncompatibleDatabaseStateException {
+        boolean changed = false;
+        if (location.getDepartmentId() != department) {
+            if (location.getDepartmentId() != null) {
+                throw new IncompatibleDatabaseStateException("A location string can't change it's Department");
+            }
+            changed = true;
+            location.setDepartmentId(department);
+        }
+
+        if (room != null && room != location.getRoomId()) {
+            if (location.getRoomId() != null) {
+                throw new IncompatibleDatabaseStateException("A location string can't change it's Room");
+            }
+            changed = true;
+            location.setRoomId(room);
+        }
+        if (bed != null && bed != location.getBedId()) {
+            if (location.getBedId() != null) {
+                throw new IncompatibleDatabaseStateException("A location string can't change it's Bed");
+            }
+            changed = true;
+            location.setBedId(bed);
+        }
+
+        if (changed) {
+            locationRepo.save(location);
+        }
+    }
+}
+
+/**
+ * Adds or updates department information.
+ * @author Stef Piatek
+ */
+@Component
+class DepartmentController {
+    private final DepartmentStateRepository departmentStateRepo;
+    private final DepartmentRepository departmentRepo;
+    private static final Logger logger = LoggerFactory.getLogger(DepartmentController.class);
+
+
+    DepartmentController(DepartmentStateRepository departmentStateRepo, DepartmentRepository departmentRepo) {
+        this.departmentStateRepo = departmentStateRepo;
+        this.departmentRepo = departmentRepo;
+    }
+
+    Department getOrCreateDepartment(MinimalDepartment msg) {
+        return departmentRepo
                 .findByHl7StringAndName(msg.getDepartmentHl7(), msg.getDepartmentName())
                 .orElseGet(() -> departmentRepo.save(
                         new Department(msg.getDepartmentHl7(), msg.getDepartmentName())));
-
-        createDepartmentOnlyLocationIfRequired(dep, msg.getHl7String());
-        processDepartmentStates(msg, dep, storedFrom);
-
-        return dep;
-    }
-
-    /**
-     * Create location string with no room and bed if it doesn't already exist.
-     * <p>
-     * Skipping:
-     * - locations without room or department (as these will already create a department only location)
-     * - departments that have no interface ID (so some through with hl7 string of "null"). As these won't be unique.
-     * <p>
-     * SQL query will not return department^null^null if there are rooms and locations linked from the query.
-     * Correcting this here which isn't that clean but seems justifiable to be able to link patients who
-     * have just turned up to the department and are not in a specific room/bed.
-     * @param department        department entity
-     * @param locationHl7String full hl7 location string
-     */
-    private void createDepartmentOnlyLocationIfRequired(Department department, String locationHl7String) {
-        if ("null".equals(department.getHl7String()) || locationHl7String.endsWith("^null^null")) {
-            return;
-        }
-        String departmentOnlyHl7 = String.format("%s^null^null", department.getHl7String());
-        Location departmentLocation = getOrCreateLocation(departmentOnlyHl7);
-        if (departmentLocation.getDepartmentId() == null) {
-            departmentLocation.setDepartmentId(department);
-            locationRepo.save(departmentLocation);
-        }
-    }
-
-    private boolean notNullAndDifferent(String msg, String dep) {
-        return dep != null && !dep.equals(msg);
     }
 
     /**
@@ -160,10 +211,9 @@ public class LocationController {
      * @param msg        message to process
      * @param department parent department entity
      * @param storedFrom time that emap core started processing the message
-     * @throws IncompatibleDatabaseStateException if the previous department speciality is inconsistent with what is currently in EMAP
+     * @throws IncompatibleDatabaseStateException if previous state speciality is different from the database's previous speciality
      */
-    private void processDepartmentStates(LocationMetadata msg, Department department, Instant storedFrom)
-            throws IncompatibleDatabaseStateException {
+    void processDepartmentStates(DepartmentMetadata msg, Department department, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Instant validFrom = msg.getSpecialityUpdate() == null ? msg.getDepartmentContactDate() : msg.getSpecialityUpdate();
         DepartmentState currentState = new DepartmentState(
                 department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), validFrom, storedFrom);
@@ -208,6 +258,7 @@ public class LocationController {
         }
     }
 
+
     private void invalidatePreviousStateIfChanged(String msgPreviousSpeciality, DepartmentState currentState, DepartmentState previousState)
             throws IncompatibleDatabaseStateException {
         // if not different, the current state doesn't get saved
@@ -232,6 +283,22 @@ public class LocationController {
                 || !Objects.equals(currentState.getSpeciality(), previousState.getSpeciality());
     }
 
+}
+
+/**
+ * Adds or updates room information.
+ * @author Stef Piatek
+ */
+@Component
+class RoomController {
+    private final RoomRepository roomRepo;
+    private final RoomStateRepository roomStateRepo;
+
+    RoomController(RoomRepository roomRepo, RoomStateRepository roomStateRepo) {
+        this.roomRepo = roomRepo;
+        this.roomStateRepo = roomStateRepo;
+    }
+
     /**
      * Create Room if it doesn't exist and update state.
      * <p>
@@ -242,7 +309,7 @@ public class LocationController {
      * @return room
      * @throws IncompatibleDatabaseStateException if room name changes
      */
-    private Room updateOrCreateRoomAndState(Department department, LocationMetadata msg, Instant storedFrom)
+    Room updateOrCreateRoomAndState(Department department, RoomMetadata msg, Instant storedFrom)
             throws IncompatibleDatabaseStateException {
         Room room = roomRepo
                 .findByHl7StringAndDepartmentId(msg.getRoomHl7(), department)
@@ -265,6 +332,10 @@ public class LocationController {
         return room;
     }
 
+    private boolean notNullAndDifferent(String msg, String dep) {
+        return dep != null && !dep.equals(msg);
+    }
+
     /**
      * Create new state from current message, invalidating the previous state and saving if required.
      * @param msg        message to process
@@ -274,7 +345,7 @@ public class LocationController {
      * @throws IncompatibleDatabaseStateException if a novel CSN is found with a contact date earlier than the latest state
      */
     private void createCurrentStateAndInvalidatePrevious(
-            LocationMetadata msg, Instant storedFrom, Room room, Collection<RoomState> states) throws IncompatibleDatabaseStateException {
+            RoomMetadata msg, Instant storedFrom, Room room, Collection<RoomState> states) throws IncompatibleDatabaseStateException {
         RoomState currentState = new RoomState(
                 room, msg.getRoomCsn(), msg.getRoomRecordState().toString(), msg.getIsRoomReady(), msg.getRoomContactDate(), storedFrom);
 
@@ -297,42 +368,137 @@ public class LocationController {
         roomStateRepo.saveAll(List.of(previousState, currentState));
     }
 
+}
+
+
+/**
+ * Adds or updates bed information.
+ * @author Stef Piatek
+ */
+@Component
+class BedController {
+    private final BedRepository bedRepo;
+    private final BedStateRepository bedStateRepo;
+    private final BedFacilityRepository bedFacilityRepo;
+
+
     /**
-     * Add foreign keys to location if they are currently null and save.
-     * @param location   location entity
-     * @param department department entity
-     * @param room       nullable room entity
-     * @param bed        nullable bed entity
-     * @throws IncompatibleDatabaseStateException if an existing foreign key has changed
+     * @param bedRepo         bed repository
+     * @param bedStateRepo    bed state repository
+     * @param bedFacilityRepo bed facility repository
      */
-    private void addLocationForeignKeys(Location location, Department department, @Nullable Room room, @Nullable Bed bed)
-            throws IncompatibleDatabaseStateException {
-        boolean changed = false;
-        if (location.getDepartmentId() != department) {
-            if (location.getDepartmentId() != null) {
-                throw new IncompatibleDatabaseStateException("A location string can't change it's Department");
-            }
-            changed = true;
-            location.setDepartmentId(department);
-        }
-
-        if (room != null && room != location.getRoomId()) {
-            if (location.getRoomId() != null) {
-                throw new IncompatibleDatabaseStateException("A location string can't change it's Room");
-            }
-            changed = true;
-            location.setRoomId(room);
-        }
-        if (bed != null && bed != location.getBedId()) {
-            if (location.getBedId() != null) {
-                throw new IncompatibleDatabaseStateException("A location string can't change it's Bed");
-            }
-            changed = true;
-            location.setBedId(bed);
-        }
-
-        if (changed) {
-            locationRepo.save(location);
-        }
+    BedController(BedRepository bedRepo, BedStateRepository bedStateRepo, BedFacilityRepository bedFacilityRepo) {
+        this.bedRepo = bedRepo;
+        this.bedStateRepo = bedStateRepo;
+        this.bedFacilityRepo = bedFacilityRepo;
     }
+
+    /**
+     * Create Bed if it doesn't exist and update state and create facilities if required.
+     * <p>
+     * We should receive beds in order of their valid from, so if a bed doesn't exist (by CSN) then it should be created.
+     * <p>
+     * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
+     * Because the CSN is only of the first encountered, an existing pool bed is found by those which have a pool bed count and the same
+     * contact time. This means that if the locations are processed from the beginning of epic time again then the pool bed count will
+     * be larger than the real value. This is fine because we shouldn't be removing the current progress from the locations hoover.
+     * @param room       room entity that the bed is associated with
+     * @param msg        message to be processed
+     * @param storedFrom time that emap core started processing the message
+     * @return bed
+     * @throws IncompatibleDatabaseStateException if a new state is encountered which is has an earlier valid from than the most recent state
+     */
+    public Bed processBedStateAndFacility(Room room, BedMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
+        Bed bed = bedRepo
+                .findByHl7StringAndRoomId(msg.getBedHl7(), room)
+                .orElseGet(() -> bedRepo.save(new Bed(msg.getBedHl7(), room)));
+
+        BedState bedState = processBedState(bed, msg, storedFrom);
+
+        if (msg.getBedFacility() != null) {
+            createBedFacilityIfNotExists(bedState, msg.getBedFacility());
+        }
+
+        return bed;
+    }
+
+    private BedState processBedState(Bed bed, BedMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
+
+
+        List<BedState> states = bedStateRepo.findAllByBedIdOrderByValidFromDesc(bed);
+
+        // if we already know about the bed pool, increment it and don't do any further processing
+        if (msg.getIsPoolBed() != null && msg.getIsPoolBed()) {
+            Optional<BedState> existingPoolBed = findExistingPoolBedByValidFrom(msg.getBedContactDate(), states);
+            if (existingPoolBed.isPresent()) {
+                incrementPoolBedAndSave(existingPoolBed.get());
+                return existingPoolBed.get();
+            }
+        }
+
+        // if we already know about the bed CSN, don't do any further processing
+        Optional<BedState> existingState = states.stream()
+                .filter(state -> state.getCsn().equals(msg.getBedCsn()))
+                .findFirst();
+        if (existingState.isPresent()) {
+            return existingState.get();
+        }
+
+        return createCurrentStateAndInvalidatePrevious(msg, bed, states, new TemporalFrom(msg.getBedContactDate(), storedFrom));
+    }
+
+    private Optional<BedState> findExistingPoolBedByValidFrom(Instant bedContactDate, Collection<BedState> states) {
+        return states.stream()
+                .filter(state -> state.getPoolBedCount() != null && state.getValidFrom().equals(bedContactDate))
+                .findFirst();
+    }
+
+    private void incrementPoolBedAndSave(BedState existingPoolBed) {
+        existingPoolBed.incrementPoolBedCount();
+        bedStateRepo.save(existingPoolBed);
+    }
+
+    /**
+     * Create new state from current message, invalidating the previous state and saving if required.
+     * @param msg          message to process
+     * @param bed          bed entity
+     * @param states       previous states sorted by descending valid from dates
+     * @param temporalFrom valid and stored from
+     * @return Current bed state for message
+     * @throws IncompatibleDatabaseStateException if a novel, non-pool CSN is found with a contact date earlier than the latest state
+     */
+    private BedState createCurrentStateAndInvalidatePrevious(
+            BedMetadata msg, Bed bed, Collection<BedState> states, TemporalFrom temporalFrom) throws IncompatibleDatabaseStateException {
+        BedState currentState = new BedState(
+                bed, msg.getBedCsn(), msg.getBedIsInCensus(), msg.getIsBunkBed(),
+                msg.getBedRecordState().toString(), msg.getIsPoolBed(), temporalFrom
+        );
+
+        if (msg.getIsPoolBed()) {
+            incrementPoolBedAndSave(currentState);
+        }
+
+        // if the bed doesn't have any existing states we don't need to invalidate any previous states
+        if (states.isEmpty()) {
+            return bedStateRepo.save(currentState);
+        }
+
+        // assuming the current message is after the most recent state, we should invalidate it and save the new state
+        BedState previousState = states.stream().findFirst().orElseThrow();
+        if (currentState.getValidFrom().isBefore(previousState.getValidFrom())) {
+            throw new IncompatibleDatabaseStateException("New bed state is valid before the most current bed state");
+        }
+
+        previousState.setValidUntil(temporalFrom.getValid());
+        previousState.setStoredUntil(temporalFrom.getStored());
+
+        bedStateRepo.saveAll(List.of(previousState, currentState));
+        return currentState;
+    }
+
+    private void createBedFacilityIfNotExists(BedState bedState, String bedFacility) {
+        bedFacilityRepo.findByBedStateIdAndType(bedState, bedFacility)
+                .orElseGet(() -> bedFacilityRepo.save(new BedFacility(bedState, bedFacility)));
+    }
+
 }

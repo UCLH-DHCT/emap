@@ -15,4 +15,10 @@ public interface LocationRepository extends CrudRepository<Location, Long> {
      * @return the Location wrapped in optional
      */
     Optional<Location> findByLocationStringEquals(String locationString);
+
+    /**
+     * @param locationString Location string
+     * @return true if location exists
+     */
+    boolean existsByLocationStringEquals(String locationString);
 }

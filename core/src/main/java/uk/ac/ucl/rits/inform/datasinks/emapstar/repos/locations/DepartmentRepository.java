@@ -11,4 +11,12 @@ import java.util.Optional;
  */
 public interface DepartmentRepository extends CrudRepository<Department, Long> {
     Optional<Department> findByHl7StringAndName(String hl7String, String departmentName);
+
+    /**
+     * For testing.
+     * @param hl7String HL7 representation of department
+     * @return department
+     */
+    Optional<Department> findByHl7String(String hl7String);
+
 }

@@ -13,6 +13,8 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
+import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -112,6 +114,12 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the DepartmentMetadata message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(DepartmentMetadata msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the ConsultRequest message to process

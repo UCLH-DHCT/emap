@@ -1,6 +1,6 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.location.LocationMetadata"
-hl7String: "1000000059^null^null"
+hl7String: "100000060^null^null"
 sourceSystem: "clarity"
 # department
-departmentHl7: "1000000059"
-departmentName: "DENTAL: ORAL MEDICINE"
+departmentHl7: "100000060"
+departmentName: "OFF SE5PC"
