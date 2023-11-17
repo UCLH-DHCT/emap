@@ -119,7 +119,7 @@ public class LocationController {
                         new Department(msg.getDepartmentHl7(), msg.getDepartmentName())));
 
         createDepartmentOnlyLocationIfRequired(dep, msg.getHl7String());
-        createCurrentStateAndUpdatePreviousIfRequired(msg, dep, storedFrom);
+        processDepartmentStates(msg, dep, storedFrom);
 
         return dep;
     }
@@ -154,51 +154,81 @@ public class LocationController {
     }
 
     /**
-     * Create state from department and if it's different from an existing state, invalidate the existing state.
+     * Create state from department and if it's different from an existing state, invalidate the previous state.
+     * <p>
+     * If a state exists that's valid after the current state, the created state will be invalidated.
      * @param msg        message to process
      * @param department parent department entity
      * @param storedFrom time that emap core started processing the message
      * @throws IncompatibleDatabaseStateException if the previous department speciality is inconsistent with what is currently in EMAP
      */
-    private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom)
+    private void processDepartmentStates(LocationMetadata msg, Department department, Instant storedFrom)
             throws IncompatibleDatabaseStateException {
-        Instant validFrom = msg.getSpecialityUpdate() == null ? msg.getDepartmentUpdateDate() : msg.getSpecialityUpdate();
+        Instant validFrom = msg.getSpecialityUpdate() == null ? msg.getDepartmentContactDate() : msg.getSpecialityUpdate();
         DepartmentState currentState = new DepartmentState(
                 department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentSpeciality(), validFrom, storedFrom);
 
-        Optional<DepartmentState> possiblePreviousState = departmentStateRepo.findFirstByDepartmentIdOrderByStoredFromDesc(department);
+        if (departmentStateRepo.existsByDepartmentIdAndSpecialityAndValidFrom(department, msg.getDepartmentSpeciality(), validFrom)) {
+            logger.debug("Department State already exists in the database, no need to process further");
+            return;
+        }
+
+        Optional<DepartmentState> possiblePreviousState = departmentStateRepo
+                .findFirstByDepartmentIdAndValidFromLessThanOrderByValidFromDesc(department, validFrom);
+        Optional<DepartmentState> possibleNextState = departmentStateRepo
+                .findFirstByDepartmentIdAndValidFromGreaterThanOrderByValidFrom(department, validFrom);
 
         // if a state already exists and is different from the current state then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
-            DepartmentState previousState = possiblePreviousState.get();
-
-            if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
-                // Throw an exception if the previous speciality doesn't align with what is currently in EMAP
-                if (!previousState.getSpeciality().equals(msg.getPreviousDepartmentSpeciality())) {
-                    throw new IncompatibleDatabaseStateException("Department speciality does not match what is already in the database");
-                }
-                // Add new department states to EMAP
-                previousState.setStoredUntil(currentState.getStoredFrom());
-                previousState.setValidUntil(currentState.getValidFrom());
-                departmentStateRepo.saveAll(List.of(previousState, currentState));
-            }
-        // if the previous department speciality is not in the database
+            invalidatePreviousStateIfChanged(msg.getPreviousDepartmentSpeciality(), currentState, possiblePreviousState.get());
         } else if (msg.getPreviousDepartmentSpeciality() != null) {
+            // if the previous department speciality is not in the database
             DepartmentState previousState = new DepartmentState(
                     department, msg.getDepartmentRecordStatus().toString(), msg.getPreviousDepartmentSpeciality(),
                     msg.getDepartmentContactDate(), storedFrom);
             previousState.setStoredUntil(currentState.getStoredFrom());
             previousState.setValidUntil(currentState.getValidFrom());
             departmentStateRepo.saveAll(List.of(previousState, currentState));
-        // if no state already exists then just save the state as is
         } else {
+            // previous state doesn't exist
+            if (possibleNextState.isPresent() && !stateIsDifferent(currentState, possibleNextState.get())) {
+                // next state is the same as the current, should just update the next state to be valid earlier, at the current state's valid from
+                possibleNextState.get().setValidFrom(currentState.getValidFrom());
+            } else {
+                // no previous state, so just save the current state
+                departmentStateRepo.save(currentState);
+            }
+        }
+
+        // if there's a next state and its different, then we should invalidate the current state
+        if (possibleNextState.isPresent() && stateIsDifferent(currentState, possibleNextState.get())) {
+            currentState.setStoredUntil(storedFrom);
+            currentState.setValidUntil(possibleNextState.get().getValidFrom());
             departmentStateRepo.save(currentState);
         }
     }
 
-    private boolean stateIsDifferentOrMessageIsLater(DepartmentState currentState, DepartmentState previousState) {
+    private void invalidatePreviousStateIfChanged(String msgPreviousSpeciality, DepartmentState currentState, DepartmentState previousState)
+            throws IncompatibleDatabaseStateException {
+        // if not different, the current state doesn't get saved
+        if (stateIsDifferent(currentState, previousState)) {
+            if (msgPreviousSpeciality != null && !msgPreviousSpeciality.equals(previousState.getSpeciality())) {
+                String errorMsg = String.format(
+                        "Previous Department speciality is different from the database speciality. Database previous: %s, Message previous: %s",
+                        previousState.getSpeciality(), msgPreviousSpeciality
+                );
+                logger.error(errorMsg);
+                throw new IncompatibleDatabaseStateException(errorMsg);
+            }
+            // Add new department states to EMAP
+            previousState.setStoredUntil(currentState.getStoredFrom());
+            previousState.setValidUntil(currentState.getValidFrom());
+            departmentStateRepo.saveAll(List.of(previousState, currentState));
+        }
+    }
+
+    private boolean stateIsDifferent(DepartmentState currentState, DepartmentState previousState) {
         return !previousState.getStatus().equals(currentState.getStatus())
-                || previousState.getValidFrom().isBefore(currentState.getValidFrom())
                 || !Objects.equals(currentState.getSpeciality(), previousState.getSpeciality());
     }
 

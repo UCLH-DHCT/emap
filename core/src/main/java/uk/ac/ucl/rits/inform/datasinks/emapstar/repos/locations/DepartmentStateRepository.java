@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,11 +13,14 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface DepartmentStateRepository extends CrudRepository<DepartmentState, Long> {
-    Optional<DepartmentState> findFirstByDepartmentIdOrderByStoredFromDesc(Department dep);
+    Optional<DepartmentState> findFirstByDepartmentIdAndValidFromLessThanOrderByValidFromDesc(Department dep, Instant validFrom);
+    Optional<DepartmentState> findFirstByDepartmentIdAndValidFromGreaterThanOrderByValidFrom(Department dep, Instant validFrom);
+
+    boolean existsByDepartmentIdAndSpecialityAndValidFrom(Department dep, String speciality, Instant validFrom);
+
 
     /**
      * For testing.
-     *
      * @param department department entity
      * @param status     status
      * @return potential department state
@@ -25,7 +29,6 @@ public interface DepartmentStateRepository extends CrudRepository<DepartmentStat
 
     /**
      * For testing.
-     *
      * @param department department entity
      * @param speciality speciality
      * @return potential department state
@@ -34,7 +37,6 @@ public interface DepartmentStateRepository extends CrudRepository<DepartmentStat
 
     /**
      * For testing.
-     *
      * @param department department entity
      * @return List of all corresponding department states
      */

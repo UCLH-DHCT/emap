@@ -44,11 +44,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Autowired
     private DepartmentStateRepository departmentStateRepo;
     @Autowired
-    private RoomRepository roomRepo;
-    @Autowired
     private RoomStateRepository roomStateRepo;
-    @Autowired
-    private BedRepository bedRepo;
     @Autowired
     private BedStateRepository bedStateRepo;
     @Autowired
@@ -59,6 +55,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final String ACUN_BED_HL7_STRING = "BY12-C49";
     private static final String ACUN_LOCATION_HL7_STRING = String.join("^", ACUN_DEPT_HL7_STRING, ACUN_ROOM_HL7_STRING, ACUN_BED_HL7_STRING);
     private static final Instant CONTACT_TIME = Instant.parse("2016-02-09T00:00:00Z");
+    private static final Instant SPECIALITY_UPDATE_TIME = Instant.parse("2022-02-09T00:00:20Z");
     private static final Instant LATER_TIME = CONTACT_TIME.plusSeconds(20);
     private static final Instant EARLIER_TIME = CONTACT_TIME.minusSeconds(20);
     private static final long ACUN_ROOM_CSN = 1158;
@@ -226,14 +223,15 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     /**
      * Given department exists in database
      * when a location metadata message with matching hl7 string (different status and later time) is processed
-     * then a new active state should be created, invalidating the previous state
+     * then a new active state should be created, invalidating the previous state at the speciality update time (not using the department update time)
      */
     @Test
     @Sql("/populate_db.sql")
     void testDepartmentStateAdded() throws Exception {
         EpicRecordStatus newStatus = EpicRecordStatus.INACTIVE;
         acunCensusBed.setDepartmentRecordStatus(newStatus);
-        acunCensusBed.setDepartmentUpdateDate(LATER_TIME);
+        acunCensusBed.setDepartmentSpeciality("new");
+        acunCensusBed.setDepartmentUpdateDate(SPECIALITY_UPDATE_TIME.plusSeconds(1));
         processSingleMessage(acunCensusBed);
 
         Location location = getLocation(ACUN_LOCATION_HL7_STRING);
@@ -242,15 +240,56 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         DepartmentState previousState = departmentStateRepo
                 .findByDepartmentIdAndStatus(location.getDepartmentId(), EpicRecordStatus.ACTIVE.toString())
                 .orElseThrow();
-        assertEquals(LATER_TIME, previousState.getValidUntil());
+        assertEquals(SPECIALITY_UPDATE_TIME, previousState.getValidUntil());
         assertNotNull(previousState.getStoredUntil());
 
         // current state is active
         DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), newStatus.toString()).orElseThrow();
         assertNotNull(currentState.getStoredFrom());
         assertNull(currentState.getStoredUntil());
-        assertEquals(LATER_TIME, currentState.getValidFrom());
+        assertEquals(SPECIALITY_UPDATE_TIME, currentState.getValidFrom());
         assertNull(currentState.getValidUntil());
+    }
+
+
+    /**
+     * Given nothing in the database
+     * When two location metadata messages for the same department (different speciality update time, but same information) are processed out of order
+     * The final department state should have the earlier speciality validFrom
+     */
+    @Test
+    void testSameDepartmentStateOutOfOrderMerged() throws Exception {
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME.plusSeconds(1));
+        processSingleMessage(acunCensusBed);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME);
+        processSingleMessage(acunCensusBed);
+
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+
+        // only single state for the department and status, and uses the earlier time (that was received second)
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+        assertEquals(SPECIALITY_UPDATE_TIME, currentState.getValidFrom());
+    }
+
+    /**
+     * Given nothing in the database
+     * When two location metadata messages for the same department (different speciality update time, but same information) are processed in order
+     * The final department state should have the earlier speciality validFrom
+     */
+    @Test
+    void testSameDepartmentStateInOrderMerged() throws Exception {
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME);
+        processSingleMessage(acunCensusBed);
+        acunCensusBed.setSpecialityUpdate(SPECIALITY_UPDATE_TIME.plusSeconds(1));
+        processSingleMessage(acunCensusBed);
+
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+
+        // only single state for the department and status, and uses the earlier time (that was received second)
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), EpicRecordStatus.ACTIVE.toString()).orElseThrow();
+        assertEquals(SPECIALITY_UPDATE_TIME, currentState.getValidFrom());
     }
 
     /**
@@ -312,6 +351,26 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
 
         // Check that there are two department states
         assertEquals(2, departmentStateRepo.findAllByDepartmentId(dep).size());
+    }
+
+    /**
+     * Given no department states existing in the database
+     * When a message with no previous speciality is processed, then a later message that also has no previous speciality is updated
+     * Then only one department state should exist
+     */
+    @Test
+    void testNoPreviousSpecialityForFirstAndSecondMessages() throws Exception {
+        // Process message
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(null);
+        processSingleMessage(acunCensusBed);
+        acunCensusBed.setDepartmentUpdateDate(acunCensusBed.getDepartmentUpdateDate().plusSeconds(1));
+        acunCensusBed.setPreviousDepartmentSpeciality(null);
+        acunCensusBed.setSpecialityUpdate(null);
+        processSingleMessage(acunCensusBed);
+
+        // Check that there are two department states
+        assertEquals(1L, departmentStateRepo.count());
     }
 
     // ROOM
