@@ -1,49 +1,17 @@
-package uk.ac.ucl.rits.inform.interchange;
+package uk.ac.ucl.rits.inform.interchange.location;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.ac.ucl.rits.inform.interchange.EpicRecordStatus;
 
+import java.io.Serializable;
 import java.time.Instant;
 
-/**
- * @author Jeremy Stein
- * @author Stef Piatek
- */
 @Data
-@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class LocationMetadata extends EmapOperationMessage {
-    private String hl7String;
-    private String departmentHl7;
-    private String departmentName;
-    private String departmentSpeciality;
-    /**
-     * The department record status.
-     * See {@link EpicRecordStatus} for values
-     */
-    private EpicRecordStatus departmentRecordStatus;
-    /**
-     * Most likely null but track in case we do have it.
-     */
-    private Instant departmentUpdateDate;
-
-    /**
-     * Unique ID for the contact, can have multiple from the same hl7 representation.
-     */
-    private Long roomCsn;
-    private Boolean isRoomReady;
-    private Instant roomContactDate;
-    /**
-     * Room record state.
-     * See {@link EpicRecordStatus} for values
-     */
-    private EpicRecordStatus roomRecordState;
-    private String roomHl7;
-    private String roomName;
-
+public class BedMetadata implements Serializable {
     /**
      * Unique ID for the contact, can have multiple from the same hl7 representation.
      */
@@ -67,7 +35,6 @@ public class LocationMetadata extends EmapOperationMessage {
      * Whether the bed record should be
      * included in bed census reports.
      * <p>
-     * <p>
      * Roma says: Census beds are beds that count as real beds
      * where you stay (and we get ADT messages for), rather than non-census beds
      * which are transient and don't trigger ADT messages (at the moment, and when
@@ -85,19 +52,4 @@ public class LocationMetadata extends EmapOperationMessage {
      */
     private Boolean bedIsInCensus;
     private String bedFacility;
-
-    /**
-     * In order to update the department speciality correctly we need to date it
-     * changed (i.e. the auditDate).  Department contact date is only used when the
-     * previous department speciality does not line up with what is currently in the
-     * EMAP database.
-     */
-    private Instant specialityUpdate;
-    private String previousDepartmentSpeciality;
-    private Instant departmentContactDate;
-
-    @Override
-    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        processor.processMessage(this);
-    }
 }

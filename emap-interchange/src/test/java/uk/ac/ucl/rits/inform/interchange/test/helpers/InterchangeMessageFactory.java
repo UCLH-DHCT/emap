@@ -9,11 +9,11 @@ import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.FileStoreWithMonitoredAccess;
-import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
-import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.ResearchOptOut;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
@@ -186,6 +186,18 @@ public class InterchangeMessageFactory {
      */
     public LocationMetadata getLocationMetadata(final String fileName) throws IOException {
         String resourcePath = "/LocationMetadata/" + fileName;
+        InputStream inputStream = getInputStream(resourcePath);
+        return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
+    }
+
+    /**
+     * Build Department metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange message
+     * @throws IOException if reading failed
+     */
+    public DepartmentMetadata getDepartmentMetadata(final String fileName) throws IOException {
+        String resourcePath = "/DepartmentMetadata/" + fileName;
         InputStream inputStream = getInputStream(resourcePath);
         return EmapYamlMapper.readValue(inputStream, new TypeReference<>() {});
     }

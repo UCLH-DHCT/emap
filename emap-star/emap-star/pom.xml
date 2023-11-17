@@ -19,8 +19,8 @@
     <emap-star-annotations.version>2.7</emap-star-annotations.version>
     <reflections.version>0.10.2</reflections.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-    <checkstyle.version>9.3</checkstyle.version>
-    <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
+    <checkstyle.version>10.3.1</checkstyle.version>
+    <checkstyle.plugin.version>3.3.0</checkstyle.plugin.version>
     <!-- automatically run annotation processors within the incremental compilation -->
     <m2e.apt.activation>jdt_apt</m2e.apt.activation>
     <!-- matches current version in spring boot -->

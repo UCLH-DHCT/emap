@@ -50,10 +50,10 @@ jobs:
     if: needs.filter.outputs.emap-star == 'true'
     steps:
       - uses: actions/checkout@v3
-      - name: Ensure we use JDK 11
+      - name: Set up java
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
       - name: Run emap-star tests
@@ -70,10 +70,10 @@ jobs:
     if: needs.filter.outputs.emap-interchange == 'true'
     steps:
       - uses: actions/checkout@v3
-      - name: Ensure we use JDK 11
+      - name: Set up java
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
       - name: Run emap-interchange tests
@@ -90,10 +90,10 @@ jobs:
     if: needs.filter.outputs.hl7-reader == 'true'
     steps:
       - uses: actions/checkout@v3
-      - name: Ensure we use JDK 11
+      - name: Set up java
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
       - name: Build emap-star
@@ -116,10 +116,10 @@ jobs:
     if: needs.filter.outputs.core == 'true'
     steps:
       - uses: actions/checkout@v3
-      - name: Ensure we use JDK 11
+      - name: Set up java
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
       - name: Build emap-star

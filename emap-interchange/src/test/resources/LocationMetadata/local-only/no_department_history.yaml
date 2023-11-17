@@ -1,4 +1,5 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.location.LocationMetadata"
-hl7String: "1000000059^null^null"
+hl7String: "1020100002^null^null"
 sourceSystem: "clarity"
-departmentId: "13"
+departmentId: "1020100002"
+
