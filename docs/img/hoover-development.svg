@@ -1,0 +1,486 @@
+<svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 1483.787353515625 1282"
+     style="max-width: 100%;" xmlns="http://www.w3.org/2000/svg" width="100%" id="graph-div" height="100%"
+>
+  <style>@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css");'</style>
+  <style>#graph-div{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}#graph-div
+    .error-icon{fill:#552222;}#graph-div .error-text{fill:#552222;stroke:#552222;}#graph-div
+    .edge-thickness-normal{stroke-width:2px;}#graph-div .edge-thickness-thick{stroke-width:3.5px;}#graph-div
+    .edge-pattern-solid{stroke-dasharray:0;}#graph-div .edge-pattern-dashed{stroke-dasharray:3;}#graph-div
+    .edge-pattern-dotted{stroke-dasharray:2;}#graph-div .marker{fill:#333333;stroke:#333333;}#graph-div
+    .marker.cross{stroke:#333333;}#graph-div svg{font-family:"trebuchet
+    ms",verdana,arial,sans-serif;font-size:16px;}#graph-div g.classGroup
+    text{fill:#9370DB;stroke:none;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:10px;}#graph-div
+    g.classGroup text .title{font-weight:bolder;}#graph-div .nodeLabel,#graph-div .edgeLabel{color:#131300;}#graph-div
+    .edgeLabel .label rect{fill:#ECECFF;}#graph-div .label text{fill:#131300;}#graph-div .edgeLabel .label
+    span{background:#ECECFF;}#graph-div .classTitle{font-weight:bolder;}#graph-div .node rect,#graph-div .node
+    circle,#graph-div .node ellipse,#graph-div .node polygon,#graph-div .node
+    path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#graph-div .divider{stroke:#9370DB;stroke-width:1;}#graph-div
+    g.clickable{cursor:pointer;}#graph-div g.classGroup rect{fill:#ECECFF;stroke:#9370DB;}#graph-div g.classGroup
+    line{stroke:#9370DB;stroke-width:1;}#graph-div .classLabel
+    .box{stroke:none;stroke-width:0;fill:#ECECFF;opacity:0.5;}#graph-div .classLabel
+    .label{fill:#9370DB;font-size:10px;}#graph-div .relation{stroke:#333333;stroke-width:1;fill:none;}#graph-div
+    .dashed-line{stroke-dasharray:3;}#graph-div .dotted-line{stroke-dasharray:1 2;}#graph-div
+    #compositionStart,#graph-div .composition{fill:#333333!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #compositionEnd,#graph-div .composition{fill:#333333!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #dependencyStart,#graph-div .dependency{fill:#333333!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #dependencyStart,#graph-div .dependency{fill:#333333!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #extensionStart,#graph-div .extension{fill:transparent!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #extensionEnd,#graph-div .extension{fill:transparent!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #aggregationStart,#graph-div
+    .aggregation{fill:transparent!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #aggregationEnd,#graph-div
+    .aggregation{fill:transparent!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #lollipopStart,#graph-div .lollipop{fill:#ECECFF!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    #lollipopEnd,#graph-div .lollipop{fill:#ECECFF!important;stroke:#333333!important;stroke-width:1;}#graph-div
+    .edgeTerminals{font-size:11px;}#graph-div .classTitleText{text-anchor:middle;font-size:18px;fill:#333;}#graph-div
+    :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}
+  </style>
+  <g>
+    <defs>
+      <marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18"
+              class="marker aggregation classDiagram" id="graph-div_classDiagram-aggregationStart">
+        <path d="M 18,7 L9,13 L1,7 L9,1 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram"
+              id="graph-div_classDiagram-aggregationEnd">
+        <path d="M 18,7 L9,13 L1,7 L9,1 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18"
+              class="marker extension classDiagram" id="graph-div_classDiagram-extensionStart">
+        <path d="M 1,7 L18,13 V 1 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram"
+              id="graph-div_classDiagram-extensionEnd">
+        <path d="M 1,1 V 13 L18,7 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18"
+              class="marker composition classDiagram" id="graph-div_classDiagram-compositionStart">
+        <path d="M 18,7 L9,13 L1,7 L9,1 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram"
+              id="graph-div_classDiagram-compositionEnd">
+        <path d="M 18,7 L9,13 L1,7 L9,1 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6"
+              class="marker dependency classDiagram" id="graph-div_classDiagram-dependencyStart">
+        <path d="M 5,7 L9,13 L1,7 L9,1 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram"
+              id="graph-div_classDiagram-dependencyEnd">
+        <path d="M 18,7 L9,13 L14,7 L9,1 Z"></path>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram"
+              id="graph-div_classDiagram-lollipopStart">
+        <circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle>
+      </marker>
+    </defs>
+    <defs>
+      <marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram"
+              id="graph-div_classDiagram-lollipopEnd">
+        <circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle>
+      </marker>
+    </defs>
+    <g class="root">
+      <g class="clusters"></g>
+      <g class="edgePaths">
+        <path marker-end="url(#graph-div_classDiagram-dependencyEnd)" style="fill:none"
+              class="edge-pattern-dashed relation" id="id1"
+              d="M493.24,1099L481.291,1094.833C469.343,1090.667,445.447,1082.333,433.498,1075C421.55,1067.667,421.55,1061.333,421.55,1058.167L421.55,1055"></path>
+        <path marker-end="url(#graph-div_classDiagram-dependencyEnd)" style="fill:none"
+              class="edge-pattern-dashed relation" id="id2"
+              d="M416.071,523L416.071,495.833C416.071,468.667,416.071,414.333,413.123,381.874C410.175,349.414,404.279,338.828,401.331,333.535L398.383,328.242"></path>
+        <path marker-end="url(#graph-div_classDiagram-dependencyEnd)" style="fill:none"
+              class="edge-pattern-dashed relation" id="id3"
+              d="M242.936,790L237.189,785.833C231.442,781.667,219.948,773.333,214.201,736.417C208.454,699.5,208.454,634,208.454,566.5C208.454,499,208.454,429.5,211.147,389.474C213.841,349.448,219.227,338.896,221.921,333.62L224.614,328.344"></path>
+        <path marker-end="url(#graph-div_classDiagram-dependencyEnd)" style="fill:none"
+              class="edge-pattern-dashed relation" id="id4"
+              d="M416.957,790L416.81,785.833C416.662,781.667,416.366,773.333,416.219,745C416.071,716.667,416.071,668.333,416.071,644.167L416.071,620"></path>
+        <path marker-end="url(#graph-div_classDiagram-extensionEnd)" style="fill:none"
+              class="edge-pattern-dashed relation" id="id5"
+              d="M696.545,790L705.393,785.833C714.241,781.667,731.937,773.333,744.874,766.597C757.811,759.86,765.988,754.72,770.077,752.149L774.166,749.579"></path>
+        <path marker-end="url(#graph-div_classDiagram-dependencyEnd)"
+              marker-start="url(#graph-div_classDiagram-compositionStart)" style="fill:none"
+              class="edge-pattern-solid relation" id="id6"
+              d="M1072.237,814L1072.237,805.833C1072.237,797.667,1072.237,781.333,1072.076,769.999C1071.915,758.664,1071.593,752.328,1071.431,749.16L1071.27,745.992"></path>
+        <path marker-end="url(#graph-div_classDiagram-dependencyEnd)" style="fill:none"
+              class="edge-pattern-dashed relation" id="id7"
+              d="M999.33,1099L1011.481,1094.833C1023.633,1090.667,1047.935,1082.333,1060.086,1068C1072.237,1053.667,1072.237,1033.333,1072.237,1023.167L1072.237,1013"></path>
+      </g>
+      <g class="edgeLabels">
+        <g class="edgeLabel">
+          <g transform="translate(0, 0)" class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="edgeLabel"></span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g transform="translate(416.07081604003906, 360)" class="edgeLabel">
+          <g transform="translate(-31.558334350585938, -12)" class="label">
+            <foreignObject height="24" width="63.116668701171875">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="edgeLabel">
+                  <span class="edgeLabel">«create»</span>
+                </span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g class="edgeLabel">
+          <g transform="translate(0, 0)" class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="edgeLabel"></span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g class="edgeLabel">
+          <g transform="translate(0, 0)" class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="edgeLabel"></span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g class="edgeLabel">
+          <g transform="translate(0, 0)" class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="edgeLabel"></span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g class="edgeLabel">
+          <g transform="translate(0, 0)" class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="edgeLabel"></span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g class="edgeLabel">
+          <g transform="translate(0, 0)" class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="edgeLabel"></span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+      </g>
+      <g class="nodes">
+        <g transform="translate(744.1541442871094, 1186.5)" id="classId-Application-444" class="node default">
+          <rect height="175" width="540.4500122070312" y="-87.5" x="-270.2250061035156"
+                class="outer title-state"></rect>
+          <line y2="-51.5" y1="-51.5" x2="270.2250061035156" x1="-270.2250061035156" class="divider"></line>
+          <line y2="-35.5" y1="-35.5" x2="270.2250061035156" x1="-270.2250061035156" class="divider"></line>
+          <g class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel"></span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -42.28333282470703, -80)" height="24" width="84.56666564941406"
+                           class="classTitle">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">Application</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -262.7250061035156, -28)" height="24" width="153.9499969482422">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+main(String[]) : void</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -262.7250061035156, 0)" height="24" width="525.4500122070312">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+locationMetadataProcessor(LocationMetadataQueryStrategy) : Processor</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -262.7250061035156, 28)" height="24" width="415.3500061035156">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+flowsheetProcessor(FlowsheetQueryStrategy) : Processor</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -262.7250061035156, 56)" height="24" width="444.3999938964844">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+runBatchProcessor(Processor, Processor, ...) : BatchProcessor</span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g transform="translate(307.7416534423828, 165.5)" id="classId-LocationMetadata-445" class="node default">
+          <rect height="315" width="428.20001220703125" y="-157.5" x="-214.10000610351562"
+                class="outer title-state"></rect>
+          <line y2="-121.5" y1="-121.5" x2="214.10000610351562" x1="-214.10000610351562" class="divider"></line>
+          <line y2="-105.5" y1="-105.5" x2="214.10000610351562" x1="-214.10000610351562" class="divider"></line>
+          <g class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel"></span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -66.43333435058594, -150)" height="24" width="132.86666870117188"
+                           class="classTitle">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">LocationMetadata</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, -98)" height="24" width="165.5833282470703">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getHl7String() : String</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, -70)" height="24" width="191.1666717529297">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getDepartmentId() : Long</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, -42)" height="24" width="270.816650390625">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getRoomMetadata() : RoomMetadata</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, -14)" height="24" width="245.98333740234375">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getBedMetadata() : BedMetadata</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, 14)" height="24" width="193.93333435058594">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+setHl7String(String) : void</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, 42)" height="24" width="219.51666259765625">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+setDepartmentId(Long) : void</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, 70)" height="24" width="299.16668701171875">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+setRoomMetadata(RoomMetadata) : void</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, 98)" height="24" width="274.33331298828125">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+setBedMetadata(BedMetadata) : void</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -206.60000610351562, 126)" height="24" width="413.20001220703125">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+processMessage(EmapOperationMessageProcessor) : void</span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g transform="translate(416.07081604003906, 568.5)" id="classId-LocationMetadataDTO-446" class="node default">
+          <rect height="91" width="345.23333740234375" y="-45.5" x="-172.61666870117188"
+                class="outer title-state"></rect>
+          <line y2="-9.5" y1="-9.5" x2="172.61666870117188" x1="-172.61666870117188" class="divider"></line>
+          <line y2="6.5" y1="6.5" x2="172.61666870117188" x1="-172.61666870117188" class="divider"></line>
+          <g class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel"></span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -81.61666870117188, -38)" height="24" width="163.23333740234375"
+                           class="classTitle">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">LocationMetadataDTO</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -165.11666870117188, 14)" height="24" width="330.23333740234375">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getInterchangeMessage() : LocationMetadata</span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g transform="translate(421.54998779296875, 919.5)" id="classId-LocationMetadataQueryStrategy-447"
+           class="node default">
+          <rect height="259" width="827.0999755859375" y="-129.5" x="-413.54998779296875"
+                class="outer title-state"></rect>
+          <line y2="-93.5" y1="-93.5" x2="413.54998779296875" x1="-413.54998779296875" class="divider"></line>
+          <line y2="-77.5" y1="-77.5" x2="413.54998779296875" x1="-413.54998779296875" class="divider"></line>
+          <g class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel"></span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -119.86666870117188, -122)" height="24" width="239.73333740234375"
+                           class="classTitle">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">LocationMetadataQueryStrategy</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, -70)" height="24" width="229.71665954589844">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getSqlQueryFilename() : String</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, -42)" height="24" width="305.08331298828125">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getInstantCalculator() : InstantCalculator</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, -14)" height="24" width="253.96665954589844">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+fixInitialProgress(Instant) : Instant</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 14)" height="24" width="388.3999938964844">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">~getClarityData(Instant) : List&lt;LocationMetadataDTO&gt;</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 42)" height="24" width="812.0999755859375">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getBatchOfInterchangeMessages(Instant, Instant, String) : List&lt;ImmutablePair&gt;EmapOperationMessage,
+                  String&lt;&gt;
+                </span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 70)" height="24" width="307.316650390625">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getUpdatedProgress() : EtlHooverProgress</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 98)" height="24" width="141.03334045410156">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getName() : String</span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g transform="translate(1062.2374725341797, 568.5)" id="classId-QueryStrategy-448" class="node default">
+          <rect height="343" width="827.0999755859375" y="-171.5" x="-413.54998779296875"
+                class="outer title-state"></rect>
+          <line y2="-107.5" y1="-107.5" x2="413.54998779296875" x1="-413.54998779296875" class="divider"></line>
+          <line y2="-91.5" y1="-91.5" x2="413.54998779296875" x1="-413.54998779296875" class="divider"></line>
+          <g class="label">
+            <foreignObject transform="translate( -41.116668701171875, -164)" height="24" width="82.23333740234375">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">«Interface»</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -53.43333435058594, -136)" height="24" width="106.86666870117188"
+                           class="classTitle">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">QueryStrategy</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, -84)" height="24" width="812.0999755859375">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getBatchOfInterchangeMessages(Instant, Instant, String) : List&lt;ImmutablePair&gt;EmapOperationMessage,
+                  String&lt;&gt;
+                </span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, -56)" height="24" width="253.96665954589844">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+fixInitialProgress(Instant) : Instant</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, -28)" height="24" width="305.08331298828125">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getInstantCalculator() : InstantCalculator</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 0)" height="24" width="141.03334045410156">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getName() : String</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 28)" height="24" width="307.316650390625">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getUpdatedProgress() : EtlHooverProgress</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 56)" height="24" width="774.9000244140625">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getBatchOfInterchangeMessages(DataTypeProgress) : List&lt;ImmutablePair&gt;EmapOperationMessage,
+                  String&lt;&gt;
+                </span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 84)" height="24" width="229.71665954589844">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getSqlQueryFilename() : String</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 112)" height="24" width="472.6499938964844">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+interpretPreviousProgress(EtlHooverProgress) : DataTypeProgress</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -406.04998779296875, 140)" height="24" width="164.13333129882812">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getSqlQuery() : String</span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+        <g transform="translate(1072.2374725341797, 919.5)" id="classId-Processor-449" class="node default">
+          <rect height="175" width="363.316650390625" y="-87.5" x="-181.6583251953125" class="outer title-state"></rect>
+          <line y2="-51.5" y1="-51.5" x2="181.6583251953125" x1="-181.6583251953125" class="divider"></line>
+          <line y2="-35.5" y1="-35.5" x2="181.6583251953125" x1="-181.6583251953125" class="divider"></line>
+          <g class="label">
+            <foreignObject height="0" width="0">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel"></span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -36.150001525878906, -80)" height="24" width="72.30000305175781"
+                           class="classTitle">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">Processor</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -174.1583251953125, -28)" height="24" width="166.35000610351562">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getDataType() : String</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -174.1583251953125, 0)" height="24" width="348.316650390625">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+getPreviousProgress() : List&lt;EtlHooverProgress&gt;</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -174.1583251953125, 28)" height="24" width="149.5833282470703">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+execute() : boolean</span>
+              </div>
+            </foreignObject>
+            <foreignObject transform="translate( -174.1583251953125, 56)" height="24" width="306.83331298828125">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">
+                <span class="nodeLabel">+executeOne(EtlHooverProgress) : boolean</span>
+              </div>
+            </foreignObject>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
