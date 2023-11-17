@@ -20,7 +20,8 @@ import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
@@ -258,6 +259,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        locationController.processMessage(msg, storedFrom);
+    }
+
+    @Override
+    @Transactional
+    public void processMessage(DepartmentMetadata msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         locationController.processMessage(msg, storedFrom);
     }
