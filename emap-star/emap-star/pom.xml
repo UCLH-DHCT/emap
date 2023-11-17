@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>emap-star</artifactId>
-  <version>2.6</version>
+  <version>2.7</version>
   <name>Emap Star Database Definition</name>
   <packaging>jar</packaging>
   <description>Emap Star JPA entity classes</description>
@@ -11,12 +11,12 @@
   <parent>
     <groupId>uk.ac.ucl.rits.inform</groupId>
     <artifactId>emap-star-parent</artifactId>
-    <version>2.6</version>
+    <version>2.7</version>
   </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <emap-star-annotations.version>2.6</emap-star-annotations.version>
+    <emap-star-annotations.version>2.7</emap-star-annotations.version>
     <reflections.version>0.10.2</reflections.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <checkstyle.version>9.3</checkstyle.version>
