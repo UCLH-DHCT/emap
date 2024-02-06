@@ -32,7 +32,12 @@
 - <a id="caboodle">**Caboodle**</a>
   
 	Database used by [EPIC](#epic) for reporting purposes. Updated every 24 hours with the data available
-    through live streams. More processing makes data more readable than [Clarity](#clarity), another reporting database.
+    through live streams. More processing makes data more readable than [Clarity](#clarity), another reporting database. 
+    Within the UCLH intranet, you can access the [Caboodle Dictionary](https://uclvwlbpraecb01.uclh201.net/Warehouse) to explore the tables.
+
+- <a id="ccu">**CCU**</a>
+
+	Critical Care Unit.
 
 - <a id="chron">**Chronicles**</a>
   
@@ -107,7 +112,7 @@
 
 ## F
 
-- <a id="fk">**Flowsheets**</a>
+- <a id="flowsheets">**Flowsheets**</a>
 	
 	Flowsheets within hospital data refer to data taken as a measurements over a period of time.
 
@@ -117,6 +122,10 @@
 	It acts as a cross-reference between tables because it references the [primary key](#pk) of another table, thereby establishing a link between them.
 
 ## G
+
+- <a id="gae">**GAE**</a>
+
+	Generic application environment.
 
 - <a id="get">**getter**</a>
 
@@ -195,6 +204,10 @@
 
 ## M
 
+- <a id="mdt">**MDT**</a>
+
+	Multi-disciplinary team.
+
 - <a id="mrn">**MRN**</a>
 
 	Medical Record Number assigned to a patient arriving in the hospital. Also referred to as [Hospital number](#hos_num). These are the canonical internal representation of identity (as opposed to [NHS Number](#nhs_num)) which is an external identifier). MRNs try to be mapped 1:1 to real people. This is practically difficult, so while a single person may have many MRNs over the course of their life, they should most of the time only have 1 active MRN within a given Trust. Much of the information relating to a patient
@@ -254,7 +267,11 @@
 	
 	[RabbitMQ](https://www.rabbitmq.com/) is a message-brokering software used in the [EMAP pipeline](#emap) to buffer communications between the different services.
 	(See further documentation on use of [RabbitMQ in EMAP](./technical_overview/technologies_used/RabbitMQ.md))
-  
+
+- <a id="rass">**RASS**</a>
+
+	[Richmond Agitation Sedation Scale](https://en.wikipedia.org/wiki/Richmond_Agitation-Sedation_Scale).
+
 - <a id="db">**Relational database**</a>
 
 	A relational database is a collection of data items with pre-defined relationships between them. 
@@ -266,6 +283,13 @@
 	The UCL [Research Software Development Group](https://www.ucl.ac.uk/isd/services/research-it/research-software-development) are professional software developers with particular expertise in creating software for academic research.
 
 ## S
+
+- <a id="sde">**SDE**</a>
+
+
+	Smart Data Elements, used within EPIC as a more customisable way to input form-based information.
+
+	Similar to [flowsheets](#flowsheets), but much more based on form answers rather than clinical measurements.
 
 - <a id="set">**setter**</a>
 
@@ -287,6 +311,11 @@
 	Strategic Integration Platform acts as a central controller for all electronic messages sent within the 
     Trust. It routes messages from various sources ([POC](#poc), [HSL](#hsl), Imaging) to be recorded in the 
     appropriate databases.
+
+- <a id="star">**SPC**</a>
+
+	Statistical Process Control.
+
   
 - <a id="star">**Star**</a>
 
@@ -317,7 +346,7 @@
   
 - <a id="uds">**UDS**</a>
 	
-	This is the storage space for the [Star database](#star).
+	Uniform Data System. This is the storage space for the [Star database](#star).
 
 ## V
 
