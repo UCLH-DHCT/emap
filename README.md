@@ -22,7 +22,7 @@ EMAP [your root emap directory]
 ## Developer onboarding
 
 - How to [configure IntelliJ](docs/intellij.md) to build emap and run tests.
-- [Onboarding](docs/onboarding.md) gives details on how data items are processed and the test strategies used.
+- [Onboarding](docs/dev/onboarding.md) gives details on how data items are processed and the test strategies used.
 
 
 # Monorepo migration
