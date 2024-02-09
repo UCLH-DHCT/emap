@@ -60,7 +60,6 @@ a single `ConsultRequest` interchange message or a list of `LabOrderMsg` interch
 
 ```mermaid
 classDiagram
-    direction BT
     class AblLabBuilder {
         + build(String, ORU_R30) Collection~LabOrderMsg~
     }
@@ -200,7 +199,16 @@ An example is shown in the following diagram (simplified):
 
 ```mermaid
 classDiagram
-    direction BT
+    Application ..> LocationMetadataQueryStrategy
+    LocationMetadataDTO ..> LocationMetadata: «create»
+    LocationMetadataQueryStrategy ..> LocationMetadata
+    LocationMetadataQueryStrategy ..> LocationMetadataDTO
+    LocationMetadataQueryStrategy ..|> QueryStrategy
+    Processor *--> QueryStrategy
+    BatchProcessor "1" *--> "dataTypeProcessors *" Processor
+    Application ..> Processor
+    Application ..> BatchProcessor: «create»
+    
     class Application {
         + main(String[]) void
         + locationMetadataProcessor(LocationMetadataQueryStrategy) Processor
@@ -253,15 +261,7 @@ classDiagram
         + registerDataTypeProcessor(Processor) void
     }
 
-    Application ..> LocationMetadataQueryStrategy
-    LocationMetadataDTO ..> LocationMetadata: «create»
-    LocationMetadataQueryStrategy ..> LocationMetadata
-    LocationMetadataQueryStrategy ..> LocationMetadataDTO
-    LocationMetadataQueryStrategy ..|> QueryStrategy
-    Processor *--> QueryStrategy
-    BatchProcessor "1" *--> "dataTypeProcessors *" Processor
-    Application ..> Processor
-    Application ..> BatchProcessor: «create»
+
 ```
 
 - The `Application` class creates a Spring Component that is an instance of the `Processor` class, initialised with
@@ -310,7 +310,6 @@ An example is shown in the following diagram (simplified)
 
 ```mermaid
 classDiagram
-    direction BT
     class InformDbOperations {
         + processMessage(AdtMessage) void
         + processMessage(LabOrderMsg) void
