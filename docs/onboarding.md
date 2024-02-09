@@ -8,15 +8,15 @@ the [inform-health-informatics/emap_documentation repository](https://github.com
 There are currently two data sources for EMAP:
 
 - HL7 data
-  - Persisted in
-    the [Immutable Data Store](https://github.com/inform-health-informatics/emap_documentation/blob/main/technical_overview/Technical_overview_of_EMAP.md#immutable-data-store-ids)
-    (IDS), from a copy of specific HL7 message streams
-  - The IDS is read by
-    the [HL7 reader](https://github.com/inform-health-informatics/emap_documentation/blob/main/technical_overview/Technical_overview_of_EMAP.md#hl7-reader),
-    (defined in the [hl7-reader](https://github.com/UCLH-DHCT/emap/tree/main/hl7-reader) module)
-    converting the HL7 message into a source-agnostic format (interchange message, defined in
-    the [emap-interchange](https://github.com/UCLH-DHCT/emap/tree/main/emap-interchange) module)
-    and published to a rabbitMQ queue for processing by the core processor.
+    - Persisted in
+      the [Immutable Data Store](https://github.com/inform-health-informatics/emap_documentation/blob/main/technical_overview/Technical_overview_of_EMAP.md#immutable-data-store-ids)
+      (IDS), from a copy of specific HL7 message streams
+    - The IDS is read by
+      the [HL7 reader](https://github.com/inform-health-informatics/emap_documentation/blob/main/technical_overview/Technical_overview_of_EMAP.md#hl7-reader),
+      (defined in the [hl7-reader](https://github.com/UCLH-DHCT/emap/tree/main/hl7-reader) module)
+      converting the HL7 message into a source-agnostic format (interchange message, defined in
+      the [emap-interchange](https://github.com/UCLH-DHCT/emap/tree/main/emap-interchange) module)
+      and published to a rabbitMQ queue for processing by the core processor.
 - Hospital database polling
   -
   The [Hoover](https://github.com/inform-health-informatics/emap_documentation/blob/main/technical_overview/Technical_overview_of_EMAP.md#hoover)
@@ -153,12 +153,12 @@ Flow of the processing:
   In this case `ORM` messages are an Order Message, so the message is routed to the `OrderAndResultService`.
 - The `OrderAndResultService` can determine the source and type of the message, which can delegate to
   the `ConsultFactory` for a consultation request, or `LabFunnel` for a lab order.
-  - If this is a consultation request, the `ConsultFactory` will create a `ConsultRequest` interchange message and
-    return this up the call stack for publishing.
+    - If this is a consultation request, the `ConsultFactory` will create a `ConsultRequest` interchange message and
+      return this up the call stack for publishing.
 - The `LabFunnel` will use the `OrderCodingSystem` to route the HL7 message type to the correct `LabOrderBuilder`
   subclass.
-  - Each builder extracts common elements from the HL7 message, using its parent class' methods to create one or
-    more `LabOrderMsg` interchange message.
+    - Each builder extracts common elements from the HL7 message, using its parent class' methods to create one or
+      more `LabOrderMsg` interchange message.
 
 #### Testing
 
@@ -166,20 +166,21 @@ Flow of the processing:
   the `src/test/resources` directory.
 - To reduce repetition of configuration and annotations, the `TestHl7MessageStream` class is extended in each test
   class.
-  - This contains a `processSingleAdtMessage` method which takes the path of the fake HL7 message and processes it into
-    an interchange message for assertions.
-  - This method tests at the `IdsOperations` level, so the `Publisher` does not need to be mocked.
+    - This contains a `processSingleAdtMessage` method which takes the path of the fake HL7 message and processes it
+      into
+      an interchange message for assertions.
+    - This method tests at the `IdsOperations` level, so the `Publisher` does not need to be mocked.
 - Unless there is very tricky areas of logic, we don't unit test message processing, instead setting up test cases of
   HL7 -> interchange messages and checking that this is processed as expected
 - To have certainty that our end-to-end testing from hl7-reader -> core -> emap-star database works correctly,
   test methods are added to the `TestHl7ParsingMatchesInterchangeFactoryOutput` test class, which takes in HL7 messages
   as an input
   and serialised interchange messages in yaml format as an expected output and asserts that they match.
-  - These serialised interchange messages are then used in emap core testing
-  - To ensure that all serialised interchange messages from the hl7-reader have an HL7 message that produces them,
-    the `InterchangeMessageFactory`
-    is created with Monitored Files, an exception will be thrown if there are any interchange messages which have not
-    been read while running the test class.
+    - These serialised interchange messages are then used in emap core testing
+    - To ensure that all serialised interchange messages from the hl7-reader have an HL7 message that produces them,
+      the `InterchangeMessageFactory`
+      is created with Monitored Files, an exception will be thrown if there are any interchange messages which have not
+      been read while running the test class.
 
 ### Hoover
 
@@ -260,36 +261,38 @@ classDiagram
     Processor *--> QueryStrategy
     BatchProcessor "1" *--> "dataTypeProcessors *" Processor
     Application ..> Processor
-    Application  ..>  BatchProcessor : «create»
+    Application ..> BatchProcessor: «create»
 ```
 
 - The `Application` class creates a Spring Component that is an instance of the `Processor` class, initialised with
   a `QueryStrategy` instance, in this case `LocationMetadataQueryStrategy`.
-  - This component is taken as an argument to the `runBatchProcessor` method, which delegates the scheduling of the
-    database polling to the `BatchProcessor` class.
+    - This component is taken as an argument to the `runBatchProcessor` method, which delegates the scheduling of the
+      database polling to the `BatchProcessor` class.
 - The `Processor` class uses the `QueryStrategy` interface to get the previous progress for the data type, and query for
   any
   new data since the most recent progress.
 - Defining the SQL query and how this data is processed is implemented by the `LocationMetadataQueryStrategy` class.
-  - To allow for sqlfluff linting of SQL queries, the SQL is persisted to the `src/main/resources/sql` directory, and
-    linked to by the `getQueryFilename` method.
-  - the `getBatchOfInterchangeMessages` method queries the database, returns a list of Data Transfer Objects (DTOs), in
-    this case `LocationMetadataDTO`.
-  - In this case, the `LocationMetadataDTO` can build a `LocationMetadata` interchange message and these are returned up
-    the call stack for publishing using the `Publisher` class.
+    - To allow for sqlfluff linting of SQL queries, the SQL is persisted to the `src/main/resources/sql` directory, and
+      linked to by the `getQueryFilename` method.
+    - the `getBatchOfInterchangeMessages` method queries the database, returns a list of Data Transfer Objects (DTOs),
+      in
+      this case `LocationMetadataDTO`.
+    - In this case, the `LocationMetadataDTO` can build a `LocationMetadata` interchange message and these are returned
+      up
+      the call stack for publishing using the `Publisher` class.
 
 #### Testing
 
 - For each data type, as a minimum you should carry out testing from a query within a time window and assert that the
   expected data is returned.
-  - The expected data should include the serialised interchange messages in yaml format that will be read by the core
-    processor during testing.
-  - As the databases are static, creating specific test conditions within a time window is the easiest way to have
-    specific tests.
+    - The expected data should include the serialised interchange messages in yaml format that will be read by the core
+      processor during testing.
+    - As the databases are static, creating specific test conditions within a time window is the easiest way to have
+      specific tests.
 - Each test class should implement the `TestQueryStrategy` interface, which adds in default tests once you have
   implemented the required methods for metadata about the test.
-  - This also gives helper methods to be able to test a time window of data and assert that the batch of interchange
-    messages matches the yaml files.
+    - This also gives helper methods to be able to test a time window of data and assert that the batch of interchange
+      messages matches the yaml files.
 
 ### Core
 
@@ -307,71 +310,71 @@ An example is shown in the following diagram (simplified)
 
 ```mermaid
 classDiagram
-  direction BT
-  class InformDbOperations {
-    + processMessage(AdtMessage) void
-    + processMessage(LabOrderMsg) void
-  }
-  class LabCache {
-    + saveEntityAndUpdateCache(RowState~LabBattery, LabBatteryAudit~) LabBattery
-    + updateLabTestDefinitionCache(RowState~LabTestDefinition, LabTestDefinitionAudit~) LabTestDefinition
-    + findExistingLabTestDefinition(String, String) LabTestDefinition
-    + createLabBatteryElementIfNotExists(LabTestDefinition, LabBattery, Instant, Instant) LabBatteryElement
-  }
-  class LabController {
-    + processLabOrder(Mrn, HospitalVisit?, LabOrderMsg, Instant) void
-    + deleteLabOrdersForVisit(HospitalVisit, Instant, Instant) void
-    + processLabMetadata(LabMetadataMsg, Instant) void
-  }
-  class LabOrderAuditRepository {
-    <<Interface>>
-    + findAllIds(Long, Long, Instant, String) List~Long~
-    + previouslyDeleted(Long, Long, InterchangeValue~Instant~, InterchangeValue~String~) boolean
-    + findAllByHospitalVisitIdIn(Iterable~Long~) List~LabOrderAudit~
-  }
-  class LabOrderController {
-    + processSampleAndOrderInformation(Mrn, HospitalVisit, LabBattery, LabOrderMsg, Instant, Instant) LabOrder
-    + deleteLabOrder(LabOrder, Instant, Instant) void
-    + findLabBatteryOrThrow(String, String) LabBattery
-    + getLabOrdersForVisit(HospitalVisit) List~LabOrder~
-    + processLabSampleAndDeleteLabOrder(Mrn, LabBattery, HospitalVisit, LabOrderMsg, Instant, Instant) void
-    + getOrCreateLabBattery(String, String, Instant, Instant) LabBattery
-  }
-  class LabOrderRepository {
-    <<Interface>>
-    + findByLabBatteryIdAndLabSampleId(LabBattery, LabSample) Optional~LabOrder~
-    + findByLabBatteryIdAndLabSampleIdAndValidFromBefore(LabBattery, LabSample, Instant) Optional~LabOrder~
-    + findByLabBatteryIdBatteryCodeAndLabSampleId(String, LabSample) Optional~LabOrder~
-    + findByLabSampleIdExternalLabNumber(String) Optional~LabOrder~
-    + findAllByHospitalVisitId(HospitalVisit) List~LabOrder~
-  }
-  class LabProcessor {
-    + processMessage(LabMetadataMsg, Instant) void
-    + processMessage(LabOrderMsg, Instant) void
-  }
-  class LabTestDefinitionAuditRepository {
-    <<Interface>>
-  }
-  class LabTestDefinitionRepository {
-    <<Interface>>
-    + findByLabProviderAndTestLabCode(String, String) Optional~LabTestDefinition~
-    + findByTestLabCode(String) Optional~LabTestDefinition~
-  }
-  class EmapOperationMessageProcessor {
-    <<Interface>>
-    + processMessage(LabMetadataMsg) void
-    + processMessage(AdtMessage) void
-  }
+    direction BT
+    class InformDbOperations {
+        + processMessage(AdtMessage) void
+        + processMessage(LabOrderMsg) void
+    }
+    class LabCache {
+        + saveEntityAndUpdateCache(RowState~LabBattery, LabBatteryAudit~) LabBattery
+        + updateLabTestDefinitionCache(RowState~LabTestDefinition, LabTestDefinitionAudit~) LabTestDefinition
+        + findExistingLabTestDefinition(String, String) LabTestDefinition
+        + createLabBatteryElementIfNotExists(LabTestDefinition, LabBattery, Instant, Instant) LabBatteryElement
+    }
+    class LabController {
+        + processLabOrder(Mrn, HospitalVisit?, LabOrderMsg, Instant) void
+        + deleteLabOrdersForVisit(HospitalVisit, Instant, Instant) void
+        + processLabMetadata(LabMetadataMsg, Instant) void
+    }
+    class LabOrderAuditRepository {
+        <<Interface>>
+        + findAllIds(Long, Long, Instant, String) List~Long~
+        + previouslyDeleted(Long, Long, InterchangeValue~Instant~, InterchangeValue~String~) boolean
+        + findAllByHospitalVisitIdIn(Iterable~Long~) List~LabOrderAudit~
+    }
+    class LabOrderController {
+        + processSampleAndOrderInformation(Mrn, HospitalVisit, LabBattery, LabOrderMsg, Instant, Instant) LabOrder
+        + deleteLabOrder(LabOrder, Instant, Instant) void
+        + findLabBatteryOrThrow(String, String) LabBattery
+        + getLabOrdersForVisit(HospitalVisit) List~LabOrder~
+        + processLabSampleAndDeleteLabOrder(Mrn, LabBattery, HospitalVisit, LabOrderMsg, Instant, Instant) void
+        + getOrCreateLabBattery(String, String, Instant, Instant) LabBattery
+    }
+    class LabOrderRepository {
+        <<Interface>>
+        + findByLabBatteryIdAndLabSampleId(LabBattery, LabSample) Optional~LabOrder~
+        + findByLabBatteryIdAndLabSampleIdAndValidFromBefore(LabBattery, LabSample, Instant) Optional~LabOrder~
+        + findByLabBatteryIdBatteryCodeAndLabSampleId(String, LabSample) Optional~LabOrder~
+        + findByLabSampleIdExternalLabNumber(String) Optional~LabOrder~
+        + findAllByHospitalVisitId(HospitalVisit) List~LabOrder~
+    }
+    class LabProcessor {
+        + processMessage(LabMetadataMsg, Instant) void
+        + processMessage(LabOrderMsg, Instant) void
+    }
+    class LabTestDefinitionAuditRepository {
+        <<Interface>>
+    }
+    class LabTestDefinitionRepository {
+        <<Interface>>
+        + findByLabProviderAndTestLabCode(String, String) Optional~LabTestDefinition~
+        + findByTestLabCode(String) Optional~LabTestDefinition~
+    }
+    class EmapOperationMessageProcessor {
+        <<Interface>>
+        + processMessage(LabMetadataMsg) void
+        + processMessage(AdtMessage) void
+    }
 
-  InformDbOperations *--> LabProcessor
-  LabCache *--> LabTestDefinitionAuditRepository
-  LabCache *--> LabTestDefinitionRepository
-  LabController *--> LabCache
-  LabController *--> LabOrderController
-  LabOrderController *--> LabOrderAuditRepository
-  LabOrderController *--> LabOrderRepository
-  LabProcessor *--> LabController
-  InformDbOperations ..> EmapOperationMessageProcessor
+    InformDbOperations *--> LabProcessor
+    LabCache *--> LabTestDefinitionAuditRepository
+    LabCache *--> LabTestDefinitionRepository
+    LabController *--> LabCache
+    LabController *--> LabOrderController
+    LabOrderController *--> LabOrderAuditRepository
+    LabOrderController *--> LabOrderRepository
+    LabProcessor *--> LabController
+    InformDbOperations ..> EmapOperationMessageProcessor
 ```
 
 - Each interchange message uses double dispatch so that the class of the interchange message can be known at runtime
@@ -385,40 +388,46 @@ classDiagram
   The processor class uses these delegated classes to update or create entities which are used by other controllers.
 - Each controller class can use other controllers (for complex data types which span 6+ tables), interact with tables
   using a `Cache` component or directly interact with the database using a `Repository` interface.
-  - In this case, the `LabController` uses the `LabCache` component,
-    this is because Spring Boot caching annotations are ignored when a method call is made by the same class.
-    Breaking this out into a separate component allows for data type metadata to be cached to reduce the number of
-    queries to the database and improve performance.
-    The `LabCache` component itself can interact with `Repositories` because it is a Spring Component.
-  - The `LabController` also uses the `LabOrderController`, which then uses specific `Repositories` to interact with the
-    SQL tables in emap star.
+    - In this case, the `LabController` uses the `LabCache` component,
+      this is because Spring Boot caching annotations are ignored when a method call is made by the same class.
+      Breaking this out into a separate component allows for data type metadata to be cached to reduce the number of
+      queries to the database and improve performance.
+      The `LabCache` component itself can interact with `Repositories` because it is a Spring Component.
+    - The `LabController` also uses the `LabOrderController`, which then uses specific `Repositories` to interact with
+      the
+      SQL tables in emap star.
 - Most tables in emap star have an `Audit` equivalent, this allows for the history of each entity to be tracked.
-  - We have defined an `@AuditTable` to generate Java classes for these entities that are then represented as tables in
-    emap star.
-    This can be found in
-    the [emap-star/emap-star-annotations](https://github.com/UCLH-DHCT/emap/tree/main/emap-star/emap-star-annotations)
-    maven module.
-  - An Audit table must extend the `TemporalCore` class, generics are used to link the entity class and its audit entity
-    class.
-  - The `RowState` class acts as a wrapper around an entity to help with determining if differences should be persisted
-    to the database (and if it already exists, audited).
+    - We have defined an `@AuditTable` to generate Java classes for these entities that are then represented as tables
+      in
+      emap star.
+      This can be found in
+      the [emap-star/emap-star-annotations](https://github.com/UCLH-DHCT/emap/tree/main/emap-star/emap-star-annotations)
+      maven module.
+    - An Audit table must extend the `TemporalCore` class, generics are used to link the entity class and its audit
+      entity
+      class.
+    - The `RowState` class acts as a wrapper around an entity to help with determining if differences should be
+      persisted
+      to the database (and if it already exists, audited).
 
 #### Testing
 
 - All testing is carried out from interchange messages persisted in yaml format, as used by the source services.
 - Test classes should extend the `MessageProcessingBase`, which provides class fields and configuration for testing.
-  - the `messageFactory` field is used to create interchange messages from yaml files
-  - there are `processSingleMessage` and `processMessages` methods which take interchange messages and process the
-    message(s) into an in memory database for testing.
+    - the `messageFactory` field is used to create interchange messages from yaml files
+    - there are `processSingleMessage` and `processMessages` methods which take interchange messages and process the
+      message(s) into an in memory database for testing.
 - For complex message flows such as Lab Orders (where there are several messages with different data to and from the lab
   system and EPIC),
   a test class has been created, which uses a class that extends the `OrderPermutationBase` class.
-  - In this case the test class is `TestLabsProcessingUnorderedMessages` and the permutation class is
-    the `LabsPermutationTestProducer`, this has test methods which take in a set of yaml filenames, which are processed
-    in every possible non-repeating order permutation.
-  - This ensures that the processing of the messages is not dependent on the order of the messages, and that the correct
-    outcome is reached regardless of the order of the messages.
-  - Admissions, discharges and transfers are also checked using this method.
+    - In this case the test class is `TestLabsProcessingUnorderedMessages` and the permutation class is
+      the `LabsPermutationTestProducer`, this has test methods which take in a set of yaml filenames, which are
+      processed
+      in every possible non-repeating order permutation.
+    - This ensures that the processing of the messages is not dependent on the order of the messages, and that the
+      correct
+      outcome is reached regardless of the order of the messages.
+    - Admissions, discharges and transfers are also checked using this method.
 
 ## Validation and Deployment
 
