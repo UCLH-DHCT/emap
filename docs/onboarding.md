@@ -248,13 +248,19 @@ classDiagram
         + executeOne(EtlHooverProgress) boolean
     }
 
+    class BatchProcessor {
+        + registerDataTypeProcessor(Processor) void
+    }
+
     Application ..> LocationMetadataQueryStrategy
     LocationMetadataDTO ..> LocationMetadata: «create»
     LocationMetadataQueryStrategy ..> LocationMetadata
     LocationMetadataQueryStrategy ..> LocationMetadataDTO
     LocationMetadataQueryStrategy ..|> QueryStrategy
     Processor *--> QueryStrategy
+    BatchProcessor "1" *--> "dataTypeProcessors *" Processor
     Application ..> Processor
+    Application  ..>  BatchProcessor : «create»
 ```
 
 - The `Application` class creates a Spring Component that is an instance of the `Processor` class, initialised with
