@@ -1,0 +1,66 @@
+classDiagram
+  direction BT
+  class InformDbOperations {
+    + processMessage(AdtMessage) void
+    + processMessage(LabOrderMsg) void
+  }
+  class LabCache {
+    + saveEntityAndUpdateCache(RowState~LabBattery, LabBatteryAudit~) LabBattery
+    + updateLabTestDefinitionCache(RowState~LabTestDefinition, LabTestDefinitionAudit~) LabTestDefinition
+    + findExistingLabTestDefinition(String, String) LabTestDefinition
+    + createLabBatteryElementIfNotExists(LabTestDefinition, LabBattery, Instant, Instant) LabBatteryElement
+  }
+  class LabController {
+    + processLabOrder(Mrn, HospitalVisit?, LabOrderMsg, Instant) void
+    + deleteLabOrdersForVisit(HospitalVisit, Instant, Instant) void
+    + processLabMetadata(LabMetadataMsg, Instant) void
+  }
+  class LabOrderAuditRepository {
+    <<Interface>>
+    + findAllIds(Long, Long, Instant, String) List~Long~
+    + previouslyDeleted(Long, Long, InterchangeValue~Instant~, InterchangeValue~String~) boolean
+    + findAllByHospitalVisitIdIn(Iterable~Long~) List~LabOrderAudit~
+  }
+  class LabOrderController {
+    + processSampleAndOrderInformation(Mrn, HospitalVisit, LabBattery, LabOrderMsg, Instant, Instant) LabOrder
+    + deleteLabOrder(LabOrder, Instant, Instant) void
+    + findLabBatteryOrThrow(String, String) LabBattery
+    + getLabOrdersForVisit(HospitalVisit) List~LabOrder~
+    + processLabSampleAndDeleteLabOrder(Mrn, LabBattery, HospitalVisit, LabOrderMsg, Instant, Instant) void
+    + getOrCreateLabBattery(String, String, Instant, Instant) LabBattery
+  }
+  class LabOrderRepository {
+    <<Interface>>
+    + findByLabBatteryIdAndLabSampleId(LabBattery, LabSample) Optional~LabOrder~
+    + findByLabBatteryIdAndLabSampleIdAndValidFromBefore(LabBattery, LabSample, Instant) Optional~LabOrder~
+    + findByLabBatteryIdBatteryCodeAndLabSampleId(String, LabSample) Optional~LabOrder~
+    + findByLabSampleIdExternalLabNumber(String) Optional~LabOrder~
+    + findAllByHospitalVisitId(HospitalVisit) List~LabOrder~
+  }
+  class LabProcessor {
+    + processMessage(LabMetadataMsg, Instant) void
+    + processMessage(LabOrderMsg, Instant) void
+  }
+  class LabTestDefinitionAuditRepository {
+    <<Interface>>
+  }
+  class LabTestDefinitionRepository {
+    <<Interface>>
+    + findByLabProviderAndTestLabCode(String, String) Optional~LabTestDefinition~
+    + findByTestLabCode(String) Optional~LabTestDefinition~
+  }
+  class EmapOperationMessageProcessor {
+    <<Interface>>
+    + processMessage(LabMetadataMsg) void
+    + processMessage(AdtMessage) void
+  }
+
+  InformDbOperations *--> LabProcessor
+  LabCache *--> LabTestDefinitionAuditRepository
+  LabCache *--> LabTestDefinitionRepository
+  LabController *--> LabCache
+  LabController *--> LabOrderController
+  LabOrderController *--> LabOrderAuditRepository
+  LabOrderController *--> LabOrderRepository
+  LabProcessor *--> LabController
+  InformDbOperations ..> EmapOperationMessageProcessor
