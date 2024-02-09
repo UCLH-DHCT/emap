@@ -267,9 +267,6 @@ classDiagram
   a `QueryStrategy` instance, in this case `LocationMetadataQueryStrategy`.
   - This component is taken as an argument to the `runBatchProcessor` method, which delegates the scheduling of the
     database polling to the `BatchProcessor` class.
-
-<!-- TODO: Add BatchProcessor class -->
-
 - The `Processor` class uses the `QueryStrategy` interface to get the previous progress for the data type, and query for
   any
   new data since the most recent progress.
