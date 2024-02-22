@@ -21,7 +21,6 @@ jobs:
           template: SOP/pr_checklist.md
       - name: Comment
         uses: peter-evans/create-or-update-comment@v1
-        if: ${{ github.event_name == 'pull_request' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: ${{ steps.get-pr-checklist.outputs.result }}

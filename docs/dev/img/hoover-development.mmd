@@ -1,0 +1,63 @@
+classDiagram
+    direction BT
+    class Application {
+        + main(String[]) void
+        + locationMetadataProcessor(LocationMetadataQueryStrategy) Processor
+        + flowsheetProcessor(FlowsheetQueryStrategy) Processor
+        + runBatchProcessor(Processor, Processor, ...) BatchProcessor
+    }
+    class LocationMetadata {
+        + getHl7String() String
+        + getDepartmentId() Long
+        + getRoomMetadata() RoomMetadata
+        + getBedMetadata() BedMetadata
+        + setHl7String(String) void
+        + setDepartmentId(Long) void
+        + setRoomMetadata(RoomMetadata) void
+        + setBedMetadata(BedMetadata) void
+        + processMessage(EmapOperationMessageProcessor) void
+    }
+    class LocationMetadataDTO {
+        + getInterchangeMessage() LocationMetadata
+    }
+    class LocationMetadataQueryStrategy {
+        + getSqlQueryFilename() String
+        + getInstantCalculator() InstantCalculator
+        + fixInitialProgress(Instant) Instant
+        ~ getClarityData(Instant) List~LocationMetadataDTO~
+        + getBatchOfInterchangeMessages(Instant, Instant, String) List~ImmutablePair~ EmapOperationMessage, String~~
+        + getUpdatedProgress() EtlHooverProgress
+        + getName() String
+    }
+    class QueryStrategy {
+        <<Interface>>
+        + getBatchOfInterchangeMessages(Instant, Instant, String) List~ImmutablePair~ EmapOperationMessage, String~~
+        + fixInitialProgress(Instant) Instant
+        + getInstantCalculator() InstantCalculator
+        + getName() String
+        + getUpdatedProgress() EtlHooverProgress
+        + getBatchOfInterchangeMessages(DataTypeProgress) List~ImmutablePair~ EmapOperationMessage, String~~
+        + getSqlQueryFilename() String
+        + interpretPreviousProgress(EtlHooverProgress) DataTypeProgress
+        + getSqlQuery() String
+    }
+    class Processor {
+        + getDataType() String
+        + getPreviousProgress() List~EtlHooverProgress~
+        + execute() boolean
+        + executeOne(EtlHooverProgress) boolean
+    }
+
+    class BatchProcessor {
+        + registerDataTypeProcessor(Processor) void
+    }
+
+    Application ..> LocationMetadataQueryStrategy
+    LocationMetadataDTO ..> LocationMetadata: «create»
+    LocationMetadataQueryStrategy ..> LocationMetadata
+    LocationMetadataQueryStrategy ..> LocationMetadataDTO
+    LocationMetadataQueryStrategy ..|> QueryStrategy
+    Processor *--> QueryStrategy
+    BatchProcessor "1" *--> "dataTypeProcessors *" Processor
+    Application ..> Processor
+    Application ..> BatchProcessor: «create»

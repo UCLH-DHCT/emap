@@ -1,7 +1,12 @@
 # Emap
+
 A monorepo for all core Emap functions
 
-# Basic layout
+# Setup
+
+The EMAP project follows this structure, for deploying a live instance of EMAP follow the instructions
+in [docs/core.md](docs/core.md).
+
 ```
 EMAP [your root emap directory]
 ├── config [config files passed to docker containers, not in any repo]
@@ -14,8 +19,12 @@ EMAP [your root emap directory]
 │   ├── [etc.]
 ```
 
-# Using IntelliJ with emap
-How to [configure IntelliJ](docs/intellij.md) to build emap and run tests.
+## Developer onboarding
+
+- How to [configure IntelliJ](docs/intellij.md) to build emap and run tests.
+- [Onboarding](docs/dev/onboarding.md) gives details on how data items are processed and the test strategies used.
+
 
 # Monorepo migration
+
 How were [old repos migrated into this repo?](docs/migration.md)

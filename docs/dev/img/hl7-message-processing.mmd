@@ -1,0 +1,82 @@
+classDiagram
+    direction BT
+    class AblLabBuilder {
+        + build(String, ORU_R30) Collection~LabOrderMsg~
+    }
+    class AppHl7 {
+        + main(String[]) void
+        + mainLoop(Publisher, IdsOperations) CommandLineRunner
+    }
+    class ConsultFactory {
+        ~ makeConsult(String, ORM_O01) ConsultRequest
+    }
+    class IdsOperations {
+        + getHl7DataSource() EmapDataSource
+        + getNextHL7IdsRecordBlocking(int) IdsMaster
+        + close() void
+        + parseAndSendNextHl7(Publisher, PipeParser) void
+        + getNextHL7IdsRecord(int) IdsMaster
+        + messageFromHl7Message(Message, int) List~EmapOperationMessage~
+        + populateIDS() CommandLineRunner
+        + getIdsEmptyOnInit() boolean
+        ~ getLatestProcessedId() IdsProgress
+    }
+    class LabFunnel {
+        + buildMessages(String, ORU_R30, OrderCodingSystem) Collection~LabOrderMsg~
+        + buildMessages(String, ORR_O02, OrderCodingSystem) Collection~LabOrderMsg~
+        + buildMessages(String, ORU_R01, OrderCodingSystem) Collection~LabOrderMsg~
+        + buildMessages(String, ORM_O01, OrderCodingSystem) List~LabOrderMsg~
+    }
+    class LabOrderBuilder {
+        ~ getCodingSystem() OrderCodingSystem
+        ~ getEpicCareOrderNumberOrc() String
+        ~ setQuestions(Collection~NTE~, String, Pattern) void
+        + getMsg() LabOrderMsg
+        ~ getEpicCareOrderNumberObr() String
+        ~ setBatteryCodingSystem() void
+        ~ populateOrderInformation(ORC, OBR) void
+        ~ populateObrFields(OBR, boolean) void
+        ~ setSourceAndPatientIdentifiers(String, PatientInfoHl7) void
+        ~ populateObrFields(OBR) void
+        ~ setOrderTemporalInformation(Instant) void
+    }
+    class OrderAndResultService {
+        ~ buildMessages(String, ORR_O02) Collection~EmapOperationMessage~
+        ~ buildMessages(String, ORM_O01) Collection~EmapOperationMessage~
+        ~ buildMessages(String, ORU_R30) Collection~EmapOperationMessage~
+        ~ buildMessages(String, ORU_R01) Collection~EmapOperationMessage~
+    }
+    class WinPathLabBuilder {
+        + build(String, ORU_R01) Collection~LabOrderMsg~
+        + build(String, ORR_O02) Collection~LabOrderMsg~
+        + build(String, ORM_O01) List~LabOrderMsg~
+    }
+    class ConsultRequest {
+        + getEpicConsultId() Long
+        + getMrn() String
+        + setQuestions(Map~String, String~) void
+        + getQuestions() Map~String, String~
+        + setMrn(String) void
+        + processMessage(EmapOperationMessageProcessor) void
+    }
+    class LabOrderMsg {
+        + getSpecimenType() InterchangeValue~String~
+        + getOrderControlId() String
+        + getLabResultMsgs() List~LabResultMsg~
+        + setOrderDateTime(InterchangeValue~Instant~) void
+        + setOrderControlId(String) void
+        + setSpecimenType(InterchangeValue~String~) void
+        + processMessage(EmapOperationMessageProcessor) void
+        + addLabResult(LabResultMsg) void
+    }
+
+    AblLabBuilder --|> LabOrderBuilder
+    AppHl7 ..> IdsOperations
+    IdsOperations *--> OrderAndResultService
+    LabFunnel ..> AblLabBuilder
+    LabFunnel ..> WinPathLabBuilder
+    OrderAndResultService *--> ConsultFactory
+    OrderAndResultService ..> LabFunnel
+    WinPathLabBuilder --|> LabOrderBuilder
+    LabOrderBuilder ..> LabOrderMsg: «create»
+    ConsultFactory ..> ConsultRequest: «create»
