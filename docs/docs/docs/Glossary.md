@@ -335,6 +335,11 @@
 
 ## U
 
+- <a id="ucl">**UCL**</a>
+
+	University College London [See here](https://www.ucl.ac.uk/)
+    
+
 - <a id="uclh">**UCLH**</a>
 
 	[UCL Hospitals NHS Foundation Trust](https://www.uclh.nhs.uk/about-us/who-we-are) oversees a number of different 
