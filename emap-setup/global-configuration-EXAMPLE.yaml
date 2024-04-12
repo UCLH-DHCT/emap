@@ -50,7 +50,8 @@ global:
   CABOODLE_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/caboodle
   CABOODLE_USERNAME: caboodle_username
   CABOODLE_PASSWORD: caboodle_readaccess
-  HL7_READER_PORT: 9999
+  ACTUATOR_ALLOWED_ORIGINS: ""
+  HL7_READER_PORT: 9999  # in global so that the ports are set
 
 # Configuration for the IDS
 ids:
@@ -79,3 +80,4 @@ glowroot:
   GLOWROOT_USERNAME: glowrootuser
   GLOWROOT_PASSWORD: glowrootpw
   GLOWROOT_ADMIN_PORT: 4000
+
