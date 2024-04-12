@@ -159,10 +159,9 @@ class DockerRunner:
         env_vars = os.environ.copy()
 
         for item in config_dir_path.iterdir():
-
             # only necessary to read the global config variables; rest will be
             # pulled through containers directly
-            if item.is_file() and str(item) == "global-config-envs":
+            if item.is_file() and item.stem == "global-config-envs":
                 env_vars.update(EnvironmentFile(item).environment_variables)
 
         return env_vars
