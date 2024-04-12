@@ -120,7 +120,6 @@ class ValidationRunner:
         )
 
         self._create_logs_directory()
-        self.docker.inject_ports()
         self.docker.run("down")
 
         if self.should_build:

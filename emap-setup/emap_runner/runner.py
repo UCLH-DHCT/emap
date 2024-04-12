@@ -184,7 +184,6 @@ class EMAPRunner:
         if "up" in self.args.docker_compose_args and not runner.glowroot_is_up:
             runner.setup_glowroot_password()
 
-        runner.inject_ports()
         runner.run(*self.args.docker_compose_args)
 
         return None

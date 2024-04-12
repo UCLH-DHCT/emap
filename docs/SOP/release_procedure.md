@@ -41,4 +41,6 @@ At this point we create a list in the planner with vital things to be completed 
 
    1. Prepare and do demo.
 
-   1. Shut down old instance.  
+   1. Shut down old instance, changing the HL7_READER_PORT in the global-configuration.yaml to something other than 8080.  
+
+   1. Update the HL7_READER_PORT in the global-configuration.yaml in the new instance to 8080 and re-up the hl7-reader.

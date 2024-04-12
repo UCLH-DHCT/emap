@@ -33,6 +33,7 @@ import java.time.Instant;
 @AuditTable(indexes = {@Index(name = "loa_lab_sample_id", columnList = "labSampleId")})
 @Table(indexes = {@Index(name = "lo_lab_battery_id", columnList = "labBatteryId"),
         @Index(name = "lo_lab_sample_id", columnList = "labSampleId"),
+        @Index(name = "lo_hospital_visit_id", columnList = "hospitalVisitId"),
         @Index(name = "lo_order_datetime", columnList = "orderDatetime")})
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 

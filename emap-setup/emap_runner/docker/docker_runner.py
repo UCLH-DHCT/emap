@@ -94,21 +94,6 @@ class DockerRunner:
     def core_docker_compose_path(self) -> Path:
         return Path(self.emap_dir, "core", "docker-compose.yml")
 
-    def inject_ports(self) -> None:
-        """Inject the required ports into the docker-compose yamls"""
-
-        file = File(self.core_docker_compose_path)
-        file.replace("${RABBITMQ_PORT}", self.config["global"]["RABBITMQ_PORT"])
-        file.replace(
-            "${RABBITMQ_ADMIN_PORT}", self.config["global"]["RABBITMQ_ADMIN_PORT"]
-        )
-        file.replace(
-            "${GLOWROOT_ADMIN_PORT}", self.config["glowroot"]["GLOWROOT_ADMIN_PORT"]
-        )
-
-        file.write()
-        return None
-
     def setup_glowroot_password(self) -> None:
         """Run the required command to password protect glowroot"""
 
@@ -159,10 +144,9 @@ class DockerRunner:
         env_vars = os.environ.copy()
 
         for item in config_dir_path.iterdir():
-
             # only necessary to read the global config variables; rest will be
             # pulled through containers directly
-            if item.is_file() and str(item) == "global-config-envs":
+            if item.is_file() and item.stem == "global-config-envs":
                 env_vars.update(EnvironmentFile(item).environment_variables)
 
         return env_vars
