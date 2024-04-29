@@ -46,7 +46,7 @@
 
 - <a id="ci">**Continuous Integration**</a>
     
-	The practice of automating the integration of code changes from multiple contributors into a software project.
+	Continuous Integration. The practice of automating the integration of code changes from multiple contributors into a software project.
 
 - <a id="clarity">**Clarity**</a>
   	
@@ -237,6 +237,7 @@
     [Observational Health Data Science and Informatics](https://www.ohdsi.org/data-standardization/the-common-data-model/).
 
 - <a id="openehr">**openEHR**</a>
+
 	[openEHR](https://www.openehr.org/) is the name of a technology for e-health, consisting of open specifications, clinical models and software that can be used to create standards, and build information and interoperability solutions for healthcare.
 
 - <a id="openemr">**OpenEMR**</a>
