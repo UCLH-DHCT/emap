@@ -3,7 +3,7 @@
 ## Introduction
 
 A technical overview of EMAP can be found in
-the [inform-health-informatics/emap_documentation repository](https://github.com/inform-health-informatics/emap_documentation/blob/main/technical_overview/Technical_overview_of_EMAP.md)
+the [Technical_overview_of_EMAP.md](/docs/technical_overview/Technical_overview_of_EMAP.md)
 
 There are currently two data sources for EMAP:
 
