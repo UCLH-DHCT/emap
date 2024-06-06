@@ -21,10 +21,10 @@ EMAP [your root emap directory]
 
 ## Developer onboarding
 
-- How to [configure IntelliJ](docs/intellij.md) to build emap and run tests.
+- How to [configure IntelliJ](docs/dev/intellij.md) to build emap and run tests.
 - [Onboarding](docs/dev/onboarding.md) gives details on how data items are processed and the test strategies used.
 
 
 # Monorepo migration
 
-How were [old repos migrated into this repo?](docs/migration.md)
+How were [old repos migrated into this repo?](docs/dev/migration.md)
