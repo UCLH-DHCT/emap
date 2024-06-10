@@ -9,8 +9,7 @@ import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.FileStoreWithMonitoredAccess;
-import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
-import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
@@ -23,8 +22,11 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -250,6 +252,14 @@ public class InterchangeMessageFactory {
     public List<Flowsheet> getFlowsheets(final String fileName) throws IOException {
         return getFlowsheets(fileName, sourceId);
     }
+
+    public List<WaveformMessage> getWaveformMsgs() {
+        WaveformMessage waveformMessage = new WaveformMessage();
+        waveformMessage.setNumericValue(new InterchangeValue<>(List.of(42.2, 45.5)));
+        waveformMessage.setObservationTime(Instant.parse("2020-01-01T01:02:03Z"));
+        return List.of(waveformMessage);
+    }
+
 
     /**
      * Utility wrapper for calling updateLabResults without updating the resultTime or epicCareOrderNumber.
