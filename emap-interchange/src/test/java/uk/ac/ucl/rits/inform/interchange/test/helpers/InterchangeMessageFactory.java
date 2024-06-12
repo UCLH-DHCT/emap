@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -253,9 +254,15 @@ public class InterchangeMessageFactory {
         return getFlowsheets(fileName, sourceId);
     }
 
-    public List<WaveformMessage> getWaveformMsgs() {
+    public List<WaveformMessage> getWaveformMsgs(int samplingRate, int numSamples) {
         WaveformMessage waveformMessage = new WaveformMessage();
-        waveformMessage.setNumericValue(new InterchangeValue<>(List.of(42.2, 45.5)));
+        waveformMessage.setSamplingRate(samplingRate);
+        waveformMessage.setLocationString("LOCATION1");
+        var values = new ArrayList<Double>();
+        for (int i = 0; i < numSamples; i++) {
+            values.add(Math.sin(i * 0.01));
+        }
+        waveformMessage.setNumericValues(new InterchangeValue<>(values));
         waveformMessage.setObservationTime(Instant.parse("2020-01-01T01:02:03Z"));
         return List.of(waveformMessage);
     }

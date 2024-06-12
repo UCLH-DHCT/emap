@@ -24,13 +24,17 @@ import java.util.List;
 public class WaveformMessage extends EmapOperationMessage {
     private String sourceObservationType = "waveform";
 
-    /** NEED LOCATION **/
     private String locationString;
+
+    /**
+     * Sampling rate in Hz
+     */
+    private int samplingRate;
 
     /**
      * Numeric value.
      */
-    private InterchangeValue<List<Double>> numericValue = InterchangeValue.unknown();
+    private InterchangeValue<List<Double>> numericValues = InterchangeValue.unknown();
 
     /**
      * Time of the observation.

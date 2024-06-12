@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations.WaveformRepository;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.Waveform;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -29,17 +30,20 @@ public class WaveformController {
     }
 
     @Transactional
-    public void processWaveform(WaveformMessage msg, Instant storedFrom) {
-        InterchangeValue<List<Double>> numericValue = msg.getNumericValue();
-        if (! numericValue.isSave())
-            return;
-        // location goes in some other table...
-//        msg.getLocationString();
-        for (Double val: numericValue.get()) {
+    public void processWaveform(WaveformMessage msg, Instant storedFrom) throws MessageIgnoredException {
+        InterchangeValue<List<Double>> interchangeValue = msg.getNumericValues();
+        int samplingRate = msg.getSamplingRate();
+        if (! interchangeValue.isSave()) {
+            throw new MessageIgnoredException("Updating/deleting waveform data is not supported");
+        }
+        List<Double> numericValues = interchangeValue.get();
+        Instant observationTime = msg.getObservationTime();
+        for (int i = 0; i < numericValues.size(); i++) {
+            Double val = numericValues.get(i);
+            Instant impliedTime = observationTime.plusNanos(i * 1000_000_000L / samplingRate);
             Waveform waveform = new Waveform(
-//                    visitObservationTypeId,
-                    msg.getObservationTime(),
-                    msg.getObservationTime(),
+                    impliedTime,
+                    impliedTime,
                     storedFrom);
             waveform.setValueAsReal(val);
             waveformRepository.save(waveform);
