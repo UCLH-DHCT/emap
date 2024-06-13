@@ -30,6 +30,7 @@ public class WaveformProcessor {
      * @param personController           person controller.
      * @param visitController            visit controller
      * @param visitObservationController visit observation controller
+     * @param waveformController         waveform controller
      */
     public WaveformProcessor(
             PersonController personController, VisitController visitController, VisitObservationController visitObservationController,

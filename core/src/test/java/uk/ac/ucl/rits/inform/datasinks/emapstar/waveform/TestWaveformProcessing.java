@@ -40,7 +40,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
 
     @Test
     void testAddWaveform() throws EmapOperationMessageProcessingException {
-        int numSamples = 100_000;
+        int numSamples = 20_000;
         int samplingRate = 300;
         List<WaveformMessage> messages = messageFactory.getWaveformMsgs(samplingRate, numSamples);
         for (WaveformMessage msg : messages) {

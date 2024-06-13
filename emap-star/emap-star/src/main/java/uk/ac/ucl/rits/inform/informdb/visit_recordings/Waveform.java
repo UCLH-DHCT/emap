@@ -79,19 +79,14 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
 
     /**
      * Minimal information constructor.
-     * @param hospitalVisitId        hospital visit
-     * @param visitObservationTypeId visit observation type
      * @param observationDatetime    observation datetime
      * @param validFrom              Time of the message event
      * @param storedFrom             Time that emap-core encountered the message
      */
     public Waveform(
-//            VisitObservationType visitObservationTypeId
             Instant observationDatetime,
             Instant validFrom,
             Instant storedFrom) {
-//        this.visitObservationTypeId = visitObservationTypeId;
-//        this.hospitalVisitId = hospitalVisitId;
         this.observationDatetime = observationDatetime;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
@@ -104,8 +99,6 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
     public Waveform(Waveform other) {
         super(other);
         this.waveformId = other.waveformId;
-//        this.visitObservationTypeId = other.visitObservationTypeId;
-//        this.hospitalVisitId = other.hospitalVisitId;
         this.valueAsReal = other.valueAsReal;
         this.observationDatetime = other.observationDatetime;
     }

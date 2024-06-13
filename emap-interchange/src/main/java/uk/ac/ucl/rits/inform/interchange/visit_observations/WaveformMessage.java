@@ -27,7 +27,7 @@ public class WaveformMessage extends EmapOperationMessage {
     private String locationString;
 
     /**
-     * Sampling rate in Hz
+     * Sampling rate in Hz.
      */
     private int samplingRate;
 

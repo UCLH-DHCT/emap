@@ -29,11 +29,17 @@ public class WaveformController {
         this.waveformRepository = waveformRepository;
     }
 
+    /**
+     * Process waveform data message.
+     * @param msg the interchange message
+     * @param storedFrom stored from timestamp
+     * @throws MessageIgnoredException if message not processed
+     */
     @Transactional
     public void processWaveform(WaveformMessage msg, Instant storedFrom) throws MessageIgnoredException {
         InterchangeValue<List<Double>> interchangeValue = msg.getNumericValues();
         int samplingRate = msg.getSamplingRate();
-        if (! interchangeValue.isSave()) {
+        if (!interchangeValue.isSave()) {
             throw new MessageIgnoredException("Updating/deleting waveform data is not supported");
         }
         List<Double> numericValues = interchangeValue.get();
