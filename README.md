@@ -28,3 +28,12 @@ EMAP [your root emap directory]
 # Monorepo migration
 
 How were [old repos migrated into this repo?](docs/dev/migration.md)
+
+
+# Branching strategy
+
+`main` should always be usable in production, having gone through a validation run as well as the "standard" checks
+of code review and GHA tests using synthetic data.
+
+The `develop` branch is a pre-release branch intended to bring together one or more PRs. The standard checks
+ are performed when merging into here, but we can delay the full validation run until we're ready to merge to `main`.
