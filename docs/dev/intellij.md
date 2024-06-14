@@ -76,12 +76,25 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 </details>
 
 7. <details>
+    <summary>Point to correct Java versions</summary>
+
+    There are several places in IntelliJ that relate to the java version used.
+    These settings are sometimes correctly set from the maven config but you may want to double check in case of errors.
+    `Project Structure | Project Settings | Project` (SDK to use and default language level)
+    `Project Structure | Project Settings | Modules` (per module language levels)
+    `Preferences | Build, Execution, Deployment | Compiler | Java Compiler` (Project bytecode version and per-module bytecode version)
+    `Preferences | Build, Execution, Deployment | Build Tools | Maven | Importing` (JDK for importer)
+
+    At the time of writing, hoover uses java 11 and all other modules use java 17.
+</details>
+
+8. <details>
     <summary>Add lombok and checkstyle plugins</summary>
 
    Go to <b>File > Settings > search for plugins</b>, search lombok and checkstyle and install them
 </details>
 
-8. <details>
+9. <details>
     <summary>Setup checkstyle</summary>
 
    To allow checkstyle to be run go to <b>File > settings > search for checkstyle</b>
