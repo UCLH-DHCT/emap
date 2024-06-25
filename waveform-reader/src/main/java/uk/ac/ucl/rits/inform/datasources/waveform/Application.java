@@ -39,11 +39,11 @@ public class Application {
     }
 
     /**
-     * @return the datasource enum for the databaseExtracts queue
+     * @return the datasource enum denoting which rabbitmq queue to publish to
      */
     @Bean
     public EmapDataSource getDataSource() {
-        return EmapDataSource.DATABASE_EXTRACTS;
+        return EmapDataSource.WAVEFORM_DATA;
     }
 
     private List<WaveformMessage> getWaveformMsgs(int samplingRate, int numSamples) {
@@ -68,11 +68,22 @@ public class Application {
     @Profile("default")
     public CommandLineRunner mainLoop(Publisher publisher) {
         return (args) -> {
+            logger.debug("JES: Starting OK");
             List<WaveformMessage> waveformMsgs = getWaveformMsgs(300, 1000);
-            for (var m: waveformMsgs) {
-                publisher.submit(m, "1", "one", () -> {
-                });
+            long id = 0;
+            for (int i = 0; i < 100; i++) {
+                for (var m : waveformMsgs) {
+                    String mId = String.format("message%05d", id);
+                    m.setSourceMessageId(mId);
+                    logger.debug("Message = {}", m.toString());
+                    publisher.submit(m, mId, mId, () -> {
+                        logger.debug("Successful ACK for message with ID {}", mId);
+                    });
+                }
+                Thread.sleep(1000);
+                id++;
             }
+            logger.debug("JES: Exiting OK");
             System.exit(0);
         };
     }

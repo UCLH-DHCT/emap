@@ -18,5 +18,3 @@ services:
       # Uses services from core, orchestrate using the EMAP setup package
       - glowroot-central
       - rabbitmq
-    ports:
-      - "${HL7_READER_PORT}:8080"
