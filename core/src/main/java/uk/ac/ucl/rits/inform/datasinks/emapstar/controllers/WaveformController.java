@@ -38,7 +38,7 @@ public class WaveformController {
     @Transactional
     public void processWaveform(WaveformMessage msg, Instant storedFrom) throws MessageIgnoredException {
         InterchangeValue<List<Double>> interchangeValue = msg.getNumericValues();
-        int samplingRate = msg.getSamplingRate();
+        long samplingRate = msg.getSamplingRate();
         if (!interchangeValue.isSave()) {
             throw new MessageIgnoredException("Updating/deleting waveform data is not supported");
         }

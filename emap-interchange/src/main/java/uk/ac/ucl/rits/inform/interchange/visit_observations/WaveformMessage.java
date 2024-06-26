@@ -29,7 +29,7 @@ public class WaveformMessage extends EmapOperationMessage {
     /**
      * Sampling rate in Hz.
      */
-    private int samplingRate;
+    private long samplingRate;
 
     /**
      * Numeric value.
