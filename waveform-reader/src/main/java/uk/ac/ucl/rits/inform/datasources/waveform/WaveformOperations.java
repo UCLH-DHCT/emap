@@ -72,7 +72,7 @@ public class WaveformOperations {
         for (int p = 0; p < numPatients; p++) {
             var machine1Str = String.format("P%03d_mach1", p);
             var machine2Str = String.format("P%03d_mach2", p);
-            final long millisPerMessage = 1000;
+            final long millisPerMessage = 10000;
             List<WaveformMessage> waveformMsgs = new ArrayList<>();
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
                     machine1Str, 50, 60 * 1000, millisPerMessage));
