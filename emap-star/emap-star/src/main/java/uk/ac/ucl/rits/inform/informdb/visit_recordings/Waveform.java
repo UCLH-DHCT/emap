@@ -36,7 +36,7 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
      * This is the primary key for the visitObservation table.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     private long waveformId;
 
     /**
