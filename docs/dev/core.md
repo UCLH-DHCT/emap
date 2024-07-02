@@ -156,3 +156,4 @@ manages the multiple repositories and configuration files.
 
 Ports which are allocated per project are listed on the [GAE port log](https://liveuclac.sharepoint.com/sites/RITS-EMAP/_layouts/OneNote.aspx?id=%2Fsites%2FRITS-EMAP%2FSiteAssets%2FInform%20-%20Emap%20Notebook&wd=target%28_Collaboration%20Space%2FOrganisation%20Notes.one%7C3BDBA82E-CB01-45FF-B073-479542EA6D7E%2FGAE%20Port%20Log%7C1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF%2F%29)
 
+Reserve an Emap DB schema on the GAE using the [load times spreadsheet](https://liveuclac.sharepoint.com/:x:/r/sites/RITS-EMAP-EmapDevChatter/Shared%20Documents/Emap%20Dev%20Chatter/load_times.xlsx?d=w20bdbe908b0f4e309caeb62590e890a0&csf=1&web=1&e=ZiUVZB):

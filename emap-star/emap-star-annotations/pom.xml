@@ -15,6 +15,7 @@
   </parent>
 
   <properties>
+    <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <auto-service.version>1.0.1</auto-service.version>
   </properties>
@@ -39,6 +40,11 @@
         <!-- Needed for annotation processing -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <forceJavacCompilerUse>true</forceJavacCompilerUse>
+        </configuration>
         <executions>
           <execution>
             <id>default-compile</id>
