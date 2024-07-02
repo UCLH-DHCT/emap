@@ -1,0 +1,22 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, evaluate rules every 15 seconds.
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['127.0.0.1:9090'] # Prometheus metrics endpoint
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100'] # Node Exporter metrics endpoint
+
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692'] # Replace with the port your RabbitMQ service exposes metrics on
+
+  # cassandra and glowroot metrics bit tricky, need to use jmx exporter (jolokia + telegraf or something else)
+  # testing using telegraf to collect metrics from cassandra logs and present metrics to prometheus
+  #- job_name: 'telegraf'
+  #  static_configs:
+  #    - targets: ['127.0.0.1:9126'] # Telegraf metrics endpoint

@@ -25,6 +25,7 @@ services:
       - "${RABBITMQ_PORT}:5672"
       - "${RABBITMQ_ADMIN_PORT}:15672"
     restart: on-failure
+    command: ["sh", "-c", "rabbitmq-plugins enable rabbitmq_prometheus && rabbitmq-server"]
   cassandra:
     image: cassandra
     restart: on-failure
@@ -47,4 +48,6 @@ services:
     restart: on-failure
     depends_on:
        - cassandra
+
+
 

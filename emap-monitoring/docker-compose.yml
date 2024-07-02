@@ -1,0 +1,47 @@
+version: '3.2'
+services:
+  #
+  # Below monitoring services are optional, using prometheus and graphana for collection and display of metrics
+  #
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - '9090:9090'
+    volumes:
+      - prometheus-storage:/prometheus
+      - ../emap-monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - '9100:9100'
+  telegraf:
+    image: telegraf
+    container_name: telegraf
+    restart: unless-stopped
+    command: --config /etc/telegraf/telegraf.conf
+    depends_on:
+      - prometheus
+    volumes:
+      - ../emap-monitoring/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf
+      - logs:/var/log/telegraf
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ../emap-monitoring/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+volumes:
+  prometheus-storage: { }
+  grafana-storage: { }
+  logs: { }
