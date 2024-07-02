@@ -331,22 +331,6 @@ public class AuditTableProcessor extends AbstractProcessor {
                                     "Found field of array with unhandleable Declared type " + type);
                             continue;
                         }
-//
-//                        String name = individualKind.name();
-//                        var string1 = arrayType.getKind();
-//                        arrayType.toString()
-//                        var string2 = arrayType.toString();
-//                        var string3 = individualType.toString();
-//                        individualType.toString();
-//                        var string4 = field.getSimpleName();
-//                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-//                                "JES2 " + name +
-//                                        "/" + string1 +
-//                                        "//" + string2 +
-//                                        "///" + string3 +
-//                                        "////" + string4
-//                        );
-//                        continue;
                     } else {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                 "Found field of array with unhandleable type " + type);

@@ -72,7 +72,7 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
     /**
      * \brief Value as a floating point array.
      */
-    @Type(type = "uk.ac.ucl.rits.inform.informdb.visit_recordings.WaveformArray2")
+    @Type(type = "uk.ac.ucl.rits.inform.informdb.visit_recordings.WaveformArray")
     @Column(columnDefinition = "DOUBLE PRECISION ARRAY", nullable = false)
     private Double[] valuesArray;
 
