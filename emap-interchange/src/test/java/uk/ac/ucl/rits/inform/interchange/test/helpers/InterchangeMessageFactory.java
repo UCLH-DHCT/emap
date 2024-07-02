@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -254,17 +255,36 @@ public class InterchangeMessageFactory {
         return getFlowsheets(fileName, sourceId);
     }
 
-    public List<WaveformMessage> getWaveformMsgs(int samplingRate, int numSamples) {
-        WaveformMessage waveformMessage = new WaveformMessage();
-        waveformMessage.setSamplingRate(samplingRate);
-        waveformMessage.setLocationString("LOCATION1");
-        var values = new ArrayList<Double>();
-        for (int i = 0; i < numSamples; i++) {
-            values.add(Math.sin(i * 0.01));
+    /**
+     *
+     * @param samplingRate samples per second
+     * @param numSamples total bumber of samples to generate
+     * @param maxSamplesPerMessage how many samples to put in a message; split as necessary
+     * @param location bed location
+     * @return list of messages containing synthetic data
+     */
+    public List<WaveformMessage> getWaveformMsgs(int samplingRate, final int numSamples, int maxSamplesPerMessage, String location) {
+        // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
+        // Or should such a utility function go into (non-test) Interchange?
+        Instant thisMessageTime = Instant.parse("2020-01-01T01:02:03Z");
+        List<WaveformMessage> allMessages = new ArrayList<>();
+        int samplesRemaining = numSamples;
+        while (samplesRemaining > 0) {
+            int samplesThisMessage = Math.min(samplesRemaining, maxSamplesPerMessage);
+            WaveformMessage waveformMessage = new WaveformMessage();
+            waveformMessage.setSamplingRate(samplingRate);
+            waveformMessage.setLocationString(location);
+            var values = new ArrayList<Double>();
+            for (int i = 0; i < samplesThisMessage; i++) {
+                values.add(Math.sin(i * 0.01));
+            }
+            waveformMessage.setNumericValues(new InterchangeValue<>(values));
+            waveformMessage.setObservationTime(thisMessageTime);
+            allMessages.add(waveformMessage);
+            samplesRemaining -= samplesThisMessage;
+            thisMessageTime = thisMessageTime.plus(samplesThisMessage * 1000_000 / samplingRate, ChronoUnit.MICROS);
         }
-        waveformMessage.setNumericValues(new InterchangeValue<>(values));
-        waveformMessage.setObservationTime(Instant.parse("2020-01-01T01:02:03Z"));
-        return List.of(waveformMessage);
+        return allMessages;
     }
 
 

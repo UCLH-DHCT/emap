@@ -11,7 +11,6 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,25 +38,20 @@ public class WaveformController {
     @Transactional
     public void processWaveform(WaveformMessage msg, Instant storedFrom) throws MessageIgnoredException {
         InterchangeValue<List<Double>> interchangeValue = msg.getNumericValues();
-        long samplingRate = msg.getSamplingRate();
         if (!interchangeValue.isSave()) {
             throw new MessageIgnoredException("Updating/deleting waveform data is not supported");
         }
+        // All given values are put into one new row. It's the responsibility of whoever is
+        // generating the message to chose an appropriate size of array.
         List<Double> numericValues = interchangeValue.get();
         Instant observationTime = msg.getObservationTime();
-        List<Waveform> allDataPoints = new ArrayList<>();
-        for (int i = 0; i < numericValues.size(); i++) {
-            Double val = numericValues.get(i);
-            Instant impliedTime = observationTime.plusNanos(i * 1000_000_000L / samplingRate);
-            Waveform dataPoint = new Waveform(
-                    impliedTime,
-                    impliedTime,
-                    storedFrom);
-            dataPoint.setValueAsReal(val);
-            allDataPoints.add(dataPoint);
-        }
-        // one call to saveAll is quicker than many to save, but it doesn't by itself do a multi-row SQL UPDATE
-        waveformRepository.saveAll(allDataPoints);
+        Waveform dataPoint = new Waveform(
+                observationTime,
+                observationTime,
+                storedFrom);
+        Double[] valuesAsArray = numericValues.toArray(new Double[0]);
+        dataPoint.setSamplingRate(msg.getSamplingRate());
+        dataPoint.setValuesArray(valuesAsArray);
+        waveformRepository.save(dataPoint);
     }
-
 }

@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.informdb.visit_recordings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
@@ -59,16 +60,21 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
 
     /**
      * \brief Date and time at which this visitObservation was first made.
+     * In the case of an array, this is the time of the *first* item in the array.
      *
      * The validFrom {@link TemporalCore#getValidFrom()} is the recording time, or last updated time.
      */
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant observationDatetime;
 
+    private long samplingRate;
+
     /**
-     * \brief Value as a number.
+     * \brief Value as a floating point array.
      */
-    private Double valueAsReal;
+    @Type(type = "uk.ac.ucl.rits.inform.informdb.visit_recordings.WaveformArray")
+    @Column(columnDefinition = "DOUBLE PRECISION ARRAY", nullable = false)
+    private Double[] valuesArray;
 
     /* unit goes in visit observation type (or equivalent table...) */
 
@@ -99,7 +105,7 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
     public Waveform(Waveform other) {
         super(other);
         this.waveformId = other.waveformId;
-        this.valueAsReal = other.valueAsReal;
+        this.valuesArray = other.valuesArray;
         this.observationDatetime = other.observationDatetime;
     }
 
