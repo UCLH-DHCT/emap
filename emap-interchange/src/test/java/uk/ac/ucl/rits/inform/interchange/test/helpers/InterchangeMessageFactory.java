@@ -254,10 +254,10 @@ public class InterchangeMessageFactory {
         return getFlowsheets(fileName, sourceId);
     }
 
-    public List<WaveformMessage> getWaveformMsgs(int samplingRate, int numSamples) {
+    public List<WaveformMessage> getWaveformMsgs(int samplingRate, int numSamples, String location) {
         WaveformMessage waveformMessage = new WaveformMessage();
         waveformMessage.setSamplingRate(samplingRate);
-        waveformMessage.setLocationString("LOCATION1");
+        waveformMessage.setLocationString(location);
         var values = new ArrayList<Double>();
         for (int i = 0; i < numSamples; i++) {
             values.add(Math.sin(i * 0.01));

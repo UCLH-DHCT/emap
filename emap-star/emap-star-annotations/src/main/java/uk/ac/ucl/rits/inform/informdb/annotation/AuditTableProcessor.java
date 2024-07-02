@@ -321,6 +321,32 @@ public class AuditTableProcessor extends AbstractProcessor {
                     TypeKind individualKind = individualType.getKind();
                     if (individualKind == TypeKind.BYTE) {
                         typeName = "byte[]";
+                    } else if (individualKind == TypeKind.DECLARED) {
+                        DeclaredType declaredType = (DeclaredType) individualType;
+                        TypeElement elem = (TypeElement) declaredType.asElement();
+                        if (elem.getQualifiedName().toString().equals("java.lang.Double")) {
+                            typeName = "Double[]";
+                        } else {
+                            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                    "Found field of array with unhandleable Declared type " + type);
+                            continue;
+                        }
+//
+//                        String name = individualKind.name();
+//                        var string1 = arrayType.getKind();
+//                        arrayType.toString()
+//                        var string2 = arrayType.toString();
+//                        var string3 = individualType.toString();
+//                        individualType.toString();
+//                        var string4 = field.getSimpleName();
+//                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+//                                "JES2 " + name +
+//                                        "/" + string1 +
+//                                        "//" + string2 +
+//                                        "///" + string3 +
+//                                        "////" + string4
+//                        );
+//                        continue;
                     } else {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                 "Found field of array with unhandleable type " + type);
