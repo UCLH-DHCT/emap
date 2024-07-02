@@ -13,7 +13,7 @@
 #  limitations under the License.
 name: Story/Task
 description: Create a new story or task
-projects: ["UCLH-Foundry/13"]
+projects: ["UCLH-DHCT/4"]
 body:
   - type: markdown
     attributes:
