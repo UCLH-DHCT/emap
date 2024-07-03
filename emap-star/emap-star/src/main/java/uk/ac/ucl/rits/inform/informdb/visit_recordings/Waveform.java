@@ -107,6 +107,7 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
         this.waveformId = other.waveformId;
         this.valuesArray = other.valuesArray;
         this.observationDatetime = other.observationDatetime;
+        this.samplingRate = other.samplingRate;
     }
 
     @Override
