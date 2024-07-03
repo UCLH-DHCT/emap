@@ -51,6 +51,7 @@ public class WaveformController {
                 storedFrom);
         Double[] valuesAsArray = numericValues.toArray(new Double[0]);
         dataPoint.setSamplingRate(msg.getSamplingRate());
+        dataPoint.setLocation(msg.getLocationString());
         dataPoint.setValuesArray(valuesAsArray);
         waveformRepository.save(dataPoint);
     }

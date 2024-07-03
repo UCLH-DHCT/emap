@@ -69,6 +69,8 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
 
     private long samplingRate;
 
+    private String location;
+
     /**
      * \brief Value as a floating point array.
      */
@@ -108,6 +110,7 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
         this.valuesArray = other.valuesArray;
         this.observationDatetime = other.observationDatetime;
         this.samplingRate = other.samplingRate;
+        this.location = other.location;
     }
 
     @Override
