@@ -45,7 +45,7 @@ public class Application {
         logger.debug("JES: Starting scheduled message dump");
         var start = Instant.now();
         final int numPatients = 30;
-        waveformOperations.makeSyntheticWaveformMsgsAllPatients(numPatients);
+        waveformOperations.makeSyntheticWaveformMsgsAllPatients(numPatients, 60 * 1000);
         var end = Instant.now();
         logger.debug("JES: Full dump took {} milliseconds", start.until(end, ChronoUnit.MILLIS));
     }
