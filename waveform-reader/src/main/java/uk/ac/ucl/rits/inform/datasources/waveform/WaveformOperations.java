@@ -18,8 +18,6 @@ public class WaveformOperations {
 
     private final Publisher publisher;
 
-    private Instant simulatedStartTime = null;
-
     public WaveformOperations(Publisher publisher) {
         this.publisher = publisher;
     }
@@ -74,29 +72,27 @@ public class WaveformOperations {
     /**
      * Generate synthetic waveform data for numPatients patients to cover a period of
      * numMillis milliseconds.
+     * @param startTime time to start observation period
      * @param numPatients number of patients to generate for
      * @param numMillis length of observation period to generate data for
      * @throws InterruptedException .
      */
-    public void makeSyntheticWaveformMsgsAllPatients(long numPatients, long numMillis) throws InterruptedException {
-        if (simulatedStartTime == null) {
-            simulatedStartTime = Instant.now();
-        }
+    public void makeSyntheticWaveformMsgsAllPatients(
+            Instant startTime, long numPatients, long numMillis) throws InterruptedException {
         for (int p = 0; p < numPatients; p++) {
             var machine1Str = String.format("P%03d_mach1", p);
             var machine2Str = String.format("P%03d_mach2", p);
             final long millisPerMessage = 10000;
             List<WaveformMessage> waveformMsgs = new ArrayList<>();
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
-                    machine1Str, 50, numMillis, simulatedStartTime, millisPerMessage));
+                    machine1Str, 50, numMillis, startTime, millisPerMessage));
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
-                    machine2Str, 300, numMillis, simulatedStartTime, millisPerMessage));
+                    machine2Str, 300, numMillis, startTime, millisPerMessage));
             logger.debug("JES: Patient {}, sending {} messages", p, waveformMsgs.size());
             for (var m : waveformMsgs) {
                 publishMessage(publisher, m.getSourceMessageId(), m);
             }
         }
-        simulatedStartTime = simulatedStartTime.plus(numMillis, ChronoUnit.MILLIS);
 
     }
 }
