@@ -30,8 +30,8 @@ services:
     restart: on-failure
     environment:
       # if set too high the process will get OOM killed. Need to make configurable.
-      - MAX_HEAP_SIZE=2G
-      - HEAP_NEWSIZE=500M
+      - MAX_HEAP_SIZE=1G
+      - HEAP_NEWSIZE=250M
   glowroot-central:
     build:
       context: ..
