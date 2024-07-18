@@ -12,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Table;
@@ -23,7 +24,10 @@ import java.time.Instant;
  * @author Jeremy Stein
  */
 @Entity
-@Table
+@Table(indexes = {
+        @Index(name = "waveform_datetime", columnList = "observationDatetime"),
+        @Index(name = "waveform_location", columnList = "location"),
+})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
