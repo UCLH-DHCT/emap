@@ -71,8 +71,7 @@ public class App {
      * @throws IOException if rabbitmq channel has a problem
      */
     @Profile("default")
-//    @RabbitListener(queues = {"hl7Queue", "databaseExtracts", "extensionProjects"})
-    @RabbitListener(queues = {"waveform"})
+    @RabbitListener(queues = "#{'${core.rabbitmq.listen_queues}'.split(',')}")
     public void receiveMessage(EmapOperationMessage msg, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag)
             throws IOException {
         IdsEffectLogging idsEffectLogging = new IdsEffectLogging();
