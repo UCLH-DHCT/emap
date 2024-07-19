@@ -47,6 +47,7 @@ public class WaveformOperations {
     ) {
         List<WaveformMessage> allMessages = new ArrayList<>();
         final long numSamples = numMillis * samplingRate / 1000;
+        final double maxValue = 999;
         for (long overallSampleIdx = 0; overallSampleIdx < numSamples;) {
             long microsAfterStart = overallSampleIdx * 1000_000 / samplingRate;
             Instant messageStartTime = startTime.plus(microsAfterStart, ChronoUnit.MICROS);
@@ -61,7 +62,8 @@ public class WaveformOperations {
             for (long valueIdx = 0;
                  valueIdx < samplesPerMessage && overallSampleIdx < numSamples;
                  valueIdx++, overallSampleIdx++) {
-                values.add(Math.sin(overallSampleIdx * 0.01));
+                // a sine wave between maxValue and -maxValue
+                values.add(2 * maxValue * Math.sin(overallSampleIdx * 0.01) - maxValue);
             }
             waveformMessage.setNumericValues(new InterchangeValue<>(values));
             allMessages.add(waveformMessage);
