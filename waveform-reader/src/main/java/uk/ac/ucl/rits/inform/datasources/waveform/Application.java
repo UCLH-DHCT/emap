@@ -31,10 +31,13 @@ public class Application {
     private int warpFactor;
 
     /**
-     * You might want this to match the validation run start time.
+     * You might want startDatetime and endDatetime to match the validation run start time.
      */
     @Value("${test.synthetic.start_datetime:#{null}}")
     private Instant startDatetime;
+
+    @Value("${test.synthetic.end_datetime:#{null}}")
+    private Instant endDatetime;
 
     /**
      * defaults that need to be computed.
@@ -78,6 +81,10 @@ public class Application {
         startDatetime = startDatetime.plus(numMillis, ChronoUnit.MILLIS);
         var end = Instant.now();
         logger.debug("JES: Full dump took {} milliseconds", start.until(end, ChronoUnit.MILLIS));
+        if (endDatetime != null && startDatetime.isAfter(endDatetime)) {
+            logger.info("End date {} has been reached (cur={}), EXITING", endDatetime, startDatetime);
+            System.exit(0);
+        }
     }
 
 
