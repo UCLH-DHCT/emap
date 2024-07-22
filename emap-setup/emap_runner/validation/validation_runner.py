@@ -20,12 +20,14 @@ class ValidationRunner:
         should_build: bool = True,
         use_hl7_reader: bool = True,
         use_hoover: bool = True,
+        use_waveform_reader: bool = True,
     ):
         """Validation runner that will be run over a time window"""
 
         self.should_build = should_build
         self.use_hl7_reader = use_hl7_reader
         self.use_hoover = use_hoover
+        self.use_waveform_reader = use_waveform_reader
 
         self.start_time = None
         self.timeout = timedelta(hours=10)
@@ -153,6 +155,13 @@ class ValidationRunner:
                 "up --exit-code-from hoover hoover",
                 output_filename=f"{self.log_file_prefix}_hoover.txt",
             )
+
+        if self.use_waveform_reader:
+            self.docker.run(
+                "up --exit-code-from waveform-reader waveform-reader",
+                output_filename=f"{self.log_file_prefix}_waveform-reader.txt",
+            )
+
 
         self.docker.run("ps")
 
