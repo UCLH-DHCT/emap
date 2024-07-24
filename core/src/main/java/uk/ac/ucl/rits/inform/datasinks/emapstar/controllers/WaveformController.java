@@ -14,8 +14,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Controller for LabResult specific information.
- * @author Stef Piatek
+ * Controller for Waveform specific information.
+ * @author Jeremy Stein
  */
 @Component
 public class WaveformController {

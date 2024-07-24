@@ -15,8 +15,8 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 import java.time.Instant;
 
 /**
- * Handle processing of Flowsheet messages.
- * @author Stef Piatek
+ * Handle processing of Waveform messages.
+ * @author Jeremy Stein
  */
 @Component
 public class WaveformProcessor {
@@ -42,7 +42,7 @@ public class WaveformProcessor {
     }
 
     /**
-     * Process flowsheet message.
+     * Process waveform message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.
@@ -52,14 +52,5 @@ public class WaveformProcessor {
         waveformController.processWaveform(msg, storedFrom);
     }
 
-    /**
-     * Process flowsheet metadata.
-     * @param msg        message
-     * @param storedFrom Time the message started to be processed by star
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
-     */
-    @Transactional
-    public void processMessage(final FlowsheetMetadata msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
-        visitObservationController.processMetadata(msg, storedFrom);
-    }
+
 }
