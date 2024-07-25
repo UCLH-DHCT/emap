@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
@@ -34,6 +35,7 @@ import java.time.Instant;
         "uk.ac.ucl.rits.inform.datasinks",
         "uk.ac.ucl.rits.inform.informdb"})
 @EnableCaching
+@EnableScheduling
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 

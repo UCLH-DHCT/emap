@@ -74,14 +74,20 @@ public class Application {
         // seconds worth of data. However, for non-live tests such as validation runs,
         // you may be processing (eg.) a week's worth of data in only a few hours,
         // so it makes sense to turn up this rate to generate about the same amount of data.
-        // (Start and end date might be even better)
-        int numMillis = 60 * 1000 * warpFactor;
+        int numMillis = 60 * 1000;
         logger.debug("JES: Starting scheduled message dump (from {} for {} milliseconds)", startDatetime, numMillis);
-        waveformOperations.makeSyntheticWaveformMsgsAllPatients(startDatetime, numPatients, numMillis);
-        startDatetime = startDatetime.plus(numMillis, ChronoUnit.MILLIS);
+        boolean shouldExit = false;
+        for (int warpIdx = 0; warpIdx < warpFactor; warpIdx++) {
+            waveformOperations.makeSyntheticWaveformMsgsAllPatients(startDatetime, numPatients, numMillis);
+            startDatetime = startDatetime.plus(numMillis, ChronoUnit.MILLIS);
+            if (endDatetime != null && startDatetime.isAfter(endDatetime)) {
+                shouldExit = true;
+                break;
+            }
+        }
         var end = Instant.now();
         logger.debug("JES: Full dump took {} milliseconds", start.until(end, ChronoUnit.MILLIS));
-        if (endDatetime != null && startDatetime.isAfter(endDatetime)) {
+        if (shouldExit) {
             logger.info("End date {} has been reached (cur={}), EXITING", endDatetime, startDatetime);
             System.exit(0);
         }

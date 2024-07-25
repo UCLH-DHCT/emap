@@ -55,4 +55,21 @@ public class WaveformController {
         dataPoint.setValuesArray(valuesAsArray);
         waveformRepository.save(dataPoint);
     }
+
+    /**
+     * Delete waveform data before the cutoff date.
+     * @param olderThanCutoff cutoff date
+     * @return number of rows deleted
+     */
+    @Transactional
+    public int deleteOldWaveformData(Instant olderThanCutoff) {
+        return waveformRepository.deleteAllInBatchByObservationDatetimeBefore(olderThanCutoff);
+    }
+
+    /**
+     * @return Return observation datetime of most recent waveform data.
+     */
+    public Instant mostRecentObservationDatatime() {
+        return waveformRepository.mostRecentObservationDatatime();
+    }
 }
