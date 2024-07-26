@@ -1,4 +1,4 @@
-FROM maven:3.8.5-openjdk-17-slim
+FROM maven:3.8.5-openjdk-17-slim AS emap_java_base
 # Run commands through bash so source is found
 SHELL ["/bin/bash", "-c"]
 # Install zip & unzip for glowroot
@@ -25,4 +25,10 @@ RUN source /app/set_mvn_proxy.sh; mvn install -f /app/emap-interchange/pom.xml
 WORKDIR /app/waveform-reader
 COPY waveform-reader/src/ /app/waveform-reader/src/
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Dstart-class=uk.ac.ucl.rits.inform.datasources.waveform.Application
-CMD ["java",  "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/waveform-reader.jar"]
+
+FROM emap_java_base AS waveform_reader
+CMD ["java",  "-javaagent:./glowroot/glowroot.jar", "-Dspring.profiles.active=hl7reader", "-jar", "./target/waveform-reader.jar"]
+
+FROM emap_java_base AS waveform_hl7_generator
+CMD ["java",  "-javaagent:./glowroot/glowroot.jar", "-Dspring.profiles.active=hl7gen", "-jar", "./target/waveform-reader.jar"]
+
