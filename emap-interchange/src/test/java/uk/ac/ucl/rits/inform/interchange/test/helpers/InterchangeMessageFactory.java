@@ -9,8 +9,7 @@ import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.FileStoreWithMonitoredAccess;
-import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
-import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
@@ -23,13 +22,18 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.location.DepartmentMetadata;
+import uk.ac.ucl.rits.inform.interchange.location.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -250,6 +254,39 @@ public class InterchangeMessageFactory {
     public List<Flowsheet> getFlowsheets(final String fileName) throws IOException {
         return getFlowsheets(fileName, sourceId);
     }
+
+    /**
+     *
+     * @param samplingRate samples per second
+     * @param numSamples total bumber of samples to generate
+     * @param maxSamplesPerMessage how many samples to put in a message; split as necessary
+     * @param location bed location
+     * @return list of messages containing synthetic data
+     */
+    public List<WaveformMessage> getWaveformMsgs(int samplingRate, final int numSamples, int maxSamplesPerMessage, String location) {
+        // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
+        // Or should such a utility function go into (non-test) Interchange?
+        Instant thisMessageTime = Instant.parse("2020-01-01T01:02:03Z");
+        List<WaveformMessage> allMessages = new ArrayList<>();
+        int samplesRemaining = numSamples;
+        while (samplesRemaining > 0) {
+            int samplesThisMessage = Math.min(samplesRemaining, maxSamplesPerMessage);
+            WaveformMessage waveformMessage = new WaveformMessage();
+            waveformMessage.setSamplingRate(samplingRate);
+            waveformMessage.setLocationString(location);
+            var values = new ArrayList<Double>();
+            for (int i = 0; i < samplesThisMessage; i++) {
+                values.add(Math.sin(i * 0.01));
+            }
+            waveformMessage.setNumericValues(new InterchangeValue<>(values));
+            waveformMessage.setObservationTime(thisMessageTime);
+            allMessages.add(waveformMessage);
+            samplesRemaining -= samplesThisMessage;
+            thisMessageTime = thisMessageTime.plus(samplesThisMessage * 1000_000 / samplingRate, ChronoUnit.MICROS);
+        }
+        return allMessages;
+    }
+
 
     /**
      * Utility wrapper for calling updateLabResults without updating the resultTime or epicCareOrderNumber.

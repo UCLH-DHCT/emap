@@ -68,7 +68,7 @@ dates:
 
 # Configurations for the UDS.
 uds:
-  UDS_JDBC_URL: jdbc:postgresql://uds_db:5432/uds
+  UDS_JDBC_URL: jdbc:postgresql://uds_db:5432/uds?reWriteBatchedInserts=true
   UDS_SCHEMA: schemaname
   UDS_USERNAME: schemauser
   UDS_PASSWORD: schemapw
