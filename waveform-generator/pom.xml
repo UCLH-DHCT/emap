@@ -19,7 +19,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-boot.version>2.6.3</spring-boot.version>
     <java.version>17</java.version>
-    <emap-interchange.version>2.7</emap-interchange.version>
     <checkstyle.version>10.3.1</checkstyle.version>
     <checkstyle.plugin.version>3.3.0</checkstyle.plugin.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
@@ -32,20 +31,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>uk.ac.ucl.rits.inform</groupId>
-      <artifactId>emap-interchange</artifactId>
-      <version>${emap-interchange.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>uk.ac.ucl.rits.inform</groupId>
-      <artifactId>emap-interchange</artifactId>
-      <version>${emap-interchange.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-amqp</artifactId>
@@ -163,16 +148,6 @@
         <groupId>de.qaware.maven</groupId>
         <artifactId>go-offline-maven-plugin</artifactId>
         <version>${go-offline-maven-plugin.version}</version>
-        <configuration>
-          <dynamicDependencies>
-            <DynamicDependency>
-              <groupId>uk.ac.ucl.rits.inform</groupId>
-              <artifactId>emap-interchange</artifactId>
-              <version>${emap-interchange.version}</version>
-              <repositoryType>MAIN</repositoryType>
-            </DynamicDependency>
-          </dynamicDependencies>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
