@@ -6,9 +6,8 @@
       },
       "instrumentation": [
               {
-
-                        "className": "uk.ac.ucl.rits.inform.datasources.waveform.Hl7ListenerConfig",
-                        "methodName": "handler",
+                        "className": "uk.ac.ucl.rits.inform.datasources.waveform_generator.Hl7Generator",
+                        "methodName": "generateMessages",
                         "methodParameterTypes": [
                                     ".."
                                   ],

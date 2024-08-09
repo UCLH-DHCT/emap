@@ -1,4 +1,3 @@
-version: '3.2'
 services:
   fakeuds:
     image: postgres:11-alpine

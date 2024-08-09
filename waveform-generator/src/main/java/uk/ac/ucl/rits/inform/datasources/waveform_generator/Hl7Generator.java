@@ -1,21 +1,23 @@
-package uk.ac.ucl.rits.inform.datasources.waveform;
+package uk.ac.ucl.rits.inform.datasources.waveform_generator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@Profile("hl7gen")
 public class Hl7Generator {
     private final Logger logger = LoggerFactory.getLogger(Hl7Generator.class);
 
@@ -44,19 +46,23 @@ public class Hl7Generator {
         }
     }
 
-//    private final WaveformOperations waveformOperations;
-//
-//    public Hl7Generator(WaveformOperations waveformOperations) {
-//        this.waveformOperations = waveformOperations;
-//    }
+    private final Hl7TcpClientFactory hl7TcpClientFactory;
 
     /**
-     * Every one minute post a simulated batch of one minute's worth of data.
-     * Assume 30 patients, each with a 300Hz and a 50Hz machine.
-     * @throws InterruptedException dnowioinqwdnq
+     * @param hl7TcpClientFactory for sending generated messages
+     */
+    public Hl7Generator(Hl7TcpClientFactory hl7TcpClientFactory) {
+        this.hl7TcpClientFactory = hl7TcpClientFactory;
+    }
+
+
+    /**
+     * Every one minute post a simulated batch of one minute's worth of data (times warp factor).
+     * Assume a given number of patients, each with a 300Hz and a 50Hz machine.
+     * @throws IOException on networking error
      */
     @Scheduled(fixedRate = 60 * 1000)
-    public void generateMessages() throws InterruptedException {
+    public void generateMessages() throws IOException {
         var start = Instant.now();
         // Usually if this method runs every N seconds, you would want to generate N
         // seconds worth of data. However, for non-live tests such as validation runs,
@@ -67,9 +73,17 @@ public class Hl7Generator {
         boolean shouldExit = false;
         for (int warpIdx = 0; warpIdx < warpFactor; warpIdx++) {
             List<String> synthMsgs = makeSyntheticWaveformMsgsAllPatients(startDatetime, numPatients, numMillis);
-//            waveformOperations.sendSyntheticHl7Messages(synthMsgs);
-            // XXX: send to TCP port!!!
-            logger.info("Ready to send {} HL7 messages to a TCP port somewhere!", synthMsgs.size());
+            logger.info("Sending {} HL7 messages", synthMsgs.size());
+
+            try (Hl7TcpClient tcpClient = hl7TcpClientFactory.createTcpClient()) {
+                for (var msgStr : synthMsgs) {
+                    byte[] messageBytes = msgStr.getBytes(StandardCharsets.UTF_8);
+                    logger.info("About to send message of size {} bytes", messageBytes.length);
+                    logger.trace("Message = {}", messageBytes);
+                    tcpClient.sendMessage(messageBytes);
+                }
+            }
+
             startDatetime = startDatetime.plus(numMillis, ChronoUnit.MILLIS);
             if (endDatetime != null && startDatetime.isAfter(endDatetime)) {
                 shouldExit = true;
@@ -106,14 +120,15 @@ public class Hl7Generator {
         for (long overallSampleIdx = 0; overallSampleIdx < numSamples;) {
             long microsAfterStart = overallSampleIdx * 1000_000 / samplingRate;
             Instant messageStartTime = startTime.plus(microsAfterStart, ChronoUnit.MICROS);
-            String messageId = String.format("%s_message%05d", locationId, overallSampleIdx);
+            String timeStr = DateTimeFormatter.ofPattern("HHmmss").format(startTime.atOffset(ZoneOffset.UTC));
+            String messageId = String.format("%s_t%s_msg%05d", locationId, timeStr, overallSampleIdx);
 
             // XXX: make this into real HL7
             StringBuilder hl7Template = new StringBuilder();
-            hl7Template.append("/samplingRate|").append(samplingRate);
-            hl7Template.append("/locationId|").append(locationId);
-            hl7Template.append("/messageStartTime|").append(messageStartTime);
-            hl7Template.append("/messageId|").append(messageId);
+            hl7Template.append("/samplingRate/").append(samplingRate).append("/");
+            hl7Template.append("/locationId/").append(locationId).append("/");
+            hl7Template.append("/messageStartTime/").append(messageStartTime).append("/");
+            hl7Template.append("/messageId/").append(messageId).append("/");
 
             var values = new ArrayList<Double>();
             long samplesPerMessage = samplingRate * millisPerMessage / 1000;
@@ -123,8 +138,8 @@ public class Hl7Generator {
                 // a sine wave between maxValue and -maxValue
                 values.add(2 * maxValue * Math.sin(overallSampleIdx * 0.01) - maxValue);
             }
-            String valuesAsStr = values.stream().map(Object::toString).collect(Collectors.joining(","));
-            hl7Template.append("/values|").append(valuesAsStr);
+            String valuesAsStr = values.stream().map(d -> String.format("%.3f", d)).collect(Collectors.joining(","));
+            hl7Template.append("/values/").append(valuesAsStr).append("/");
 
             allMessages.add(hl7Template.toString());
         }
@@ -139,10 +154,9 @@ public class Hl7Generator {
      * @param numPatients number of patients to generate for
      * @param numMillis length of observation period to generate data for
      * @return list of HL7 messages
-     * @throws InterruptedException .
      */
     public List<String> makeSyntheticWaveformMsgsAllPatients(
-            Instant startTime, long numPatients, long numMillis) throws InterruptedException {
+            Instant startTime, long numPatients, long numMillis) {
         List<String> waveformMsgs = new ArrayList<>();
         for (int p = 0; p < numPatients; p++) {
             var machine1Str = String.format("P%03d_mach1", p);
@@ -154,7 +168,7 @@ public class Hl7Generator {
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
                     machine2Str, 300, numMillis, startTime, millisPerMessage));
             int sizeAfter = waveformMsgs.size();
-            logger.debug("JES: Patient {}, sending {} messages", p, sizeAfter - sizeBefore);
+            logger.debug("Patient {}, generated {} messages", p, sizeAfter - sizeBefore);
         }
 
         return waveformMsgs;
