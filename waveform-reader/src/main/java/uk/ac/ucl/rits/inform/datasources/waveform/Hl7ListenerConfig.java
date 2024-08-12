@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetConnection;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
+import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.messaging.Message;
 
 import java.net.Socket;
@@ -22,7 +22,6 @@ import java.util.List;
  * Listen on a TCP port for incoming HL7 messages.
  */
 @Configuration
-@Profile("hl7reader")
 public class Hl7ListenerConfig {
     private final Logger logger = LoggerFactory.getLogger(Hl7ListenerConfig.class);
 
@@ -43,6 +42,12 @@ public class Hl7ListenerConfig {
             @Value("${waveform.hl7.listen_port}") int listenPort,
             @Value("${waveform.hl7.source_address_allow_list}") List<String> sourceAddressAllowList) {
         TcpNetServerConnectionFactory connFactory = new TcpNetServerConnectionFactory(listenPort);
+        connFactory.setSoSendBufferSize(10 * 1024 * 1024);
+        connFactory.setSoReceiveBufferSize(10 * 1024 * 1024);
+        connFactory.setSoTimeout(10_000);
+        connFactory.setSoTcpNoDelay(false);
+        connFactory.setSoKeepAlive(true);
+        connFactory.setDeserializer(TcpCodecs.crlf(5_000_000));
         connFactory.setTcpNetConnectionSupport(new DefaultTcpNetConnectionSupport() {
             @Override
             public TcpNetConnection createNewConnection(
@@ -53,7 +58,8 @@ public class Hl7ListenerConfig {
                     String connectionFactoryName) {
                 TcpNetConnection conn = super.createNewConnection(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
                 String sourceAddress = conn.getHostAddress();
-                if (sourceAddressAllowList.contains(sourceAddress)) {
+                if (sourceAddressAllowList.contains(sourceAddress)
+                        || sourceAddressAllowList.contains("ALL")) {
                     logger.info("connection accepted from {}:{}", sourceAddress, conn.getPort());
                 } else {
                     logger.warn("CONNECTION REFUSED from {}:{}, allowlist = {}", sourceAddress, conn.getPort(), sourceAddressAllowList);
@@ -84,11 +90,12 @@ public class Hl7ListenerConfig {
      * @throws InterruptedException .
      */
     @ServiceActivator(inputChannel = "hl7Stream")
-    public void handler(Message<?> msg) throws InterruptedException {
-        byte[] asBytes = (byte[]) msg.getPayload();
+    public void handler(Message<byte[]> msg) throws InterruptedException {
+        byte[] asBytes = msg.getPayload();
         String asStr = new String(asBytes, StandardCharsets.UTF_8);
-        // XXX: parse message from HL7 to interchange message, send to publisher
+        logger.trace("received message = {}", asStr);
+        logger.info("MESSAGE of size {}", asStr.length());
+        // parse message from HL7 to interchange message, send to publisher
         hl7ParseAndSend.parseAndSend(asStr);
-        logger.info("MESSAGE {}", asStr);
     }
 }

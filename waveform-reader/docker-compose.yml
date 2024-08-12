@@ -1,4 +1,3 @@
-version: '3.4'
 services:
   waveform-reader:
     build:
@@ -10,6 +9,7 @@ services:
         http_proxy: ${http_proxy}
         HTTPS_PROXY: ${HTTPS_PROXY}
         https_proxy: ${https_proxy}
+        SERVICE_SRC_DIR: waveform-reader
     env_file:
       - ../../config/waveform-reader-config-envs
     ports:
@@ -19,22 +19,7 @@ services:
     restart: "no"
     depends_on:
       # Uses services from core, orchestrate using the EMAP setup package
-      - glowroot-central
-      - rabbitmq
-  waveform-hl7-generator:
-    build:
-      context: ..
-      dockerfile: waveform-reader/Dockerfile
-      target: waveform_hl7_generator
-      args:
-        HTTP_PROXY: ${HTTP_PROXY}
-        http_proxy: ${http_proxy}
-        HTTPS_PROXY: ${HTTPS_PROXY}
-        https_proxy: ${https_proxy}
-    env_file:
-      - ../../config/waveform-reader-config-envs
-    logging:
-      driver: "json-file"
-    restart: "no"
-    depends_on:
-      - waveform-reader
+      glowroot-central:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
