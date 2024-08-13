@@ -261,12 +261,12 @@ public class InterchangeMessageFactory {
      * @param numSamples total bumber of samples to generate
      * @param maxSamplesPerMessage how many samples to put in a message; split as necessary
      * @param location bed location
+     * @param obsDatetime when the data occurred
      * @return list of messages containing synthetic data
      */
-    public List<WaveformMessage> getWaveformMsgs(int samplingRate, final int numSamples, int maxSamplesPerMessage, String location) {
+    public List<WaveformMessage> getWaveformMsgs(long samplingRate, final int numSamples, int maxSamplesPerMessage, String location, Instant obsDatetime) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
         // Or should such a utility function go into (non-test) Interchange?
-        Instant thisMessageTime = Instant.parse("2020-01-01T01:02:03Z");
         List<WaveformMessage> allMessages = new ArrayList<>();
         int samplesRemaining = numSamples;
         while (samplesRemaining > 0) {
@@ -279,10 +279,10 @@ public class InterchangeMessageFactory {
                 values.add(Math.sin(i * 0.01));
             }
             waveformMessage.setNumericValues(new InterchangeValue<>(values));
-            waveformMessage.setObservationTime(thisMessageTime);
+            waveformMessage.setObservationTime(obsDatetime);
             allMessages.add(waveformMessage);
             samplesRemaining -= samplesThisMessage;
-            thisMessageTime = thisMessageTime.plus(samplesThisMessage * 1000_000 / samplingRate, ChronoUnit.MICROS);
+            obsDatetime = obsDatetime.plus(samplesThisMessage * 1000_000 / samplingRate, ChronoUnit.MICROS);
         }
         return allMessages;
     }
