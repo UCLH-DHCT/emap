@@ -122,6 +122,7 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
     public Waveform(Waveform other) {
         super(other);
         this.waveformId = other.waveformId;
+        this.visitObservationTypeId = other.visitObservationTypeId;
         this.locationVisitId = other.locationVisitId;
         this.valuesArray = other.valuesArray;
         this.observationDatetime = other.observationDatetime;
