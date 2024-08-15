@@ -46,6 +46,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
     @AllArgsConstructor
     class TestData {
         String sourceStreamId;
+        String mappedStreamName;
         int numSamples;
         long samplingRate;
         int maxSamplesPerMessage;
@@ -64,21 +65,21 @@ class TestWaveformProcessing extends MessageProcessingBase {
         var allTests = new TestData[]{
                 // Intended to be two patients each connected to two machines, but the nature of the
                 // bed/machine IDs may not quite be like this.
-                new TestData( "23", 20_000, 300, 900,
+                new TestData( "23", "stream 23", 20_000, 300, 900,
                         "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), 106001L),
-                new TestData( "24", 25_000, 50, 500,
+                new TestData( "24", "stream 24", 25_000, 50, 500,
                         "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), 106002L),
                 // matches location but not time
-                new TestData( "23", 15_000, 300, 900,
+                new TestData( "23", "stream 23", 15_000, 300, 900,
                         "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), null),
                 // matches time but not location
-                new TestData( "23", 17_000, 50, 500,
+                new TestData( "23", "stream 23", 17_000, 50, 500,
                         "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null)
         };
         List<WaveformMessage> allMessages = new ArrayList<>();
         for (var test: allTests) {
             allMessages.addAll(
-                    messageFactory.getWaveformMsgs(test.sourceStreamId,
+                    messageFactory.getWaveformMsgs(test.sourceStreamId, test.mappedStreamName,
                             test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.sourceLocation,
                             test.mappedLocation, test.obsDatetime));
         }
@@ -104,7 +105,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
             assertEquals(test.numSamples, observedNumSamples.orElseThrow());
             totalObservedNumSamples += observedNumSamples.get();
 
-            checkVisitObervationTypes(waveformRows, test.sourceStreamId);
+            checkVisitObservationTypes(waveformRows, test.sourceStreamId, test.mappedStreamName);
 
             /* If we expect the data to be linkable to an existing hospital visit,
              * search by that visit's (hl7adt) location and see that we get the same result.
@@ -166,7 +167,8 @@ class TestWaveformProcessing extends MessageProcessingBase {
         assertEquals(2, allWaveformVO.size());
     }
 
-    private static void checkVisitObervationTypes(List<Waveform> waveformRows, String sourceStreamId) {
+    private static void checkVisitObservationTypes(List<Waveform> waveformRows,
+                                                   String sourceStreamId, String mappedStreamName) {
         // visit observations should all be the same, and be the right thing
         List<Long> distinctVisitObservationIds =
                 waveformRows.stream()
@@ -176,6 +178,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
         assertEquals(distinctVisitObservationIds.size(), 1);
         VisitObservationType identicalVisitObs = waveformRows.get(0).getVisitObservationTypeId();
         assertEquals(sourceStreamId, identicalVisitObs.getIdInApplication());
+        assertEquals(mappedStreamName, identicalVisitObs.getName());
     }
 
     private static List<Waveform> filterByDatetimeInterval(Iterable<Waveform> waveforms, Instant beginTime, Instant endTime) {

@@ -257,6 +257,8 @@ public class InterchangeMessageFactory {
 
     /**
      *
+     * @param sourceStreamId how the source data identifies this stream
+     * @param mappedStreamName how the reader has interpreted the source stream id
      * @param samplingRate samples per second
      * @param numSamples total bumber of samples to generate
      * @param maxSamplesPerMessage how many samples to put in a message; split as necessary
@@ -265,8 +267,9 @@ public class InterchangeMessageFactory {
      * @param obsDatetime when the data occurred
      * @return list of messages containing synthetic data
      */
-    public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, long samplingRate, final int numSamples,
-                                                 int maxSamplesPerMessage, String sourceLocation, String mappedLocation,
+    public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, String mappedStreamName,
+                                                 long samplingRate, final int numSamples, int maxSamplesPerMessage,
+                                                 String sourceLocation, String mappedLocation,
                                                  Instant obsDatetime) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
         // Or should such a utility function go into (non-test) Interchange?
@@ -276,8 +279,8 @@ public class InterchangeMessageFactory {
             int samplesThisMessage = Math.min(samplesRemaining, maxSamplesPerMessage);
             WaveformMessage waveformMessage = new WaveformMessage();
             waveformMessage.setSourceStreamId(sourceStreamId);
+            waveformMessage.setMappedStreamDescription(mappedStreamName);
             waveformMessage.setSamplingRate(samplingRate);
-            // XXX: need the actual source string
             waveformMessage.setSourceLocationString(sourceLocation);
             waveformMessage.setMappedLocationString(mappedLocation);
             var values = new ArrayList<Double>();
