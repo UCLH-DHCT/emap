@@ -260,11 +260,14 @@ public class InterchangeMessageFactory {
      * @param samplingRate samples per second
      * @param numSamples total bumber of samples to generate
      * @param maxSamplesPerMessage how many samples to put in a message; split as necessary
-     * @param location bed location
+     * @param sourceLocation bed location according to the original data
+     * @param mappedLocation bed location according to data reader's interpretation of the original data
      * @param obsDatetime when the data occurred
      * @return list of messages containing synthetic data
      */
-    public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, long samplingRate, final int numSamples, int maxSamplesPerMessage, String location, Instant obsDatetime) {
+    public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, long samplingRate, final int numSamples,
+                                                 int maxSamplesPerMessage, String sourceLocation, String mappedLocation,
+                                                 Instant obsDatetime) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
         // Or should such a utility function go into (non-test) Interchange?
         List<WaveformMessage> allMessages = new ArrayList<>();
@@ -275,8 +278,8 @@ public class InterchangeMessageFactory {
             waveformMessage.setSourceStreamId(sourceStreamId);
             waveformMessage.setSamplingRate(samplingRate);
             // XXX: need the actual source string
-            waveformMessage.setSourceLocationString(location);
-            waveformMessage.setMappedLocationString(location);
+            waveformMessage.setSourceLocationString(sourceLocation);
+            waveformMessage.setMappedLocationString(mappedLocation);
             var values = new ArrayList<Double>();
             for (int i = 0; i < samplesThisMessage; i++) {
                 values.add(Math.sin(i * 0.01));

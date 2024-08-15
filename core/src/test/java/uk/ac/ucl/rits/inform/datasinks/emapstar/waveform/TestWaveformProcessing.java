@@ -49,7 +49,8 @@ class TestWaveformProcessing extends MessageProcessingBase {
         int numSamples;
         long samplingRate;
         int maxSamplesPerMessage;
-        String location;
+        String sourceLocation;
+        String mappedLocation;
         Instant obsDatetime;
         public Instant getEndObsTime() {
             return obsDatetime.plus(numSamples * 1000_000L / samplingRate, ChronoUnit.MICROS);
@@ -63,22 +64,23 @@ class TestWaveformProcessing extends MessageProcessingBase {
         var allTests = new TestData[]{
                 // Intended to be two patients each connected to two machines, but the nature of the
                 // bed/machine IDs may not quite be like this.
-                new TestData( "1", 20_000, 300, 900,
-                        "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), 106001L),
-                new TestData( "2", 25_000, 50, 500,
-                        "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), 106002L),
-                new TestData( "1", 15_000, 300, 900,
-                        // matches location but not time
-                        "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), null),
-                new TestData( "1", 17_000, 50, 500,
-                        // matches time but not location
-                        "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null)
+                new TestData( "23", 20_000, 300, 900,
+                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), 106001L),
+                new TestData( "24", 25_000, 50, 500,
+                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), 106002L),
+                // matches location but not time
+                new TestData( "23", 15_000, 300, 900,
+                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), null),
+                // matches time but not location
+                new TestData( "23", 17_000, 50, 500,
+                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null)
         };
         List<WaveformMessage> allMessages = new ArrayList<>();
         for (var test: allTests) {
             allMessages.addAll(
                     messageFactory.getWaveformMsgs(test.sourceStreamId,
-                            test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.location, test.obsDatetime));
+                            test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.sourceLocation,
+                            test.mappedLocation, test.obsDatetime));
         }
 
         // must cope with messages in any order! Fixed seed to aid in debugging.
@@ -91,7 +93,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
         int totalObservedNumSamples = 0;
         for (var test: allTests) {
             List<Waveform> waveformRows = filterByDatetimeInterval(
-                    waveformRepository.findAllBySourceLocationOrderByObservationDatetime(test.location),
+                    waveformRepository.findAllBySourceLocationOrderByObservationDatetime(test.sourceLocation),
                     test.obsDatetime,
                     test.getEndObsTime());
 
@@ -110,7 +112,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
              * Is this repo query even useful? Might want to add time interval to it.
              */
             List<Waveform> byHl7AdtLocation = filterByDatetimeInterval(
-                    waveformRepository.findAllByLocationOrderByObservationDatetime(test.location),
+                    waveformRepository.findAllByLocationOrderByObservationDatetime(test.mappedLocation),
                     test.obsDatetime,
                     test.getEndObsTime());
 
