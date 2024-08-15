@@ -6,10 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitObservationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.WaveformController;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
@@ -23,8 +22,6 @@ import java.time.temporal.ChronoUnit;
 @Component
 public class WaveformProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final PersonController personController;
-    private final VisitController visitController;
     private final VisitObservationController visitObservationController;
     private final WaveformController waveformController;
 
@@ -34,16 +31,12 @@ public class WaveformProcessor {
     private boolean isSyntheticData;
 
     /**
-     * @param personController           person controller.
-     * @param visitController            visit controller
      * @param visitObservationController visit observation controller
      * @param waveformController         waveform controller
      */
     public WaveformProcessor(
-            PersonController personController, VisitController visitController, VisitObservationController visitObservationController,
+            VisitObservationController visitObservationController,
             WaveformController waveformController) {
-        this.personController = personController;
-        this.visitController = visitController;
         this.visitObservationController = visitObservationController;
         this.waveformController = waveformController;
     }
@@ -56,7 +49,8 @@ public class WaveformProcessor {
      */
     @Transactional
     public void processMessage(final WaveformMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
-        waveformController.processWaveform(msg, storedFrom);
+        VisitObservationType visitObservationType = visitObservationController.getOrCreateFromWaveform(msg, storedFrom);
+        waveformController.processWaveform(msg, visitObservationType, storedFrom);
     }
 
 

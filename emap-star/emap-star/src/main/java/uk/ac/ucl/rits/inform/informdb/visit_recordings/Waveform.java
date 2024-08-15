@@ -53,9 +53,9 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
      *
      * This is a foreign key that joins the visitObservation table to the VisitObservationType table.
      */
-//    @ManyToOne
-//    @JoinColumn(name = "visitObservationTypeId", nullable = false)
-//    private VisitObservationType visitObservationTypeId;
+    @ManyToOne
+    @JoinColumn(name = "visitObservationTypeId", nullable = false)
+    private VisitObservationType visitObservationTypeId;
 
     /**
      * \brief Identifier for the LocationVisit associated with this record.

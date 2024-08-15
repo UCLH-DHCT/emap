@@ -264,7 +264,7 @@ public class InterchangeMessageFactory {
      * @param obsDatetime when the data occurred
      * @return list of messages containing synthetic data
      */
-    public List<WaveformMessage> getWaveformMsgs(long samplingRate, final int numSamples, int maxSamplesPerMessage, String location, Instant obsDatetime) {
+    public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, long samplingRate, final int numSamples, int maxSamplesPerMessage, String location, Instant obsDatetime) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
         // Or should such a utility function go into (non-test) Interchange?
         List<WaveformMessage> allMessages = new ArrayList<>();
@@ -272,8 +272,11 @@ public class InterchangeMessageFactory {
         while (samplesRemaining > 0) {
             int samplesThisMessage = Math.min(samplesRemaining, maxSamplesPerMessage);
             WaveformMessage waveformMessage = new WaveformMessage();
+            waveformMessage.setSourceStreamId(sourceStreamId);
             waveformMessage.setSamplingRate(samplingRate);
-            waveformMessage.setLocationString(location);
+            // XXX: need the actual source string
+            waveformMessage.setSourceLocationString(location);
+            waveformMessage.setMappedLocationString(location);
             var values = new ArrayList<Double>();
             for (int i = 0; i < samplesThisMessage; i++) {
                 values.add(Math.sin(i * 0.01));

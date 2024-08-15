@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations.WaveformRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.Waveform;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
@@ -38,11 +39,15 @@ public class WaveformController {
     /**
      * Process waveform data message.
      * @param msg the interchange message
+     * @param visitObservationType to associate with this waveform data
      * @param storedFrom stored from timestamp
      * @throws MessageIgnoredException if message not processed
      */
     @Transactional
-    public void processWaveform(WaveformMessage msg, Instant storedFrom) throws MessageIgnoredException {
+    public void processWaveform(
+            WaveformMessage msg,
+            VisitObservationType visitObservationType,
+            Instant storedFrom) throws MessageIgnoredException {
         InterchangeValue<List<Double>> interchangeValue = msg.getNumericValues();
         if (!interchangeValue.isSave()) {
             throw new MessageIgnoredException("Updating/deleting waveform data is not supported");
@@ -53,7 +58,7 @@ public class WaveformController {
         Instant observationTime = msg.getObservationTime();
         // Try to find the visit. We don't have enough information to create the visit if it doesn't already exist.
         Optional<LocationVisit> inferredLocationVisit =
-                locationVisitRepository.findLocationVisitByLocationAndTime(observationTime, msg.getLocationString());
+                locationVisitRepository.findLocationVisitByLocationAndTime(observationTime, msg.getMappedLocationString());
         // XXX: will have to do some sanity checks here to be sure that the HL7 feed hasn't gone down.
         // See issue #36, and here for discussion:
         // https://github.com/UCLH-DHCT/emap/blob/jeremy/hf-data/docs/dev/features/waveform_hf_data.md#core-processor-logic-orphan-data-problem
@@ -64,7 +69,8 @@ public class WaveformController {
         inferredLocationVisit.ifPresent(dataPoint::setLocationVisitId);
         Double[] valuesAsArray = numericValues.toArray(new Double[0]);
         dataPoint.setSamplingRate(msg.getSamplingRate());
-        dataPoint.setSourceLocation(msg.getLocationString());
+        dataPoint.setSourceLocation(msg.getSourceLocationString());
+        dataPoint.setVisitObservationTypeId(visitObservationType);
         dataPoint.setValuesArray(valuesAsArray);
         waveformRepository.save(dataPoint);
     }

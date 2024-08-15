@@ -6,11 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations.VisitObservationAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations.VisitObservationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations.VisitObservationTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations.WaveformRepository;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.Waveform;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
@@ -34,11 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestWaveformProcessing extends MessageProcessingBase {
     @Autowired
-    private HospitalVisitRepository hospitalVisitRepository;
-    @Autowired
     private WaveformRepository waveformRepository;
-    @Autowired
-    private VisitObservationRepository visitObservationRepository;
     @Autowired
     private VisitObservationAuditRepository visitObservationAuditRepository;
     @Autowired
@@ -50,6 +45,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
 
     @AllArgsConstructor
     class TestData {
+        String sourceStreamId;
         int numSamples;
         long samplingRate;
         int maxSamplesPerMessage;
@@ -67,21 +63,21 @@ class TestWaveformProcessing extends MessageProcessingBase {
         var allTests = new TestData[]{
                 // Intended to be two patients each connected to two machines, but the nature of the
                 // bed/machine IDs may not quite be like this.
-                new TestData(20_000, 300, 900,
+                new TestData( "1", 20_000, 300, 900,
                         "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), 106001L),
-                new TestData(25_000, 50, 500,
+                new TestData( "2", 25_000, 50, 500,
                         "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), 106002L),
-                new TestData(15_000, 300, 900,
+                new TestData( "1", 15_000, 300, 900,
                         // matches location but not time
                         "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), null),
-                new TestData(17_000, 50, 500,
+                new TestData( "1", 17_000, 50, 500,
                         // matches time but not location
                         "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null)
         };
         List<WaveformMessage> allMessages = new ArrayList<>();
         for (var test: allTests) {
             allMessages.addAll(
-                    messageFactory.getWaveformMsgs(
+                    messageFactory.getWaveformMsgs(test.sourceStreamId,
                             test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.location, test.obsDatetime));
         }
 
@@ -105,6 +101,9 @@ class TestWaveformProcessing extends MessageProcessingBase {
             Optional<Integer> observedNumSamples = waveformRows.stream().map(w -> w.getValuesArray().length).reduce(Integer::sum);
             assertEquals(test.numSamples, observedNumSamples.orElseThrow());
             totalObservedNumSamples += observedNumSamples.get();
+
+            checkVisitObervationTypes(waveformRows, test.sourceStreamId);
+
             /* If we expect the data to be linkable to an existing hospital visit,
              * search by that visit's (hl7adt) location and see that we get the same result.
              * If not, it should be empty.
@@ -157,6 +156,24 @@ class TestWaveformProcessing extends MessageProcessingBase {
             assertEquals(totalExpectedTimeMicros, totalActualTimeMicros);
         }
         assertEquals(Arrays.stream(allTests).map(d -> d.numSamples).reduce(Integer::sum).get(), totalObservedNumSamples);
+        // XXX: do more with this
+        List<VisitObservationType> allWaveformVO = visitObservationTypeRepository.findAllBySourceObservationType("waveform");
+        for (var vo: allWaveformVO) {
+            System.out.println("JES: " + vo.toString());
+        }
+        assertEquals(2, allWaveformVO.size());
+    }
+
+    private static void checkVisitObervationTypes(List<Waveform> waveformRows, String sourceStreamId) {
+        // visit observations should all be the same, and be the right thing
+        List<Long> distinctVisitObservationIds =
+                waveformRows.stream()
+                        .map(Waveform::getVisitObservationTypeId)
+                        .map(VisitObservationType::getVisitObservationTypeId)
+                        .distinct().toList();
+        assertEquals(distinctVisitObservationIds.size(), 1);
+        VisitObservationType identicalVisitObs = waveformRows.get(0).getVisitObservationTypeId();
+        assertEquals(sourceStreamId, identicalVisitObs.getIdInApplication());
     }
 
     private static List<Waveform> filterByDatetimeInterval(Iterable<Waveform> waveforms, Instant beginTime, Instant endTime) {
