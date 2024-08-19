@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.waveform;
 
+import ca.uhn.hl7v2.HL7Exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,10 +88,11 @@ public class Hl7ListenerConfig {
     /**
      * Message handler. Source IP check has passed if we get here. No reply is expected.
      * @param msg the incoming message
-     * @throws InterruptedException .
+     * @throws InterruptedException if publisher send is interrupted
+     * @throws HL7Exception if HAPI does
      */
     @ServiceActivator(inputChannel = "hl7Stream")
-    public void handler(Message<byte[]> msg) throws InterruptedException {
+    public void handler(Message<byte[]> msg) throws InterruptedException, HL7Exception {
         byte[] asBytes = msg.getPayload();
         String asStr = new String(asBytes, StandardCharsets.UTF_8);
         logger.trace("received message = {}", asStr);
