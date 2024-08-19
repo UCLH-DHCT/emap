@@ -41,7 +41,8 @@ public class Hl7ParseAndSend {
 
         WaveformMessage waveformMessage = new WaveformMessage();
         waveformMessage.setSamplingRate(Long.parseLong(samplingRateStr));
-        waveformMessage.setLocationString(locationId);
+        waveformMessage.setSourceLocationString(locationId);
+        // XXX: need to perform location mapping here and set the mapped location
         waveformMessage.setObservationTime(Instant.parse(messageStartTimeStr));
         waveformMessage.setSourceMessageId(messageId);
         String[] valuesArray = valuesStr.split(",");

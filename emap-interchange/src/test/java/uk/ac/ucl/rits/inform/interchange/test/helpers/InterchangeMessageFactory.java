@@ -257,32 +257,41 @@ public class InterchangeMessageFactory {
 
     /**
      *
+     * @param sourceStreamId how the source data identifies this stream
+     * @param mappedStreamName how the reader has interpreted the source stream id
      * @param samplingRate samples per second
      * @param numSamples total bumber of samples to generate
      * @param maxSamplesPerMessage how many samples to put in a message; split as necessary
-     * @param location bed location
+     * @param sourceLocation bed location according to the original data
+     * @param mappedLocation bed location according to data reader's interpretation of the original data
+     * @param obsDatetime when the data occurred
      * @return list of messages containing synthetic data
      */
-    public List<WaveformMessage> getWaveformMsgs(int samplingRate, final int numSamples, int maxSamplesPerMessage, String location) {
+    public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, String mappedStreamName,
+                                                 long samplingRate, final int numSamples, int maxSamplesPerMessage,
+                                                 String sourceLocation, String mappedLocation,
+                                                 Instant obsDatetime) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
         // Or should such a utility function go into (non-test) Interchange?
-        Instant thisMessageTime = Instant.parse("2020-01-01T01:02:03Z");
         List<WaveformMessage> allMessages = new ArrayList<>();
         int samplesRemaining = numSamples;
         while (samplesRemaining > 0) {
             int samplesThisMessage = Math.min(samplesRemaining, maxSamplesPerMessage);
             WaveformMessage waveformMessage = new WaveformMessage();
+            waveformMessage.setSourceStreamId(sourceStreamId);
+            waveformMessage.setMappedStreamDescription(mappedStreamName);
             waveformMessage.setSamplingRate(samplingRate);
-            waveformMessage.setLocationString(location);
+            waveformMessage.setSourceLocationString(sourceLocation);
+            waveformMessage.setMappedLocationString(mappedLocation);
             var values = new ArrayList<Double>();
             for (int i = 0; i < samplesThisMessage; i++) {
                 values.add(Math.sin(i * 0.01));
             }
             waveformMessage.setNumericValues(new InterchangeValue<>(values));
-            waveformMessage.setObservationTime(thisMessageTime);
+            waveformMessage.setObservationTime(obsDatetime);
             allMessages.add(waveformMessage);
             samplesRemaining -= samplesThisMessage;
-            thisMessageTime = thisMessageTime.plus(samplesThisMessage * 1000_000 / samplingRate, ChronoUnit.MICROS);
+            obsDatetime = obsDatetime.plus(samplesThisMessage * 1000_000 / samplingRate, ChronoUnit.MICROS);
         }
         return allMessages;
     }

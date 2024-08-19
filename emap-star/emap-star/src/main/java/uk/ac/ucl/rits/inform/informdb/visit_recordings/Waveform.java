@@ -6,6 +6,7 @@ import lombok.ToString;
 import org.hibernate.annotations.Type;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +16,8 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.Instant;
 
@@ -26,7 +29,8 @@ import java.time.Instant;
 @Entity
 @Table(indexes = {
         @Index(name = "waveform_datetime", columnList = "observationDatetime"),
-        @Index(name = "waveform_location", columnList = "location"),
+        @Index(name = "waveform_location", columnList = "sourceLocation"),
+        @Index(name = "waveform_location_visit", columnList = "locationVisitId"),
 })
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -36,9 +40,9 @@ import java.time.Instant;
 public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
 
     /**
-     * \brief Unique identifier in EMAP for this visitObservation record.
+     * \brief Unique identifier for this record.
      *
-     * This is the primary key for the visitObservation table.
+     * This is the primary key.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "waveform_id_sequence")
@@ -49,18 +53,18 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
      *
      * This is a foreign key that joins the visitObservation table to the VisitObservationType table.
      */
-//    @ManyToOne
-//    @JoinColumn(name = "visitObservationTypeId", nullable = false)
-//    private VisitObservationType visitObservationTypeId;
+    @ManyToOne
+    @JoinColumn(name = "visitObservationTypeId", nullable = false)
+    private VisitObservationType visitObservationTypeId;
 
     /**
-     * \brief Identifier for the HospitalVisit associated with this record.
+     * \brief Identifier for the LocationVisit associated with this record.
      *
-     * This is a foreign key that joins the visitObservation table to the HospitalVisit table.
+     * If it is null, this data is said to be orphaned.
      */
-//    @ManyToOne
-//    @JoinColumn(name = "hospitalVisitId", nullable = false)
-//    private HospitalVisit hospitalVisitId;
+    @ManyToOne
+    @JoinColumn(name = "locationVisitId")
+    private LocationVisit locationVisitId;
 
     /**
      * \brief Date and time at which this visitObservation was first made.
@@ -71,9 +75,16 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant observationDatetime;
 
+    @Column(nullable = false)
     private long samplingRate;
 
-    private String location;
+    /**
+     * \brief Location according to the source system.
+     * This will always be known,
+     * and must be kept in case this data needs to be de-orphaned later.
+     */
+    @Column(nullable = false)
+    private String sourceLocation;
 
     /**
      * \brief Value as a floating point array.
@@ -111,10 +122,12 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
     public Waveform(Waveform other) {
         super(other);
         this.waveformId = other.waveformId;
+        this.visitObservationTypeId = other.visitObservationTypeId;
+        this.locationVisitId = other.locationVisitId;
         this.valuesArray = other.valuesArray;
         this.observationDatetime = other.observationDatetime;
         this.samplingRate = other.samplingRate;
-        this.location = other.location;
+        this.sourceLocation = other.sourceLocation;
     }
 
     @Override

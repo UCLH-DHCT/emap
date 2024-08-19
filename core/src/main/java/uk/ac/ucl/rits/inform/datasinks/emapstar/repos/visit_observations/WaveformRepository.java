@@ -14,7 +14,25 @@ import java.time.Instant;
  */
 
 public interface WaveformRepository extends CrudRepository<Waveform, Long> {
+    /**
+     * Find waveform entries that have a known association with a location visit (ie. non-orphaned).
+     * @param location location string of the location visit
+     * @return all waveform entries at that location
+     */
+    @Query("select w from Waveform w "
+            + "inner join w.locationVisitId lv "
+            + "inner join lv.locationId as loc "
+            + "where :location = loc.locationString "
+            + "order by w.observationDatetime "
+    )
     Iterable<Waveform> findAllByLocationOrderByObservationDatetime(String location);
+
+    /**
+     * Find waveform entries according to their source location, whether orphaned or not.
+     * @param sourceLocation location according to the source system
+     * @return all entries at that location
+     */
+    Iterable<Waveform> findAllBySourceLocationOrderByObservationDatetime(String sourceLocation);
 
     // the default delete queries are very inefficient so specify manually
     @Modifying
