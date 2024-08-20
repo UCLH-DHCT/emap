@@ -25,6 +25,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,7 @@ public class Hl7ParseAndSend {
     List<WaveformMessage> parseHl7(String messageAsStr) throws HL7Exception {
         logger.info("Parsing message of size {}", messageAsStr.length());
         logger.trace("Full HL7 message:\n {}", messageAsStr);
+        Instant start = Instant.now();
         PipeParser parser = hapiContext.getPipeParser();
         ORU_R01 hl7Message = (ORU_R01) parser.parse(messageAsStr).getMessage();
         MSH msh = (MSH) hl7Message.get("MSH");
@@ -87,7 +89,6 @@ public class Hl7ParseAndSend {
          * in principle there could be more.
          */
         List<WaveformMessage> allWaveformMessages = new ArrayList<>();
-        Terser terser = new Terser(hl7Message);
         List<ORU_R01_PATIENT_RESULT> patientResults = hl7Message.getPATIENT_RESULTAll();
         logger.debug("ORU_R01_PATIENT_RESULT count = {}", patientResults.size());
         for (int prI = 0; prI < patientResults.size(); prI++) {
@@ -125,13 +126,10 @@ public class Hl7ParseAndSend {
                     // HAPI doesn't seem to be able to tell us how many values are in an array, so detect the end
                     int observationValueMaxValues = 65536;
                     for (int vI = 0; vI < observationValueMaxValues; vI++) {
-                        // HL7 components are 1-indexed but HAPI groups and HL7 repeats (the numbers in parens)
-                        // are 0-indexed
-                        String terserQuery = String.format(
-                                "/PATIENT_RESULT(%d)/ORDER_OBSERVATION(%d)/OBSERVATION(%d)/OBX-5(0)-%d",
-                                prI, ooI, obsI, vI + 1);
-                        logger.trace("Terser query: {}", terserQuery);
-                        String s = terser.get(terserQuery);
+                        // This flavour of "get" is faster than using the Terser's string-based location spec.
+                        // HL7 fields, components, and sub-components are 1-indexed but
+                        // HAPI groups and HL7 repeats are 0-indexed.
+                        String s = Terser.get(obx, 5, 0, vI + 1, 1);
                         if (s == null) {
                             break;
                         }
@@ -147,6 +145,10 @@ public class Hl7ParseAndSend {
                 }
             }
         }
+        Instant afterParse = Instant.now();
+        logger.info("Timing: message length {}, parse {} ms",
+                messageAsStr.length(),
+                start.until(afterParse, ChronoUnit.MILLIS));
         return allWaveformMessages;
     }
 
