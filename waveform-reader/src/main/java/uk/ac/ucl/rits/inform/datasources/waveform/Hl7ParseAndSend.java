@@ -65,15 +65,14 @@ public class Hl7ParseAndSend {
     // we will be merging messages so they're big enough to prevent performance/storage
     // problems in the core proc/DB
     List<WaveformMessage> parseHl7(String messageAsStr) throws HL7Exception {
-        logger.trace("Full HL7 message:\n {}", messageAsStr);
         logger.info("Parsing message of size {}", messageAsStr.length());
+        logger.trace("Full HL7 message:\n {}", messageAsStr);
         PipeParser parser = hapiContext.getPipeParser();
         ORU_R01 hl7Message = (ORU_R01) parser.parse(messageAsStr).getMessage();
         MSH msh = (MSH) hl7Message.get("MSH");
         String triggerEvent = msh.getMsh9_MessageType().getMsg2_TriggerEvent().getValueOrEmpty();
         String messageCode = msh.getMsh9_MessageType().getMsg1_MessageCode().getValueOrEmpty();
-        logger.info("JES: message of type {}^{}: ", messageCode, triggerEvent);
-        logger.info("JES: message {}", hl7Message);
+        logger.debug("message of type {}^{}: ", messageCode, triggerEvent);
         String messageIdBase = msh.getMsh10_MessageControlID().getValueOrEmpty();
 
         // XXX: probably need to look this up!
@@ -90,14 +89,14 @@ public class Hl7ParseAndSend {
         List<WaveformMessage> allWaveformMessages = new ArrayList<>();
         Terser terser = new Terser(hl7Message);
         List<ORU_R01_PATIENT_RESULT> patientResults = hl7Message.getPATIENT_RESULTAll();
-        logger.info("JES: patientResults ({}) = {}", patientResults.size(), patientResults);
+        logger.debug("ORU_R01_PATIENT_RESULT count = {}", patientResults.size());
         for (int prI = 0; prI < patientResults.size(); prI++) {
             ORU_R01_PATIENT_RESULT pr = patientResults.get(prI);
             PV1 pv1 = pr.getPATIENT().getVISIT().getPV1();
             String patientlocation = pv1.getPv13_AssignedPatientLocation().getPl1_PointOfCare().getValueOrEmpty();
             List<ORU_R01_ORDER_OBSERVATION> orderObservations = pr.getORDER_OBSERVATIONAll();
 
-            logger.info("JES: orderObservations ({}) = {}", orderObservations.size(), orderObservations);
+            logger.debug("ORU_R01_ORDER_OBSERVATION count = {}", orderObservations.size());
             for (int ooI = 0; ooI < orderObservations.size(); ooI++) {
                 ORU_R01_ORDER_OBSERVATION oo = orderObservations.get(ooI);
                 OBR obr = oo.getOBR();
@@ -107,7 +106,7 @@ public class Hl7ParseAndSend {
                     throw new HL7Exception("Unexpected location " + locationId + "|" + patientlocation);
                 }
                 List<ORU_R01_OBSERVATION> observations = oo.getOBSERVATIONAll();
-                logger.info("JES: observations ({}) = {}", observations.size(), observations);
+                logger.debug("ORU_R01_OBSERVATION count = {}", observations.size());
                 for (int obsI = 0; obsI < observations.size(); obsI++) {
                     ORU_R01_OBSERVATION obs = observations.get(obsI);
                     OBX obx = obs.getOBX();
@@ -131,7 +130,7 @@ public class Hl7ParseAndSend {
                         String terserQuery = String.format(
                                 "/PATIENT_RESULT(%d)/ORDER_OBSERVATION(%d)/OBSERVATION(%d)/OBX-5(0)-%d",
                                 prI, ooI, obsI, vI + 1);
-                        logger.info("JES: terser: {}", terserQuery);
+                        logger.trace("Terser query: {}", terserQuery);
                         String s = terser.get(terserQuery);
                         if (s == null) {
                             break;
@@ -140,8 +139,8 @@ public class Hl7ParseAndSend {
                     }
                     // one HL7 message can create more than one message, so disambiguate
                     String messageIdSpecific = String.format("%s_%d_%d_%d", messageIdBase, prI, ooI, obsI);
-                    logger.info("JES: location {}, time {}, messageId {}, values = {}",
-                            locationId, obsDatetime, messageIdSpecific, arrayDoubles);
+                    logger.debug("location {}, time {}, messageId {}, value count = {}",
+                            locationId, obsDatetime, messageIdSpecific, arrayDoubles.size());
                     WaveformMessage waveformMessage = waveformMessageFromValues(
                             samplingRate, locationId, obsDatetime, messageIdSpecific, streamId, arrayDoubles);
                     allWaveformMessages.add(waveformMessage);
@@ -163,7 +162,6 @@ public class Hl7ParseAndSend {
         waveformMessage.setSourceMessageId(messageId);
         waveformMessage.setSourceStreamId(sourceStreamId);
         waveformMessage.setNumericValues(new InterchangeValue<>(arrayValues));
-        logger.debug("waveform message contains {} numerical values", arrayValues.size());
         logger.trace("output interchange waveform message = {}", waveformMessage);
         return waveformMessage;
     }
