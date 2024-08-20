@@ -105,14 +105,15 @@ public class Hl7Generator {
 
     private String applyHl7Template(long samplingRate, String locationId, Instant observationDatetime,
                                     String messageId, List<ImmutablePair<String, List<Double>>> valuesByStreamId) {
+        // lines in HL7 messages must be CR terminated
         final String templateStr = """
-                MSH|^~\\&|DATACAPTOR||||20240731142108.741+0100||ORU^R01|${messageId}|P|2.3||||||UNICODE UTF-8|
-                PID|
-                PV1||I|${locationId}|
-                OBR|||||||${obsTimeStr}|||${locationId}|||${locationId}|
+                MSH|^~\\&|DATACAPTOR||||20240731142108.741+0100||ORU^R01|${messageId}|P|2.3||||||UNICODE UTF-8|\r\
+                PID|\r\
+                PV1||I|${locationId}|\r\
+                OBR|||||||${obsTimeStr}|||${locationId}|||${locationId}|\r\
                 """;
         final String obxTemplate = """
-                OBX|${obxI}|${dataType}|${streamId}||${valuesAsStr}||||||F||20|${obsTimeStr}|
+                OBX|${obxI}|${dataType}|${streamId}||${valuesAsStr}||||||F||20|${obsTimeStr}|\r\
                 """;
         ZoneId hospitalTimezone = ZoneId.of("Europe/London");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("YYYYMMddHHmmss.SSSZZ");
@@ -146,7 +147,11 @@ public class Hl7Generator {
             parameters.put("valuesAsStr", valuesAsStr);
             obrMsg.append(stringSubstitutor.replace(obxTemplate));
         }
-        return obrMsg.toString();
+        String obrMsgStr = obrMsg.toString();
+        if (obrMsgStr.contains("\n")) {
+            throw new RuntimeException("HL7 message contains LF char; lines must be CR terminated");
+        }
+        return obrMsgStr;
     }
 
     /**
