@@ -214,8 +214,8 @@ public class Hl7Generator {
         List<String> waveformMsgs = new ArrayList<>();
         for (int p = 0; p < numPatients; p++) {
             var location = String.format("Bed%03d", p);
-            String streamId1 = "52912";
-            String streamId2 = "52913";
+            String streamId1 = "59912";
+            String streamId2 = "59913";
             int sizeBefore = waveformMsgs.size();
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
                     location, streamId1, 50, numMillis, startTime, 5));
@@ -226,9 +226,6 @@ public class Hl7Generator {
         }
 
         return waveformMsgs;
-
     }
-
-
 
 }

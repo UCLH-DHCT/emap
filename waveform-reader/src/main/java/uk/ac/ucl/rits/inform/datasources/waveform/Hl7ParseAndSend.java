@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasources.waveform;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7Message;
 import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7ParseException;
@@ -22,9 +23,12 @@ public class Hl7ParseAndSend {
     private final Logger logger = LoggerFactory.getLogger(Hl7ParseAndSend.class);
 
     private final WaveformOperations waveformOperations;
+    private final WaveformCollator waveformCollator;
 
-    Hl7ParseAndSend(WaveformOperations waveformOperations) {
+    Hl7ParseAndSend(WaveformOperations waveformOperations,
+                    WaveformCollator waveformCollator) {
         this.waveformOperations = waveformOperations;
+        this.waveformCollator = waveformCollator;
     }
 
     // XXX: this will have to be returning some kind of incomplete message form because
@@ -70,7 +74,12 @@ public class Hl7ParseAndSend {
 
                 // XXX: Sampling rate is not in the message.
                 // Will be fixed by implementing issue #45.
-                Long samplingRate = Long.parseLong("42");
+                long samplingRate;
+                if (streamId.equals("59912")) {
+                    samplingRate = 50L;
+                } else {
+                    samplingRate = 300L;
+                }
 
                 String messageIdSpecific = String.format("%s_%d_%d", messageIdBase, obrI, obxI);
                 logger.debug("location {}, time {}, messageId {}, value count = {}",
@@ -114,7 +123,18 @@ public class Hl7ParseAndSend {
     public void parseAndSend(String messageAsStr) throws InterruptedException, Hl7ParseException {
         List<WaveformMessage> msgs = parseHl7(messageAsStr);
 
-        logger.info("HL7 message generated {} Waveform messages, sending", msgs.size());
+        logger.info("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
+        waveformCollator.addMessages(msgs);
+    }
+
+    /**
+     * See what abutting messages are available for collation and sending.
+     * @throws InterruptedException .
+     */
+    @Scheduled(fixedDelay = 10 * 1000)
+    public void collateAndSend() throws InterruptedException {
+        List<WaveformMessage> msgs = waveformCollator.getReadyMessages();
+        logger.info("{} Waveform messages ready for sending", msgs.size());
         for (var m: msgs) {
             // consider sending to publisher in batches?
             waveformOperations.sendMessage(m);
