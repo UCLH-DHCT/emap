@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Component
@@ -107,23 +108,25 @@ public class Hl7Generator {
                                     String messageId, List<ImmutablePair<String, List<Double>>> valuesByStreamId) {
         // lines in HL7 messages must be CR terminated
         final String templateStr = """
-                MSH|^~\\&|DATACAPTOR||||20240731142108.741+0100||ORU^R01|${messageId}|P|2.3||||||UNICODE UTF-8|\r\
+                MSH|^~\\&|DATACAPTOR||||${messageDatetime}||ORU^R01|${messageId}|P|2.3||||||UNICODE UTF-8|\r\
                 PID|\r\
                 PV1||I|${locationId}|\r\
-                OBR|||||||${obsTimeStr}|||${locationId}|||${locationId}|\r\
+                OBR|||||||${obsDatetime}|||${locationId}|||${locationId}|\r\
                 """;
         final String obxTemplate = """
-                OBX|${obxI}|${dataType}|${streamId}||${valuesAsStr}||||||F||20|${obsTimeStr}|\r\
+                OBX|${obxI}|${dataType}|${streamId}||${valuesAsStr}||||||F||20|${obsDatetime}|\r\
                 """;
         ZoneId hospitalTimezone = ZoneId.of("Europe/London");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSSZZ");
-        // XXX: where to get message timestamp from? Just add a random bit maybe?
-        // Will sampling rate have to be inferred at the other end? It's in the coding table I think...
-        // message Id I think shouldn't be created here
-        String obsTimeStr = formatter.format(observationDatetime.atZone(hospitalTimezone));
+        String obsDatetime = formatter.format(observationDatetime.atZone(hospitalTimezone));
+        // go for something vaguely realistic
+        int milliSecondDelay = new Random().nextInt(50, 150);
+        Instant messageDatetime = observationDatetime.plusMillis(milliSecondDelay);
+        String messageDatetimeStr = formatter.format(messageDatetime.atZone(hospitalTimezone));
         Map<String, String> parameters = new HashMap<>();
         parameters.put("locationId", locationId);
-        parameters.put("obsTimeStr", obsTimeStr);
+        parameters.put("obsDatetime", obsDatetime);
+        parameters.put("messageDatetime", messageDatetimeStr);
         parameters.put("messageId", messageId);
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(parameters);
