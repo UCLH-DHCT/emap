@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasources.waveform;
 
-import ca.uhn.hl7v2.HL7Exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +13,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetConnection;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.messaging.Message;
+import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7ParseException;
 
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -89,14 +89,12 @@ public class Hl7ListenerConfig {
      * Message handler. Source IP check has passed if we get here. No reply is expected.
      * @param msg the incoming message
      * @throws InterruptedException if publisher send is interrupted
-     * @throws HL7Exception if HAPI does
+     * @throws Hl7ParseException .
      */
     @ServiceActivator(inputChannel = "hl7Stream")
-    public void handler(Message<byte[]> msg) throws InterruptedException, HL7Exception {
+    public void handler(Message<byte[]> msg) throws InterruptedException, Hl7ParseException {
         byte[] asBytes = msg.getPayload();
         String asStr = new String(asBytes, StandardCharsets.UTF_8);
-        logger.trace("received message = {}", asStr);
-        logger.info("MESSAGE of size {}", asStr.length());
         // parse message from HL7 to interchange message, send to publisher
         hl7ParseAndSend.parseAndSend(asStr);
     }

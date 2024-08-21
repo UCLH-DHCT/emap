@@ -22,7 +22,6 @@
     <emap-interchange.version>2.7</emap-interchange.version>
     <checkstyle.version>10.3.1</checkstyle.version>
     <checkstyle.plugin.version>3.3.0</checkstyle.plugin.version>
-    <hapi.version>2.3</hapi.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <com.google.code.findbugs.annotations.version>3.0.1u2</com.google.code.findbugs.annotations.version>
     <spring.boot.mainclass>uk.ac.ucl.rits.inform.datasources.waveform.Application</spring.boot.mainclass>
@@ -55,18 +54,6 @@
     <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-ip</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-base</artifactId>
-      <version>${hapi.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-structures-v26</artifactId>
-      <version>${hapi.version}</version>
     </dependency>
 
     <dependency>

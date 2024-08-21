@@ -116,6 +116,7 @@ public class Hl7Generator {
                 OBX|${obxI}|${dataType}|${streamId}||${valuesAsStr}||||||F||20|${obsTimeStr}|\r\
                 """;
         ZoneId hospitalTimezone = ZoneId.of("Europe/London");
+        // XXX: shouldn't this be yyyy?
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("YYYYMMddHHmmss.SSSZZ");
         // XXX: where to get message timestamp from? Just add a random bit maybe?
         // Will sampling rate have to be inferred at the other end? It's in the coding table I think...
