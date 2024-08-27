@@ -13,6 +13,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetConnection;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.messaging.Message;
+import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7ParseException;
 
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -87,14 +88,13 @@ public class Hl7ListenerConfig {
     /**
      * Message handler. Source IP check has passed if we get here. No reply is expected.
      * @param msg the incoming message
-     * @throws InterruptedException .
+     * @throws InterruptedException if publisher send is interrupted
+     * @throws Hl7ParseException .
      */
     @ServiceActivator(inputChannel = "hl7Stream")
-    public void handler(Message<byte[]> msg) throws InterruptedException {
+    public void handler(Message<byte[]> msg) throws InterruptedException, Hl7ParseException {
         byte[] asBytes = msg.getPayload();
         String asStr = new String(asBytes, StandardCharsets.UTF_8);
-        logger.trace("received message = {}", asStr);
-        logger.info("MESSAGE of size {}", asStr.length());
         // parse message from HL7 to interchange message, send to publisher
         hl7ParseAndSend.parseAndSend(asStr);
     }
