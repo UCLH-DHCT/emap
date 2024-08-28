@@ -17,14 +17,20 @@ public class WaveformOperations {
     }
 
 
-    private void publishMessage(Publisher publisher, String messageId, WaveformMessage m) throws InterruptedException {
-        publisher.submit(m, messageId, messageId, () -> {
+    /**
+     * Send message to rabbitmq.
+     * @param msg the (collated) waveform message
+     * @throws InterruptedException If the Publisher thread is interrupted
+     */
+    public void sendMessage(WaveformMessage msg) throws InterruptedException {
+        if (msg.getSourceMessageId() == null || msg.getSourceMessageId().isEmpty()) {
+            logger.error("ERROR: About to publish message with bad message ID {}", msg.getSourceMessageId());
+        }
+        String messageId = msg.getSourceMessageId();
+        publisher.submit(msg, messageId, messageId, () -> {
+            // XXX: If/when we find a way of re-requesting old messages, we may want to keep track of progress here
+            // See issue #40.
             logger.debug("Successful ACK for message with ID {}", messageId);
         });
-    }
-
-
-    public void sendMessage(WaveformMessage msg) throws InterruptedException {
-        publishMessage(publisher, msg.getSourceMessageId(), msg);
     }
 }

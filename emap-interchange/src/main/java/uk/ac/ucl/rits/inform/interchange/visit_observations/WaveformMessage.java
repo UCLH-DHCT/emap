@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.visit_observations;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -65,6 +66,7 @@ public class WaveformMessage extends EmapOperationMessage {
      * @return expected observation datetime for the next message, if it exists and there are
      * no gaps between messages
      */
+    @JsonIgnore
     public Instant getExpectedNextObservationDatetime() {
         int numValues = numericValues.get().size();
         long microsToAdd = 1_000_000L * numValues / samplingRate;

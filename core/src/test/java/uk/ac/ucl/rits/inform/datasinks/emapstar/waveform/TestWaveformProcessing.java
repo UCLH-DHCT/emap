@@ -81,7 +81,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
             allMessages.addAll(
                     messageFactory.getWaveformMsgs(test.sourceStreamId, test.mappedStreamName,
                             test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.sourceLocation,
-                            test.mappedLocation, test.obsDatetime));
+                            test.mappedLocation, test.obsDatetime, null));
         }
 
         // must cope with messages in any order! Fixed seed to aid in debugging.

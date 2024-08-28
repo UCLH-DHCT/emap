@@ -11,7 +11,6 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -19,10 +18,12 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import static uk.ac.ucl.rits.inform.interchange.utils.DateTimeUtils.roundInstantToNearest;
+
 @Component
 public class WaveformCollator {
     private final Logger logger = LoggerFactory.getLogger(WaveformCollator.class);
-    private final Map<Pair<String, String>, SortedMap<Instant, WaveformMessage>> pendingMessages = new HashMap<>();
+    protected final Map<Pair<String, String>, SortedMap<Instant, WaveformMessage>> pendingMessages = new HashMap<>();
 
     private Pair<String, String> makeKey(WaveformMessage msg) {
         return new ImmutablePair<>(msg.getSourceLocationString(), msg.getSourceStreamId());
@@ -31,8 +32,9 @@ public class WaveformCollator {
     /**
      * Add short messages from the same patient for collating.
      * @param messagesToAdd messages to add, must all be for same patient
+     * @throws CollationException if a message duplicates another message
      */
-    public void addMessages(List<WaveformMessage> messagesToAdd) {
+    public void addMessages(List<WaveformMessage> messagesToAdd) throws CollationException {
         /*
          * Will probably need per-patient locks otherwise the threads won't be able to do much.
          * But that will complicate iterating.
@@ -45,6 +47,12 @@ public class WaveformCollator {
                         messageKey, k -> new TreeMap<>());
                 Instant observationTime = msg.getObservationTime();
                 // messages may arrive out of order, but TreeMap will keep them sorted by obs time
+                WaveformMessage existing = existingMessages.get(observationTime);
+                if (existing != null) {
+                    // in future we may want to compare them and only log error if they differ
+                    throw new CollationException(String.format("Would replace message with time %s: %s",
+                            observationTime, existing));
+                }
                 existingMessages.put(observationTime, msg);
             }
         }
@@ -53,86 +61,169 @@ public class WaveformCollator {
     /**
      * If a sufficient run of gapless messages exists for a patient, collate them
      * and delete the source messages.
-     * @return the collated messages that are now ready for sending
+     * @param nowTime for the purposes of determining how old the data is, this is the "now" time.
+     *                Should be set to Instant.now() in production, but can be set differently for testing.
+     * @param targetCollatedMessageSamples Wait for this many samples to exist in the queue before collating into
+     *                                     a message. If we've waited more than waitForDataLimitMillis, then collate
+     *                                     even if fewer samples are present. Never exceed this target.
+     * @param waitForDataLimitMillis Time limit for when to relax the requirement to reach
+     *                               targetCollatedMessageSamples before collating into a message.
+     * @param assumedRounding what level of rounding to assume has been applied to the message timestamps, or null to
+     *                        not make such an assumption.
+     * @return the collated messages that are now ready for sending, may be empty if none are ready
+     * @throws CollationException if any set within pendingMessages contains messages not in
+     *                             fact all from the same patient+stream
      */
-    public List<WaveformMessage> getReadyMessages() {
-        final long minimumSpanMillis = 10000;
+    public List<WaveformMessage> getReadyMessages(Instant nowTime,
+                                                  int targetCollatedMessageSamples,
+                                                  int waitForDataLimitMillis,
+                                                  ChronoUnit assumedRounding) throws CollationException {
         List<WaveformMessage> newMessages = new ArrayList<>();
+        logger.info("Pending messages: {} location+stream combos (of which {} non-empty), {} total samples",
+                pendingMessages.size(),
+                pendingMessages.values().stream().filter(pm -> !pm.isEmpty()).count(),
+                pendingMessages.values().stream().map(Map::size).reduce(Integer::sum).get());
         synchronized (this) {
             for (SortedMap<Instant, WaveformMessage> perPatientMap: pendingMessages.values()) {
-                Instant earliestDatetime = perPatientMap.firstKey();
-                Instant latestDatetime = perPatientMap.lastKey();
-                long spanMillis = earliestDatetime.until(latestDatetime, ChronoUnit.MILLIS);
-                if (spanMillis < minimumSpanMillis) {
-                    continue;
+                while (true) {
+                    // There can be zero to multiple chunks that need turning into messages
+                    WaveformMessage newMsg = collateContiguousData(perPatientMap, nowTime,
+                            targetCollatedMessageSamples, waitForDataLimitMillis, assumedRounding);
+                    if (newMsg == null) {
+                        break;
+                    } else {
+                        newMessages.add(newMsg);
+                    }
                 }
-                // even if we've achieved a certain span, there may still be gaps!
-                Instant noGapsUntil = checkForGaps(perPatientMap.values());
-                WaveformMessage newMsg;
-                if (noGapsUntil == null) {
-                    newMsg = collate(perPatientMap, earliestDatetime.plus(minimumSpanMillis, ChronoUnit.MILLIS));
-                } else {
-                    newMsg = collate(perPatientMap, noGapsUntil);
-                }
-                newMessages.add(newMsg);
             }
         }
         return newMessages;
     }
 
-    private WaveformMessage collate(SortedMap<Instant, WaveformMessage> perPatientMap,
-                                    Instant upperLimit) {
+    /**
+     * Given a sorted map of messages (all for same patient+stream), squash as much as possible
+     * into a single message, respecting the target number of samples. If a time gap is detected
+     * in the sequence of messages, stop. Ie. do not straddle the gap within the same message.
+     * Remove messages from the structure which were used as source data for the collated message.
+     * Returns only one message, must be called repeatedly to see if more collating can be done.
+     * @param perPatientMap sorted messages to collate, will have source items deleted from it
+     * @param nowTime see {@link #getReadyMessages}
+     * @param targetCollatedMessageSamples see {@link #getReadyMessages}
+     * @param waitForDataLimitMillis see {@link #getReadyMessages}
+     * @param assumedRounding see {@link #getReadyMessages}
+     * @return the collated message, or null if the messages cannot be collated
+     * @throws CollationException if perPatientMap messages are not in fact all from the same patient+stream
+     */
+
+    private WaveformMessage collateContiguousData(SortedMap<Instant, WaveformMessage> perPatientMap,
+                                                  Instant nowTime,
+                                                  int targetCollatedMessageSamples,
+                                                  int waitForDataLimitMillis,
+                                                  ChronoUnit assumedRounding) throws CollationException {
+        if (perPatientMap.isEmpty()) {
+            // maps are not removed after being emptied, so this situation can exist and is harmless
+            return null;
+        }
         WaveformMessage firstMsg = perPatientMap.get(perPatientMap.firstKey());
+        Pair<String, String> firstKey = makeKey(firstMsg);
 
         int sizeBefore = perPatientMap.size();
-        Iterator<Map.Entry<Instant, WaveformMessage>> entryIter = perPatientMap.entrySet().iterator();
-        long totalPointsSummed = firstMsg.getNumericValues().get().size();
-        // existing values are not necessarily mutable so use a new ArrayList
+        long sampleCount = 0;
+        Instant expectedNextDatetime = null;
+        // existing values are not necessarily in mutable lists so use a new ArrayList
         List<Double> newNumericValues = new ArrayList<>();
-        while (entryIter.hasNext()) {
-            Map.Entry<Instant, WaveformMessage> entry = entryIter.next();
-            Instant k = entry.getKey();
+        Iterator<Map.Entry<Instant, WaveformMessage>> perPatientMapIter = perPatientMap.entrySet().iterator();
+        int messagesToCollate = 0;
+        while (perPatientMapIter.hasNext()) {
+            Map.Entry<Instant, WaveformMessage> entry = perPatientMapIter.next();
             WaveformMessage msg = entry.getValue();
-            newNumericValues.addAll(msg.getNumericValues().get());
-            if (k.compareTo(upperLimit) >= 0) {
-                logger.info("Reached upper limit {}", upperLimit);
+            Pair<String, String> thisKey = makeKey(msg);
+            if (!thisKey.equals(firstKey)) {
+                throw new CollationException(String.format("Key Mismatch: %s vs %s", firstKey, thisKey));
+            }
+
+            sampleCount += msg.getNumericValues().get().size();
+            if (sampleCount > targetCollatedMessageSamples) {
+                logger.info("Reached sample target ({} > {}), collated message span: {} -> {}",
+                        sampleCount, targetCollatedMessageSamples,
+                        firstMsg.getObservationTime(), msg.getObservationTime());
                 break;
             }
-            totalPointsSummed += msg.getNumericValues().get().size();
-            // Remove all Map entries up to the upper limit, even the first one.
-            // We still want the underlying object of the first element to exist.
-            entryIter.remove();
-        }
-        firstMsg.setNumericValues(new InterchangeValue<>(newNumericValues));
-        int sizeAfter = perPatientMap.size();
-        if (totalPointsSummed != firstMsg.getNumericValues().get().size()) {
-            throw new RuntimeException(String.format("Oh dear, should be %d entries, got %d",
-                    totalPointsSummed, firstMsg.getNumericValues().get().size()));
-        }
-        logger.info("Collated {} messages into one, ({} data points)", sizeBefore - sizeAfter, totalPointsSummed);
-        return firstMsg;
-    }
 
-    /**
-     * @param allMessages list of sorted messages to check for gaps in
-     * @return null if no gaps, or if gaps the (exclusive) datetime limit before which there are no gaps
-     */
-    private Instant checkForGaps(Collection<WaveformMessage> allMessages) {
-        Instant expectedNextDatetime = null;
-        for (WaveformMessage msg: allMessages) {
             if (expectedNextDatetime != null) {
-                // gap between this message and previous message
-                long samplePeriodMicros = 1_000_000L / msg.getSamplingRate();
-                long gapSizeMicros = expectedNextDatetime.until(msg.getObservationTime(), ChronoUnit.MICROS);
-                // some rounding error is likely, but let's say for now that anything
-                // less than 10% of a sample period is a good enough score to just join them together
-                if (Math.abs(gapSizeMicros) > samplePeriodMicros / 10) {
-                    logger.info("Gap too big ({} microsecs), skipping for now", gapSizeMicros);
-                    return msg.getObservationTime();
+                Instant gapUpperBound = checkGap(msg, expectedNextDatetime, assumedRounding);
+                if (gapUpperBound != null) {
+                    logger.info("Key {}, collated message span: {} -> {} ({} milliseconds, {} samples)",
+                            makeKey(msg),
+                            firstMsg.getObservationTime(), msg.getObservationTime(),
+                            firstMsg.getObservationTime().until(msg.getObservationTime(), ChronoUnit.MILLIS),
+                            sampleCount);
+                    // Found a gap, stop here. Decide later whether data is old enough to make a message anyway.
+                    break;
                 }
             }
             expectedNextDatetime = msg.getExpectedNextObservationDatetime();
+
+            // don't modify yet, because we don't yet know if we will reach criteria to collate (num samples, time passed)
+            messagesToCollate++;
         }
+
+        // If we have not reached the message size threshold, whether because there aren't enough samples
+        // or we reached a gap, then do not collate yet; give the data a bit more time to appear.
+        // UNLESS enough time has already passed, then prioritise timeliness and collate anyway.
+        // (If the data does subsequently arrive, then it'll likely be "collated" into a message by itself)
+        // In other words, if not enough samples and not enough time has passed, then do not collate.
+        if (sampleCount < targetCollatedMessageSamples
+                && expectedNextDatetime.until(nowTime, ChronoUnit.MILLIS) <= waitForDataLimitMillis) {
+            return null;
+        }
+
+        Iterator<Map.Entry<Instant, WaveformMessage>> secondPassIter = perPatientMap.entrySet().iterator();
+        for (int i = 0; i < messagesToCollate; i++) {
+            Map.Entry<Instant, WaveformMessage> entry = secondPassIter.next();
+            WaveformMessage msg = entry.getValue();
+            newNumericValues.addAll(msg.getNumericValues().get());
+            // Remove all messages from the map that are used as source data, even the first one.
+            // The underlying message object of the first element will still exist.
+            secondPassIter.remove();
+        }
+        firstMsg.setNumericValues(new InterchangeValue<>(newNumericValues));
+        int sizeAfter = perPatientMap.size();
+        logger.info("Key {}, Collated {} messages into one, ({} data points)",
+                firstKey, sizeBefore - sizeAfter, sampleCount);
+        return firstMsg;
+    }
+
+    private Instant checkGap(WaveformMessage msg, Instant expectedNextDatetime, ChronoUnit assumedRounding) {
+        // gap between this message and previous message
+        long samplePeriodMicros = 1_000_000L / msg.getSamplingRate();
+        Instant expectedNextDatetimeRounded = roundInstantToNearest(expectedNextDatetime, assumedRounding);
+        long gapSizeMicros = expectedNextDatetime.until(msg.getObservationTime(), ChronoUnit.MICROS);
+        long gapSizeToRoundedMicros = expectedNextDatetimeRounded.until(msg.getObservationTime(), ChronoUnit.MICROS);
+        /* The timestamps in the messages will be rounded. Currently assuming that it's to the nearest
+         * millisecond, but for all I know it could be rounding down.
+         * Take 3.33 ms, a common sampling period (300Hz): rounding to the nearest ms can produce a large
+         * relative error. The error will also be inconsistent: when the stars align it might be zero.
+         * So try for now: To be counted as abutting, the actual timestamp has to be close to *either* the
+         * rounded or unrounded expected timestamp, thus allowing the error margin to be set much stricter,
+         * since it's now only accounting for non-rounding sources of error (whatever they might be).
+         * Ah no, just allow it to be one rounding unit off :/
+         */
+        logger.trace("expectedNextDatetime {}, expectedNextDatetimeRounded {}, msg.getObservationTime() {}",
+                expectedNextDatetime, expectedNextDatetimeRounded, msg.getObservationTime());
+        long allowedGapMicros = 1000;
+    //                double allowedGapMicros = samplePeriodMicros * 0.05;
+        if (Math.abs(gapSizeMicros) > allowedGapMicros && Math.abs(gapSizeToRoundedMicros) > allowedGapMicros) {
+            logger.info("Key {}, Gap too big ({} microsecs vs rounded, {} vs unrounded)",
+                    makeKey(msg), gapSizeToRoundedMicros, gapSizeMicros);
+            return msg.getObservationTime();
+        }
+
         return null;
+    }
+
+    class CollationException extends Throwable {
+        CollationException(String format) {
+        }
     }
 }
