@@ -36,24 +36,31 @@ public class WaveformCollator {
      */
     public void addMessages(List<WaveformMessage> messagesToAdd) throws CollationException {
         /*
-         * Will probably need per-patient locks otherwise the threads won't be able to do much.
-         * But that will complicate iterating.
+         * Lock the whole structure because we may add items here, and mustn't simultaneously iterate over it
+         * in the reader thread.
+         * Also take out lock on the per-patient data, because we may be trying to collate at the same time as
+         * we're adding here.
+         * This could be improved further by doing computeIfAbsent at the top outside the loop, and thus
+         * avoiding holding the pendingMessages lock for too long. (Relying on all being for same patient, and
+         * thus maximum one item will need adding).
          */
-        synchronized (this) {
+        synchronized (pendingMessages) {
             for (var msg : messagesToAdd) {
                 // can we optimise on the basis that all messages in the list will have the same key?
                 Pair<String, String> messageKey = makeKey(msg);
                 SortedMap<Instant, WaveformMessage> existingMessages = pendingMessages.computeIfAbsent(
                         messageKey, k -> new TreeMap<>());
-                Instant observationTime = msg.getObservationTime();
-                // messages may arrive out of order, but TreeMap will keep them sorted by obs time
-                WaveformMessage existing = existingMessages.get(observationTime);
-                if (existing != null) {
-                    // in future we may want to compare them and only log error if they differ
-                    throw new CollationException(String.format("Would replace message with time %s: %s",
-                            observationTime, existing));
+                synchronized (existingMessages) {
+                    Instant observationTime = msg.getObservationTime();
+                    // messages may arrive out of order, but TreeMap will keep them sorted by obs time
+                    WaveformMessage existing = existingMessages.get(observationTime);
+                    if (existing != null) {
+                        // in future we may want to compare them and only log error if they differ
+                        throw new CollationException(String.format("Would replace message with time %s: %s",
+                                observationTime, existing));
+                    }
+                    existingMessages.put(observationTime, msg);
                 }
-                existingMessages.put(observationTime, msg);
             }
         }
     }
@@ -82,18 +89,28 @@ public class WaveformCollator {
         logger.info("Pending messages: {} location+stream combos (of which {} non-empty), {} total samples",
                 pendingMessages.size(),
                 pendingMessages.values().stream().filter(pm -> !pm.isEmpty()).count(),
-                pendingMessages.values().stream().map(Map::size).reduce(Integer::sum).get());
-        synchronized (this) {
-            for (SortedMap<Instant, WaveformMessage> perPatientMap: pendingMessages.values()) {
-                while (true) {
-                    // There can be zero to multiple chunks that need turning into messages
-                    WaveformMessage newMsg = collateContiguousData(perPatientMap, nowTime,
+                pendingMessages.values().stream().map(Map::size).reduce(Integer::sum).orElse(0));
+        List<SortedMap<Instant, WaveformMessage>> pendingMessagesSnapshot;
+        synchronized (pendingMessages) {
+            // Here we (briefly) iterate over pendingMessages, so take out a lock to prevent
+            // undefined behaviour should we happen to be simultaneously adding items to this map.
+            // (Note that items are never deleted)
+            pendingMessagesSnapshot = new ArrayList<>(pendingMessages.values());
+        }
+        // The snapshot may become slightly out of date, but that's fine because it allows
+        // more fine-grained locking to take place here.
+        for (SortedMap<Instant, WaveformMessage> perPatientMap: pendingMessagesSnapshot) {
+            while (true) {
+                // There can be zero to multiple chunks that need turning into messages
+                WaveformMessage newMsg;
+                synchronized (perPatientMap) {
+                    newMsg = collateContiguousData(perPatientMap, nowTime,
                             targetCollatedMessageSamples, waitForDataLimitMillis, assumedRounding);
-                    if (newMsg == null) {
-                        break;
-                    } else {
-                        newMessages.add(newMsg);
-                    }
+                }
+                if (newMsg == null) {
+                    break;
+                } else {
+                    newMessages.add(newMsg);
                 }
             }
         }
