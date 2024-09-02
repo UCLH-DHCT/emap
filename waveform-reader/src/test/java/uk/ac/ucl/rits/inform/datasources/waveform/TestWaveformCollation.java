@@ -15,7 +15,9 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,45 +49,57 @@ public class TestWaveformCollation {
         return uncollatedMsgs;
     }
 
-    private List<WaveformMessage> makeTestMessagesWithGap() {
+    // return the one that didn't get added, in case you want to add it later
+    private WaveformMessage makeAndAddTestMessagesWithGap() throws WaveformCollator.CollationException {
         List<WaveformMessage> inputMessages = makeTestMessages();
         WaveformMessage removed = inputMessages.remove(300);
-        return inputMessages;
+        Collections.shuffle(inputMessages, new Random(42));
+        waveformCollator.addMessages(inputMessages);
+        return removed;
     }
 
     static Stream<Arguments> noGapsData() {
         // We are adjusting the target number of samples config option rather than
         // the actual number of samples supplied, which may be a bit unintuitive but
-        // amounts to the same thing.
+        // is easier and amounts to the same thing.
         return Stream.of(
                 // only just happened
-                Arguments.of(3000, 10000, 1, 0),
-                Arguments.of(3001, 10000, 0, 600),
-                Arguments.of(2995, 10000, 1, 1),
-                Arguments.of(2996, 10000, 1, 1),
-                Arguments.of(1400, 10000, 2, 40),
+                Arguments.of(3000, 10000, List.of(3000), 0),
+                Arguments.of(3001, 10000, List.of(), 600),
+                Arguments.of(2995, 10000, List.of(2995), 1),
+                Arguments.of(2996, 10000, List.of(2995), 1),
+                Arguments.of(1400, 10000, List.of(1400, 1400), 40),
                 // comfortably in past
-                Arguments.of(3000, 25000, 1, 0),
-                Arguments.of(3001, 25000, 1, 0),
-                Arguments.of(2995, 25000, 2, 0),
-                Arguments.of(2996, 25000, 2, 0),
-                Arguments.of(1400, 25000, 3, 0)
+                Arguments.of(3000, 25000, List.of(3000), 0),
+                Arguments.of(3001, 25000, List.of(3000), 0),
+                Arguments.of(2995, 25000, List.of(2995, 5), 0),
+                Arguments.of(2996, 25000, List.of(2995, 5), 0),
+                Arguments.of(1400, 25000, List.of(1400, 1400, 200), 0)
         );
     }
 
-    // no gaps, but possible breaking into multiple messages due to sample limit
+    /**
+     * Test with no gaps in the source data, but will still be broken into multiple messages due to sample limit.
+     *
+     * @param targetNumSamples the limit for splitting messages
+     * @param nowAfterFirstMessageMillis when to perform the test (the "now" time), expressed in millis after the
+     *                                   observation time of the first message
+     * @param expectedNewMessageSampleCounts number of elements defines expected number of messages, and the value is
+     *                                       the number of samples each returned message is expected to have
+     * @param expectedRemainingMessages how many messages (not samples) are expected to remain uncollated
+     */
     @ParameterizedTest
     @MethodSource("noGapsData")
     void noGaps(
             int targetNumSamples,
             int nowAfterFirstMessageMillis,
-            int expectedNewMessages,
+            List<Integer> expectedNewMessageSampleCounts,
             int expectedRemainingMessages) throws WaveformCollator.CollationException {
-
         int waitForDataLimitMillis = 15000;
         ChronoUnit assumedRounding = ChronoUnit.MILLIS;
         // GIVEN some uncollated messages (straight from HL7)
         List<WaveformMessage> inputMessages = makeTestMessages();
+        Collections.shuffle(inputMessages, new Random(42));
         waveformCollator.addMessages(inputMessages);
         Pair<String, String> keyOfInterest = new ImmutablePair<>("UCHT03TEST", "59912");
         assertEquals(1, waveformCollator.pendingMessages.size());
@@ -97,7 +111,9 @@ public class TestWaveformCollation {
                 now, targetNumSamples, waitForDataLimitMillis, assumedRounding);
 
         // THEN the messages have been combined into much fewer messages and the pending list is smaller or empty
-        assertEquals(expectedNewMessages, collatedMsgs.size());
+        assertEquals(expectedNewMessageSampleCounts.size(), collatedMsgs.size());
+        List<Integer> actualSampleCounts = collatedMsgs.stream().map(m -> m.getNumericValues().get().size()).toList();
+        assertEquals(expectedNewMessageSampleCounts, actualSampleCounts);
         assertEquals(expectedRemainingMessages, waveformCollator.pendingMessages.get(keyOfInterest).size());
 
         // getting again doesn't get any more messages
@@ -106,43 +122,59 @@ public class TestWaveformCollation {
         assertEquals(0, collatedMsgsRepeat.size());
     }
 
-    static Stream<Arguments> waitForMissingMessagesData() {
+    static Stream<Arguments> gapInMessagesData() {
         return Stream.of(
-                // the exact cutoff is not critical
-                Arguments.of(19999, 0),
-                Arguments.of(20001, 1),
-                Arguments.of(24999, 1),
-                Arguments.of(25001, 2)
+                // > vs >= is not a big deal
+
+                // Not enough time has passed so no collation at first. Missing message returns before any collation,
+                // so we get all 3000 in one message on the second attempt.
+                Arguments.of(19999, List.of(), List.of(3000)),
+                // One message got collated initially. Missing message returns and is collated with the second chunk.
+                Arguments.of(20001, List.of(1500), List.of(1500)),
+                Arguments.of(24999, List.of(1500), List.of(1500)),
+                // Both messages got collated initially. When the missing message returns there is no data left so
+                // it's "collated" by itself.
+                Arguments.of(25001, List.of(1500, 1495), List.of(5))
         );
     }
     @ParameterizedTest
-    @MethodSource("waitForMissingMessagesData")
-    void waitForMissingMessages( int millisAfter, int expectedSize) throws WaveformCollator.CollationException {
+    @MethodSource("gapInMessagesData")
+    void gapInMessages(
+            int millisAfter,
+            List<Integer> expectedSampleSizes,
+            List<Integer> expectedSampleSizesAfterLateMessage) throws WaveformCollator.CollationException {
         int waitForDataLimitMillis = 15000;
         int targetCollatedMessageSamples = 3000;
-        List<WaveformMessage> inputMessages = makeTestMessagesWithGap();
-        waveformCollator.addMessages(inputMessages);
+        WaveformMessage removedMessage = makeAndAddTestMessagesWithGap();
         // We started with ~10 seconds of data, with a gap halfway. The default wait limit is 15 seconds after the gap,
         // which is therefore 20 seconds after the first set of data, and 25 seconds after the second set.
         Instant now = messageStartDatetime.plus(millisAfter, ChronoUnit.MILLIS);
         List<WaveformMessage> readyMessages = waveformCollator.getReadyMessages(
                 now, targetCollatedMessageSamples, waitForDataLimitMillis, ChronoUnit.MILLIS);
 
-        // The gap means that there isn't a solid chunk of waitForDataLimitMillis of data, so nothing should have been taken out.
-        // Enough time has now passed that we should have given up on the data ever appearing, so collate it anyway.
-        // We still can't straddle the gap within a single message, so make two messages.
-        assertEquals(expectedSize, readyMessages.size());
-    }
+        /* The gap means that instead of a solid chunk of 3000 samples of data (600 messages),
+         * there is one chunk of 1500 samples and one of 1495.
+         * If not enough time has passed, we will collate nothing.
+         * Even if enough time has passed that we will allow the message size to be under the usual threshold,
+         * we still can't straddle the gap within a single message, so make two messages of 1500 + 1495, or
+         * one of 1500 if only a moderate amount of time has passed.
+         */
+        assertEquals(expectedSampleSizes.size(), readyMessages.size());
+        List<Integer> actualSampleSizes = readyMessages.stream().map(m -> m.getNumericValues().get().size()).toList();
+        assertEquals(expectedSampleSizes, actualSampleSizes);
 
-    void multipleMessagesWithMissing() {
-        // both the message size limit and a gap contribute to the multiple messages being formed.
-    }
+        // The missing message has now turned up!
+        waveformCollator.addMessages(List.of(removedMessage));
 
-
-    void givingUpOnMissingMessages() {
-    }
-
-    void givingUpOnMissingMessagesThenDataSubsequentlyArrives() {
+        // Sufficiently far in the future, get messages again and see that collation happens where possible
+        Instant now2 = now.plus(waitForDataLimitMillis, ChronoUnit.MILLIS);
+        List<WaveformMessage> secondBatchMessages = waveformCollator.getReadyMessages(
+                now2, targetCollatedMessageSamples, waitForDataLimitMillis, ChronoUnit.MILLIS);
+        List<Integer> actualSampleSizes2 = secondBatchMessages.stream().map(m -> m.getNumericValues().get().size()).toList();
+        assertEquals(expectedSampleSizesAfterLateMessage.size(), secondBatchMessages.size());
+        assertEquals(expectedSampleSizesAfterLateMessage, actualSampleSizes2);
+        Pair<String, String> keyOfInterest = new ImmutablePair<>("UCHT03TEST", "59912");
+        assertEquals(0, waveformCollator.pendingMessages.get(keyOfInterest).size());
     }
 
 }
