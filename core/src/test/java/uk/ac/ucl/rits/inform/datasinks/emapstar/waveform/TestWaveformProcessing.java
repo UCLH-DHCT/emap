@@ -161,9 +161,6 @@ class TestWaveformProcessing extends MessageProcessingBase {
         assertEquals(Arrays.stream(allTests).map(d -> d.numSamples).reduce(Integer::sum).get(), totalObservedNumSamples);
         // XXX: do more with this
         List<VisitObservationType> allWaveformVO = visitObservationTypeRepository.findAllBySourceObservationType("waveform");
-        for (var vo: allWaveformVO) {
-            System.out.println("JES: " + vo.toString());
-        }
         assertEquals(2, allWaveformVO.size());
     }
 

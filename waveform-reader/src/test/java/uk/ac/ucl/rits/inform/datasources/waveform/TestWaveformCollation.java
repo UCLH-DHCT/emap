@@ -53,9 +53,17 @@ public class TestWaveformCollation {
     private WaveformMessage makeAndAddTestMessagesWithGap() throws WaveformCollator.CollationException {
         List<WaveformMessage> inputMessages = makeTestMessages();
         WaveformMessage removed = inputMessages.remove(300);
+        // they must work in any order
         Collections.shuffle(inputMessages, new Random(42));
         waveformCollator.addMessages(inputMessages);
         return removed;
+    }
+
+    private void makeAndAddTestMessages() throws WaveformCollator.CollationException {
+        List<WaveformMessage> inputMessages = makeTestMessages();
+        // they must work in any order
+        Collections.shuffle(inputMessages, new Random(42));
+        waveformCollator.addMessages(inputMessages);
     }
 
     static Stream<Arguments> noGapsData() {
@@ -98,9 +106,7 @@ public class TestWaveformCollation {
         int waitForDataLimitMillis = 15000;
         ChronoUnit assumedRounding = ChronoUnit.MILLIS;
         // GIVEN some uncollated messages (straight from HL7)
-        List<WaveformMessage> inputMessages = makeTestMessages();
-        Collections.shuffle(inputMessages, new Random(42));
-        waveformCollator.addMessages(inputMessages);
+        makeAndAddTestMessages();
         Pair<String, String> keyOfInterest = new ImmutablePair<>("UCHT03TEST", "59912");
         assertEquals(1, waveformCollator.pendingMessages.size());
         assertEquals(600, waveformCollator.pendingMessages.get(keyOfInterest).size());

@@ -228,8 +228,9 @@ public class WaveformCollator {
          */
         logger.trace("expectedNextDatetime {}, expectedNextDatetimeRounded {}, msg.getObservationTime() {}",
                 expectedNextDatetime, expectedNextDatetimeRounded, msg.getObservationTime());
-        long allowedGapMicros = 1000;
-    //                double allowedGapMicros = samplePeriodMicros * 0.05;
+
+        // if it has been rounded to the millisecond, allow it to be one millisecond out, and so on
+        long allowedGapMicros = assumedRounding.getDuration().toNanos() / 1000;
         if (Math.abs(gapSizeMicros) > allowedGapMicros && Math.abs(gapSizeToRoundedMicros) > allowedGapMicros) {
             logger.info("Key {}, Gap too big ({} microsecs vs rounded, {} vs unrounded)",
                     makeKey(msg), gapSizeToRoundedMicros, gapSizeMicros);

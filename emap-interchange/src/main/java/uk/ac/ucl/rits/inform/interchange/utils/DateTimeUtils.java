@@ -11,18 +11,18 @@ public final class DateTimeUtils {
 
     /**
      * Round Instant to the nearest time unit using normal convention of halfway rounds up.
-     * @param obsDatetime Instant to round
+     * @param instant Instant to round
      * @param roundToUnit what ChronoUnit to round to, or null to return the original timestamp
      * @return the rounded Instant
      */
-    public static Instant roundInstantToNearest(Instant obsDatetime, ChronoUnit roundToUnit) {
+    public static Instant roundInstantToNearest(Instant instant, ChronoUnit roundToUnit) {
         if (roundToUnit == null) {
-            return obsDatetime;
+            return instant;
         }
         // determine whether to round up or down
-        Instant roundedDown = obsDatetime.truncatedTo(roundToUnit);
-        Instant roundedUp = obsDatetime.plus(1, roundToUnit).truncatedTo(roundToUnit);
-        if (obsDatetime.until(roundedUp, ChronoUnit.NANOS) > roundedDown.until(obsDatetime, ChronoUnit.NANOS)) {
+        Instant roundedDown = instant.truncatedTo(roundToUnit);
+        Instant roundedUp = instant.plus(1, roundToUnit).truncatedTo(roundToUnit);
+        if (instant.until(roundedUp, ChronoUnit.NANOS) > roundedDown.until(instant, ChronoUnit.NANOS)) {
             return roundedDown;
         } else {
             return roundedUp;
