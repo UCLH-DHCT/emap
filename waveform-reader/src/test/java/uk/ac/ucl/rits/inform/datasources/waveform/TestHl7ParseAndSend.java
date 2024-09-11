@@ -34,9 +34,18 @@ class TestHl7ParseAndSend {
         List<WaveformMessage> msgs = hl7ParseAndSend.parseHl7(hl7String);
         assertEquals(5, msgs.size());
         assertTrue(msgs.stream().allMatch(m -> m.getSourceLocationString().equals("UCHT03TEST")));
+        // XXX: Fix in issue #41
+        assertTrue(msgs.stream().allMatch(m -> m.getMappedLocationString().equals("UCHT03TEST")));
         assertEquals(
-                List.of("59912", "59913", "59914", "59915", "59916"),
-                msgs.stream().map(m -> m.getSourceStreamId()).toList());
+                List.of("52912", "52913", "27", "51911", "52921"),
+                msgs.stream().map(WaveformMessage::getSourceStreamId).toList());
+        assertEquals(
+                List.of("Airway Volume Waveform", "Airway Pressure Waveform", "Generic ECG Waveform",
+                        "O2 Pleth Waveform", "ETCO2"),
+                msgs.stream().map(WaveformMessage::getMappedStreamDescription).toList());
+        assertEquals(
+                List.of(50, 50, 300, 100, 25),
+                msgs.stream().map(WaveformMessage::getSamplingRate).toList());
         List<String> distinctMessageIds = msgs.stream().map(m -> m.getSourceMessageId()).distinct().toList();
         assertEquals(msgs.size(), distinctMessageIds.size());
         var expectedValues = List.of(
