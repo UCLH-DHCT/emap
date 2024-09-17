@@ -181,7 +181,7 @@ public class Hl7Generator {
             long microsAfterStart = overallSampleIdx * 1000_000 / samplingRate;
             Instant messageStartTime = startTime.plus(microsAfterStart, ChronoUnit.MICROS);
             String timeStr = DateTimeFormatter.ofPattern("HHmmss").format(startTime.atOffset(ZoneOffset.UTC));
-            String messageId = String.format("%s_t%s_msg%05d", locationId, timeStr, overallSampleIdx);
+            String messageId = String.format("%s_s%s_t%s_msg%05d", locationId, streamId, timeStr, overallSampleIdx);
 
             var values = new ArrayList<Double>();
             for (long valueIdx = 0;
