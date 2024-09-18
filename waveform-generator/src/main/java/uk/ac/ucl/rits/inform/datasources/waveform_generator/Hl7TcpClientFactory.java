@@ -17,6 +17,10 @@ public class Hl7TcpClientFactory {
     @Value("${waveform.hl7.send_port}")
     private int tcpPort;
 
+    public Hl7TcpClientPool createTcpClientPool(int poolSize) throws IOException {
+        return new Hl7TcpClientPool(tcpHost, tcpPort, poolSize);
+    }
+
     public Hl7TcpClient createTcpClient() throws IOException {
         return new Hl7TcpClient(tcpHost, tcpPort);
     }

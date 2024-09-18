@@ -42,6 +42,9 @@ public class Hl7Generator {
     @Value("${test.synthetic.end_datetime:#{null}}")
     private Instant endDatetime;
 
+    @Value("${test.synthetic.tcp_client_pool_size:1}")
+    private int tcpClientPoolSize;
+
     /**
      * defaults that need to be computed.
      */
@@ -63,25 +66,39 @@ public class Hl7Generator {
 
 
     /**
-     * Every one minute post a simulated batch of one minute's worth of data (times warp factor).
+     * Every (approx) N seconds post a simulated batch of N seconds worth of data (times warp factor).
      * Assume a given number of patients, each with a 300Hz and a 50Hz machine.
      * @throws IOException on networking error
      */
-    @Scheduled(fixedRate = 60 * 1000)
+    @Scheduled(fixedRate = 5 * 1000)
     public void generateMessages() throws IOException {
         var start = Instant.now();
         // Usually if this method runs every N seconds, you would want to generate N
         // seconds worth of data. However, for non-live tests such as validation runs,
         // you may be processing (eg.) a week's worth of data in only a few hours,
-        // so it makes sense to turn up this rate to generate about the same amount of data.
-        int numMillis = 60 * 1000;
+        // so it makes sense to turn up the warp factor to generate a larger amount of data.
+        int numMillis = 5 * 1000;
         logger.info("Starting scheduled message dump (from {} for {} milliseconds)", startDatetime, numMillis);
         boolean shouldExit = false;
         for (int warpIdx = 0; warpIdx < warpFactor; warpIdx++) {
+            logger.info("Making HL7 messages");
             List<String> synthMsgs = makeSyntheticWaveformMsgsAllPatients(startDatetime, numPatients, numMillis);
             logger.info("Sending {} HL7 messages", synthMsgs.size());
+            // To avoid the worker threads in the reader being blocked trying to write to the
+            // same location+stream at the same time, shuffling the list might be a good idea.
+            // However, it can lead to fragmentation if numMillis is too large,
+            // because time-adjacent data might be very far apart in the list. So there might be a way to make it
+            // work by doing a greater number of smaller dumps by keeping numMillis below the message collation
+            // threshold. Let's leave this performance tweaking until later.
+//            Collections.shuffle(synthMsgs);
 
-            try (Hl7TcpClient tcpClient = hl7TcpClientFactory.createTcpClient()) {
+            /*
+             * It seems like Spring Integration on the waveform-reader side won't properly multithread handlers
+             * for messages that all come in on a single connection. So create multiple connections here.
+             * However, in production we won't have control over the TCP client,
+             * so we will have to fix the waveform-reader eventually.
+             */
+            try (Hl7TcpClientPool tcpClient = hl7TcpClientFactory.createTcpClientPool(tcpClientPoolSize)) {
                 for (var msgStr : synthMsgs) {
                     byte[] messageBytes = msgStr.getBytes(StandardCharsets.UTF_8);
                     logger.debug("About to send message of size {} bytes", messageBytes.length);
@@ -89,6 +106,7 @@ public class Hl7Generator {
                     tcpClient.sendMessage(messageBytes);
                 }
             }
+            logger.info("Done sending {} HL7 messages", synthMsgs.size());
 
             startDatetime = startDatetime.plus(numMillis, ChronoUnit.MILLIS);
             if (endDatetime != null && startDatetime.isAfter(endDatetime)) {

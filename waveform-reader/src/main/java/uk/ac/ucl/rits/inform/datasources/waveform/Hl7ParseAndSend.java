@@ -24,10 +24,10 @@ import java.util.Optional;
 @Component
 public class Hl7ParseAndSend {
     private final Logger logger = LoggerFactory.getLogger(Hl7ParseAndSend.class);
-
     private final WaveformOperations waveformOperations;
     private final WaveformCollator waveformCollator;
     private final SourceMetadata sourceMetadata;
+    private long numHl7 = 0;
 
     Hl7ParseAndSend(WaveformOperations waveformOperations,
                     WaveformCollator waveformCollator,
@@ -139,6 +139,14 @@ public class Hl7ParseAndSend {
 
         logger.trace("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
         waveformCollator.addMessages(msgs);
+        numHl7++;
+        if (numHl7 % 5000 == 0) {
+            logger.debug("Have parsed and queued {} HL7 messages in total, {} pending messages, "
+                            + " {} pending samples",
+                    numHl7,
+                    waveformCollator.getPendingMessageCount(),
+                    waveformCollator.getPendingSampleCount());
+        }
     }
 
     @Setter
@@ -158,12 +166,15 @@ public class Hl7ParseAndSend {
      */
     @Scheduled(fixedDelay = 10 * 1000)
     public void collateAndSend() throws InterruptedException, WaveformCollator.CollationException {
+        logger.debug("{} uncollated waveform messages pending", waveformCollator.pendingMessages.size());
         List<WaveformMessage> msgs = waveformCollator.getReadyMessages(
                 Instant.now(), maxCollatedMessageSamples, waitForDataLimitMillis, assumedRounding);
-        logger.info("{} Waveform messages ready for sending", msgs.size());
+        logger.info("{} collated waveform messages ready for sending", msgs.size());
         for (var m: msgs) {
             // consider sending to publisher in batches?
             waveformOperations.sendMessage(m);
         }
+        logger.info("collateAndSend end");
     }
+
 }
