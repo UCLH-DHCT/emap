@@ -39,8 +39,7 @@ public class Hl7ParseAndSend {
 
     List<WaveformMessage> parseHl7(String messageAsStr) throws Hl7ParseException {
         List<WaveformMessage> allWaveformMessages = new ArrayList<>();
-        logger.info("Parsing message of size {}", messageAsStr.length());
-        Instant start = Instant.now();
+        logger.debug("Parsing message of size {}", messageAsStr.length());
         Hl7Message message = new Hl7Message(messageAsStr);
         String messageIdBase = message.getField("MSH", 10);
         String pv1LocationId = message.getField("PV1", 3);
@@ -63,7 +62,7 @@ public class Hl7ParseAndSend {
                     throw new Hl7ParseException("Unexpected location " + locationId + "|" + pv1LocationId);
                 }
 
-                logger.info("Parsing datetime {}", obsDatetimeStr);
+                logger.trace("Parsing datetime {}", obsDatetimeStr);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSSZZ");
                 TemporalAccessor ta = formatter.parse(obsDatetimeStr);
                 Instant obsDatetime = Instant.from(ta);
@@ -102,10 +101,6 @@ public class Hl7ParseAndSend {
             }
         }
 
-        Instant afterParse2 = Instant.now();
-        logger.info("Timing: message length {}, parse {} ms",
-                messageAsStr.length(),
-                start.until(afterParse2, ChronoUnit.MILLIS));
         return allWaveformMessages;
     }
 
@@ -142,7 +137,7 @@ public class Hl7ParseAndSend {
     public void parseAndQueue(String messageAsStr) throws Hl7ParseException, WaveformCollator.CollationException {
         List<WaveformMessage> msgs = parseHl7(messageAsStr);
 
-        logger.info("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
+        logger.trace("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
         waveformCollator.addMessages(msgs);
     }
 

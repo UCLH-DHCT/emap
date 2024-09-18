@@ -84,7 +84,7 @@ public class Hl7Generator {
             try (Hl7TcpClient tcpClient = hl7TcpClientFactory.createTcpClient()) {
                 for (var msgStr : synthMsgs) {
                     byte[] messageBytes = msgStr.getBytes(StandardCharsets.UTF_8);
-                    logger.info("About to send message of size {} bytes", messageBytes.length);
+                    logger.debug("About to send message of size {} bytes", messageBytes.length);
                     logger.trace("Message = {}", messageBytes);
                     tcpClient.sendMessage(messageBytes);
                 }
