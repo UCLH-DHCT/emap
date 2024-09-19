@@ -25,48 +25,49 @@ public class WaveformCollator {
     private final Logger logger = LoggerFactory.getLogger(WaveformCollator.class);
     protected final Map<Pair<String, String>, SortedMap<Instant, WaveformMessage>> pendingMessages = new HashMap<>();
 
-    private Pair<String, String> makeKey(WaveformMessage msg) {
+    Pair<String, String> makeKey(WaveformMessage msg) {
         return new ImmutablePair<>(msg.getSourceLocationString(), msg.getSourceStreamId());
     }
 
     /**
      * Add short messages from the same patient for collating.
-     * @param messagesToAdd messages to add, must all be for same patient
+     * @param messagesToAdd messages to add, can be for different location+stream
      * @throws CollationException if a message duplicates another message
-     * @throws IllegalArgumentException .
      */
     public void addMessages(List<WaveformMessage> messagesToAdd) throws CollationException {
-        /*
-         * Lock the whole structure because we may add entries here, and mustn't simultaneously iterate over it
-         * in the reader thread.
-         * Then take out lock on the per-patient data, because we may be trying to collate at the same time as
-         * we're adding here.
-         */
-        // XXX: Can't there be multiple streams (for the same location)? Might need to loop over
-        // the list rather than insist it only have one element.
-        List<Pair<String, String>> messageKeys = messagesToAdd.stream().map(this::makeKey).distinct().toList();
-        if (messageKeys.size() != 1) {
-            throw new IllegalArgumentException(String.format("Must only be one distinct message key, got %d: %s",
-                    messageKeys.size(), messageKeys));
-        }
-        Pair<String, String> messageKey = messageKeys.get(0);
-        // lock the entire structure as briefly as possible, only to add the new entry if it doesn't exist
-        SortedMap<Instant, WaveformMessage> existingMessages;
-        synchronized (pendingMessages) {
-            existingMessages = pendingMessages.computeIfAbsent(messageKey, k -> new TreeMap<>());
+        Map<Pair<String, String>, List<WaveformMessage>> messagesToAddByKey = new HashMap<>();
+        for (WaveformMessage toAdd: messagesToAdd) {
+            Pair<String, String> key = makeKey(toAdd);
+            messagesToAddByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(toAdd);
         }
 
-        // The bulk of time is spent only with a lock held on the data structure specific to
-        // the location+stream, thus enabling more parallelism.
-        synchronized (existingMessages) {
-            for (var msg : messagesToAdd) {
-                Instant observationTime = msg.getObservationTime();
-                // messages may arrive out of order, but TreeMap will keep them sorted by obs time
-                WaveformMessage existing = existingMessages.put(observationTime, msg);
-                if (existing != null) {
-                    // in future we may want to compare them and only log error if they differ
-                    throw new CollationException(String.format("Already existing message with time %s: %s",
-                            observationTime, existing));
+        /* Lock the entire structure as briefly as possible, only to add new entries that don't exist.
+         * Lock because we mustn't simultaneously iterate over it in the reader thread.
+         */
+        synchronized (pendingMessages) {
+            for (var key: messagesToAddByKey.keySet()) {
+                pendingMessages.computeIfAbsent(key, k -> new TreeMap<>());
+            }
+        }
+
+        /* The bulk of time is spent only with a lock held on the data structure specific to
+         * the location+stream, thus enabling more parallelism.
+         * Need lock because we may be trying to collate at the same time as we're adding here.
+         * Group together all the messages for a particular location+stream, so that the lock
+         * for each one only needs to be taken out once.
+         */
+        for (var key: messagesToAddByKey.keySet()) {
+            SortedMap<Instant, WaveformMessage> existingMessages = pendingMessages.get(key);
+            synchronized (existingMessages) {
+                for (WaveformMessage msg: messagesToAddByKey.get(key)) {
+                    Instant observationTime = msg.getObservationTime();
+                    // messages may arrive out of order, but TreeMap will keep them sorted by obs time
+                    WaveformMessage existing = existingMessages.put(observationTime, msg);
+                    if (existing != null) {
+                        // in future we may want to compare them and only log error if they differ
+                        throw new CollationException(String.format("Already existing message with time %s: %s",
+                                observationTime, existing));
+                    }
                 }
             }
         }

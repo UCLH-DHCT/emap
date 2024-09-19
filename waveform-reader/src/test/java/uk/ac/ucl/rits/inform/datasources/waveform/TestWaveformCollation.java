@@ -41,11 +41,20 @@ public class TestWaveformCollation {
     }
 
     List<WaveformMessage> makeTestMessages() {
+        // Check that we can handle adding messages from different streams,
+        // as would be found in a real HL7 message
         List<WaveformMessage> uncollatedMsgs = messageFactory.getWaveformMsgs(
                 "59912", "something1",
                 300, 3000, 5, "UCHT03TEST",
                 "", messageStartDatetime, ChronoUnit.MILLIS);
-        assertEquals(600, uncollatedMsgs.size());
+        List<WaveformMessage> uncollatedMsgs2 = messageFactory.getWaveformMsgs(
+                "59913", "something2",
+                300, 3000, 5, "UCHT03TEST",
+                "",
+                messageStartDatetime, //.plus(5500, ChronoUnit.MILLIS),
+                ChronoUnit.MILLIS);
+        uncollatedMsgs.addAll(uncollatedMsgs2);
+        assertEquals(1200, uncollatedMsgs.size());
         return uncollatedMsgs;
     }
 
@@ -108,13 +117,16 @@ public class TestWaveformCollation {
         // GIVEN some uncollated messages (straight from HL7)
         makeAndAddTestMessages();
         Pair<String, String> keyOfInterest = new ImmutablePair<>("UCHT03TEST", "59912");
-        assertEquals(1, waveformCollator.pendingMessages.size());
+        assertEquals(2, waveformCollator.pendingMessages.size());
         assertEquals(600, waveformCollator.pendingMessages.get(keyOfInterest).size());
 
         // WHEN I collate the messages (which may be comfortably in the past, or have only just happened)
         Instant now = messageStartDatetime.plus(nowAfterFirstMessageMillis, assumedRounding);
-        List<WaveformMessage> collatedMsgs = waveformCollator.getReadyMessages(
+        List<WaveformMessage> allCollatedMsgs = waveformCollator.getReadyMessages(
                 now, targetNumSamples, waitForDataLimitMillis, assumedRounding);
+        // only test messages from one stream
+        List<WaveformMessage> collatedMsgs =
+                allCollatedMsgs.stream().filter(msg -> waveformCollator.makeKey(msg).equals(keyOfInterest)).toList();
 
         // THEN the messages have been combined into much fewer messages and the pending list is smaller or empty
         assertEquals(expectedNewMessageSampleCounts.size(), collatedMsgs.size());
@@ -155,8 +167,12 @@ public class TestWaveformCollation {
         // We started with ~10 seconds of data, with a gap halfway. The default wait limit is 15 seconds after the gap,
         // which is therefore 20 seconds after the first set of data, and 25 seconds after the second set.
         Instant now = messageStartDatetime.plus(millisAfter, ChronoUnit.MILLIS);
-        List<WaveformMessage> readyMessages = waveformCollator.getReadyMessages(
+        List<WaveformMessage> allCollatedMsgs = waveformCollator.getReadyMessages(
                 now, targetCollatedMessageSamples, waitForDataLimitMillis, ChronoUnit.MILLIS);
+        Pair<String, String> keyOfInterest = new ImmutablePair<>("UCHT03TEST", "59912");
+        // only test messages from one stream
+        List<WaveformMessage> collatedMsgs =
+                allCollatedMsgs.stream().filter(msg -> waveformCollator.makeKey(msg).equals(keyOfInterest)).toList();
 
         /* The gap means that instead of a solid chunk of 3000 samples of data (600 messages),
          * there is one chunk of 1500 samples and one of 1495.
@@ -165,8 +181,8 @@ public class TestWaveformCollation {
          * we still can't straddle the gap within a single message, so make two messages of 1500 + 1495, or
          * one of 1500 if only a moderate amount of time has passed.
          */
-        assertEquals(expectedSampleSizes.size(), readyMessages.size());
-        List<Integer> actualSampleSizes = readyMessages.stream().map(m -> m.getNumericValues().get().size()).toList();
+        assertEquals(expectedSampleSizes.size(), collatedMsgs.size());
+        List<Integer> actualSampleSizes = collatedMsgs.stream().map(m -> m.getNumericValues().get().size()).toList();
         assertEquals(expectedSampleSizes, actualSampleSizes);
 
         // The missing message has now turned up!
@@ -179,7 +195,6 @@ public class TestWaveformCollation {
         List<Integer> actualSampleSizes2 = secondBatchMessages.stream().map(m -> m.getNumericValues().get().size()).toList();
         assertEquals(expectedSampleSizesAfterLateMessage.size(), secondBatchMessages.size());
         assertEquals(expectedSampleSizesAfterLateMessage, actualSampleSizes2);
-        Pair<String, String> keyOfInterest = new ImmutablePair<>("UCHT03TEST", "59912");
         assertEquals(0, waveformCollator.pendingMessages.get(keyOfInterest).size());
     }
 
