@@ -88,14 +88,14 @@ public class Hl7ListenerConfig {
     /**
      * Message handler. Source IP check has passed if we get here. No reply is expected.
      * @param msg the incoming message
-     * @throws InterruptedException if publisher send is interrupted
-     * @throws Hl7ParseException .
+     * @throws Hl7ParseException if HL7 is invalid or in a form that the ad hoc parser can't handle
+     * @throws WaveformCollator.CollationException if the data has a logical error that prevents collation
      */
     @ServiceActivator(inputChannel = "hl7Stream")
-    public void handler(Message<byte[]> msg) throws InterruptedException, Hl7ParseException {
+    public void handler(Message<byte[]> msg) throws Hl7ParseException, WaveformCollator.CollationException {
         byte[] asBytes = msg.getPayload();
         String asStr = new String(asBytes, StandardCharsets.UTF_8);
-        // parse message from HL7 to interchange message, send to publisher
-        hl7ParseAndSend.parseAndSend(asStr);
+        // parse message from HL7 to interchange message, send to internal queue
+        hl7ParseAndSend.parseAndQueue(asStr);
     }
 }

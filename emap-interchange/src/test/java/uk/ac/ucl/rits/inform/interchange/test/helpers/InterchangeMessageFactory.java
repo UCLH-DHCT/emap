@@ -36,6 +36,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+import static uk.ac.ucl.rits.inform.interchange.utils.DateTimeUtils.roundInstantToNearest;
+
 
 /**
  * Builds interchange messages from yaml files.
@@ -265,12 +267,14 @@ public class InterchangeMessageFactory {
      * @param sourceLocation bed location according to the original data
      * @param mappedLocation bed location according to data reader's interpretation of the original data
      * @param obsDatetime when the data occurred
+     * @param roundToUnit what precision to round obsDatetime to when creating messages (to be more realistic),
+     *                    or null to not perform rounding
      * @return list of messages containing synthetic data
      */
     public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, String mappedStreamName,
                                                  long samplingRate, final int numSamples, int maxSamplesPerMessage,
                                                  String sourceLocation, String mappedLocation,
-                                                 Instant obsDatetime) {
+                                                 Instant obsDatetime, ChronoUnit roundToUnit) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
         // Or should such a utility function go into (non-test) Interchange?
         List<WaveformMessage> allMessages = new ArrayList<>();
@@ -288,14 +292,14 @@ public class InterchangeMessageFactory {
                 values.add(Math.sin(i * 0.01));
             }
             waveformMessage.setNumericValues(new InterchangeValue<>(values));
-            waveformMessage.setObservationTime(obsDatetime);
+            Instant obsDatetimeRounded = roundInstantToNearest(obsDatetime, roundToUnit);
+            waveformMessage.setObservationTime(obsDatetimeRounded);
             allMessages.add(waveformMessage);
             samplesRemaining -= samplesThisMessage;
-            obsDatetime = obsDatetime.plus(samplesThisMessage * 1000_000 / samplingRate, ChronoUnit.MICROS);
+            obsDatetime = obsDatetime.plus(samplesThisMessage * 1000_000L / samplingRate, ChronoUnit.MICROS);
         }
         return allMessages;
     }
-
 
     /**
      * Utility wrapper for calling updateLabResults without updating the resultTime or epicCareOrderNumber.

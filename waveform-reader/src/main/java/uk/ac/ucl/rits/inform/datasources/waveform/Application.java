@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Spring application entry point.
@@ -14,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         "uk.ac.ucl.rits.inform.datasources.waveform",
         "uk.ac.ucl.rits.inform.interchange",
         })
-@EnableScheduling
 public class Application {
     private final Logger logger = LoggerFactory.getLogger(Application.class);
 
@@ -24,7 +22,6 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-
 
 
 }

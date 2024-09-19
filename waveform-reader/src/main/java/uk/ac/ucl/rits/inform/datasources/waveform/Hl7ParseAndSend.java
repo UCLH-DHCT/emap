@@ -1,7 +1,10 @@
 package uk.ac.ucl.rits.inform.datasources.waveform;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7Message;
 import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7ParseException;
@@ -22,14 +25,14 @@ public class Hl7ParseAndSend {
     private final Logger logger = LoggerFactory.getLogger(Hl7ParseAndSend.class);
 
     private final WaveformOperations waveformOperations;
+    private final WaveformCollator waveformCollator;
 
-    Hl7ParseAndSend(WaveformOperations waveformOperations) {
+    Hl7ParseAndSend(WaveformOperations waveformOperations,
+                    WaveformCollator waveformCollator) {
         this.waveformOperations = waveformOperations;
+        this.waveformCollator = waveformCollator;
     }
 
-    // XXX: this will have to be returning some kind of incomplete message form because
-    // we will be merging messages so they're big enough to prevent performance/storage
-    // problems in the core proc/DB
     List<WaveformMessage> parseHl7(String messageAsStr) throws Hl7ParseException {
         List<WaveformMessage> allWaveformMessages = new ArrayList<>();
         logger.info("Parsing message of size {}", messageAsStr.length());
@@ -70,7 +73,12 @@ public class Hl7ParseAndSend {
 
                 // XXX: Sampling rate is not in the message.
                 // Will be fixed by implementing issue #45.
-                Long samplingRate = Long.parseLong("42");
+                long samplingRate;
+                if (streamId.equals("59912")) {
+                    samplingRate = 50L;
+                } else {
+                    samplingRate = 300L;
+                }
 
                 String messageIdSpecific = String.format("%s_%d_%d", messageIdBase, obrI, obxI);
                 logger.debug("location {}, time {}, messageId {}, value count = {}",
@@ -95,8 +103,8 @@ public class Hl7ParseAndSend {
         WaveformMessage waveformMessage = new WaveformMessage();
         waveformMessage.setSamplingRate(samplingRate);
         waveformMessage.setSourceLocationString(locationId);
-        // XXX: need to perform location mapping here and set the mapped location
-        // XXX: ditto stream ID mapping
+        // XXX: need to perform location mapping here and set the mapped location (see Issue #41)
+        // XXX: ditto stream ID mapping (Issue #45)
         waveformMessage.setObservationTime(messageStartTime);
         waveformMessage.setSourceMessageId(messageId);
         waveformMessage.setSourceStreamId(sourceStreamId);
@@ -106,15 +114,38 @@ public class Hl7ParseAndSend {
     }
 
     /**
-     * Parse and publish an HL7 message.
+     * Parse an HL7 message and store the resulting WaveformMessage in the queue awaiting collation.
      * @param messageAsStr One HL7 message as a string
-     * @throws InterruptedException if publisher send is interrupted
-     * @throws Hl7ParseException .
+     * @throws Hl7ParseException if HL7 is invalid or in a form that the ad hoc parser can't handle
+     * @throws WaveformCollator.CollationException if the data has a logical error that prevents collation
      */
-    public void parseAndSend(String messageAsStr) throws InterruptedException, Hl7ParseException {
+    public void parseAndQueue(String messageAsStr) throws Hl7ParseException, WaveformCollator.CollationException {
         List<WaveformMessage> msgs = parseHl7(messageAsStr);
 
-        logger.info("HL7 message generated {} Waveform messages, sending", msgs.size());
+        logger.info("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
+        waveformCollator.addMessages(msgs);
+    }
+
+    @Setter
+    @Getter
+    private int maxCollatedMessageSamples = 3000;
+    @Setter
+    @Getter
+    private final ChronoUnit assumedRounding = ChronoUnit.MILLIS;
+    @Setter
+    @Getter
+    private int waitForDataLimitMillis = 15000;
+
+    /**
+     * Get collated messages, if any, and send them to the Publisher.
+     * @throws InterruptedException If the Publisher thread is interrupted
+     * @throws WaveformCollator.CollationException if the data has a logical error that prevents collation
+     */
+    @Scheduled(fixedDelay = 10 * 1000)
+    public void collateAndSend() throws InterruptedException, WaveformCollator.CollationException {
+        List<WaveformMessage> msgs = waveformCollator.getReadyMessages(
+                Instant.now(), maxCollatedMessageSamples, waitForDataLimitMillis, assumedRounding);
+        logger.info("{} Waveform messages ready for sending", msgs.size());
         for (var m: msgs) {
             // consider sending to publisher in batches?
             waveformOperations.sendMessage(m);

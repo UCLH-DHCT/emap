@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.visit_observations;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +11,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -59,6 +61,17 @@ public class WaveformMessage extends EmapOperationMessage {
      * Numeric value.
      */
     private InterchangeValue<List<Double>> numericValues = InterchangeValue.unknown();
+
+    /**
+     * @return expected observation datetime for the next message, if it exists and there are
+     * no gaps between messages
+     */
+    @JsonIgnore
+    public Instant getExpectedNextObservationDatetime() {
+        int numValues = numericValues.get().size();
+        long microsToAdd = 1_000_000L * numValues / samplingRate;
+        return observationTime.plus(microsToAdd, ChronoUnit.MICROS);
+    }
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).

@@ -164,7 +164,7 @@ public class Hl7Generator {
      * @param samplingRate in samples per second
      * @param numMillis number of milliseconds to produce data for
      * @param startTime observation time of the beginning of the period that the messages are to cover
-     * @param millisPerMessage max time per message (will split into multiple if needed)
+     * @param maxSamplesPerMessage max samples per message (will split into multiple messages if needed)
      * @return all messages
      */
     private List<String> makeSyntheticWaveformMsgs(final String locationId,
@@ -172,7 +172,7 @@ public class Hl7Generator {
                                                    final long samplingRate,
                                                    final long numMillis,
                                                    final Instant startTime,
-                                                   final long millisPerMessage
+                                                   final long maxSamplesPerMessage
     ) {
         List<String> allMessages = new ArrayList<>();
         final long numSamples = numMillis * samplingRate / 1000;
@@ -184,9 +184,8 @@ public class Hl7Generator {
             String messageId = String.format("%s_t%s_msg%05d", locationId, timeStr, overallSampleIdx);
 
             var values = new ArrayList<Double>();
-            long samplesPerMessage = samplingRate * millisPerMessage / 1000;
             for (long valueIdx = 0;
-                 valueIdx < samplesPerMessage && overallSampleIdx < numSamples;
+                 valueIdx < maxSamplesPerMessage && overallSampleIdx < numSamples;
                  valueIdx++, overallSampleIdx++) {
                 // a sine wave between maxValue and -maxValue
                 values.add(2 * maxValue * Math.sin(overallSampleIdx * 0.01) - maxValue);
@@ -215,22 +214,18 @@ public class Hl7Generator {
         List<String> waveformMsgs = new ArrayList<>();
         for (int p = 0; p < numPatients; p++) {
             var location = String.format("Bed%03d", p);
-            String streamId1 = "52912";
-            String streamId2 = "52913";
-            final long millisPerMessage = 10000;
+            String streamId1 = "59912";
+            String streamId2 = "59913";
             int sizeBefore = waveformMsgs.size();
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
-                    location, streamId1, 50, numMillis, startTime, millisPerMessage));
+                    location, streamId1, 50, numMillis, startTime, 5));
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
-                    location, streamId2, 300, numMillis, startTime, millisPerMessage));
+                    location, streamId2, 300, numMillis, startTime, 10));
             int sizeAfter = waveformMsgs.size();
             logger.debug("Patient {}, generated {} messages", p, sizeAfter - sizeBefore);
         }
 
         return waveformMsgs;
-
     }
-
-
 
 }

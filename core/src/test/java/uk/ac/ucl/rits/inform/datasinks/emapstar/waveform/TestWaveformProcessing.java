@@ -81,7 +81,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
             allMessages.addAll(
                     messageFactory.getWaveformMsgs(test.sourceStreamId, test.mappedStreamName,
                             test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.sourceLocation,
-                            test.mappedLocation, test.obsDatetime));
+                            test.mappedLocation, test.obsDatetime, null));
         }
 
         // must cope with messages in any order! Fixed seed to aid in debugging.
@@ -161,9 +161,6 @@ class TestWaveformProcessing extends MessageProcessingBase {
         assertEquals(Arrays.stream(allTests).map(d -> d.numSamples).reduce(Integer::sum).get(), totalObservedNumSamples);
         // XXX: do more with this
         List<VisitObservationType> allWaveformVO = visitObservationTypeRepository.findAllBySourceObservationType("waveform");
-        for (var vo: allWaveformVO) {
-            System.out.println("JES: " + vo.toString());
-        }
         assertEquals(2, allWaveformVO.size());
     }
 
