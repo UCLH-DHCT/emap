@@ -29,13 +29,25 @@ class TestHl7ParseAndSend {
     private Hl7ParseAndSend hl7ParseAndSend;
 
     @Test
-    void goodMessage() throws IOException, URISyntaxException, Hl7ParseException {
+    void goodMessageSideRoom() throws IOException, URISyntaxException, Hl7ParseException {
         String hl7String = readHl7FromResource("hl7/test1.hl7");
+        checkMessage(hl7String, "UCHT03ICURM08", "T03^T03 SR08^SR08-08");
+    }
+
+    @Test
+    void goodMessageNormalBed() throws IOException, URISyntaxException, Hl7ParseException {
+        String hl7String = readHl7FromResource("hl7/test1.hl7");
+        hl7String.replaceAll("UCHT03ICURM08", "UCHT03ICUBD15");
+        checkMessage(hl7String, "UCHT03ICUBD15", "T03^T03 BY01^BY01-15");
+    }
+
+    void checkMessage(String hl7String, String expectedSourceLocation, String expectedMappedLocation)
+            throws IOException, URISyntaxException, Hl7ParseException {
         List<WaveformMessage> msgs = hl7ParseAndSend.parseHl7(hl7String);
         assertEquals(5, msgs.size());
-        assertTrue(msgs.stream().allMatch(m -> m.getSourceLocationString().equals("UCHT03TEST")));
+        assertTrue(msgs.stream().allMatch(m -> m.getSourceLocationString().equals(expectedSourceLocation)));
         // XXX: Fix in issue #41
-        assertTrue(msgs.stream().allMatch(m -> m.getMappedLocationString().equals("UCHT03TEST")));
+        assertTrue(msgs.stream().allMatch(m -> m.getMappedLocationString().equals(expectedMappedLocation)));
         assertEquals(
                 List.of("52912", "52913", "27", "51911", "52921"),
                 msgs.stream().map(WaveformMessage::getSourceStreamId).toList());
@@ -75,7 +87,7 @@ class TestHl7ParseAndSend {
     @Test
     void messageWithConflictingLocation() throws IOException, URISyntaxException {
         String hl7String = readHl7FromResource("hl7/test1.hl7");
-        String hl7WithReps = hl7String.replace("PV1||I|UCHT03TEST|", "PV1||I|UCHT03TESTXXX|");
+        String hl7WithReps = hl7String.replace("PV1||I|UCHT03ICURM08|", "PV1||I|UCHT03ICURM07|");
         Hl7ParseException e = assertThrows(Hl7ParseException.class, () -> hl7ParseAndSend.parseHl7(hl7WithReps));
         assertTrue(e.getMessage().contains("Unexpected location"));
     }
