@@ -74,7 +74,10 @@ class TestWaveformProcessing extends MessageProcessingBase {
                         "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), null),
                 // matches time but not location
                 new TestData( "23", "stream 23", 17_000, 50, 500,
-                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null)
+                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null),
+                // unknown location
+                new TestData( "23", "stream 23", 17_000, 50, 500,
+                        "unknownlocation", null, Instant.parse("2010-09-10T12:00:00Z"), null)
         };
         List<WaveformMessage> allMessages = new ArrayList<>();
         for (var test: allTests) {

@@ -37,17 +37,28 @@ class TestHl7ParseAndSend {
     @Test
     void goodMessageNormalBed() throws IOException, URISyntaxException, Hl7ParseException {
         String hl7String = readHl7FromResource("hl7/test1.hl7");
-        hl7String.replaceAll("UCHT03ICURM08", "UCHT03ICUBD15");
+        hl7String = hl7String.replaceAll("UCHT03ICURM08", "UCHT03ICUBD15");
         checkMessage(hl7String, "UCHT03ICUBD15", "T03^T03 BY01^BY01-15");
+    }
+
+    @Test
+    void messageWithUnknownLocation() throws IOException, URISyntaxException, Hl7ParseException {
+        String hl7String = readHl7FromResource("hl7/test1.hl7");
+        hl7String = hl7String.replaceAll("UCHT03ICURM08", "UCHT03ICUSOMETHING");
+        checkMessage(hl7String, "UCHT03ICUSOMETHING", null);
     }
 
     void checkMessage(String hl7String, String expectedSourceLocation, String expectedMappedLocation)
             throws IOException, URISyntaxException, Hl7ParseException {
         List<WaveformMessage> msgs = hl7ParseAndSend.parseHl7(hl7String);
         assertEquals(5, msgs.size());
-        assertTrue(msgs.stream().allMatch(m -> m.getSourceLocationString().equals(expectedSourceLocation)));
-        // XXX: Fix in issue #41
-        assertTrue(msgs.stream().allMatch(m -> m.getMappedLocationString().equals(expectedMappedLocation)));
+        List<String> actualSource = msgs.stream().map(WaveformMessage::getSourceLocationString).distinct().toList();
+        assertEquals(1, actualSource.size());
+        assertEquals(expectedSourceLocation, actualSource.get(0));
+
+        List<String> actualMapped = msgs.stream().map(WaveformMessage::getMappedLocationString).distinct().toList();
+        assertEquals(1, actualMapped.size());
+        assertEquals(expectedMappedLocation, actualMapped.get(0));
         assertEquals(
                 List.of("52912", "52913", "27", "51911", "52921"),
                 msgs.stream().map(WaveformMessage::getSourceStreamId).toList());
