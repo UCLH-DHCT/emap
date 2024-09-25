@@ -163,7 +163,7 @@ public class Hl7Generator {
         logger.info("Full dump took {} milliseconds, covered {} milliseconds of data (real time factor {})",
                 procTimeMillis, dataTimeMillis, ((double) dataTimeMillis) / procTimeMillis);
         if (shouldExit) {
-            logger.info("End date {} has been reached (cur={}), EXITING", endDatetime, progressDatetime);
+            logger.warn("End date {} has been reached (cur={}), EXITING", endDatetime, progressDatetime);
             System.exit(0);
         }
     }
