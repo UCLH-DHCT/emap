@@ -50,7 +50,7 @@ public class LocationMapping {
             int sideroomNumber = Integer.parseInt(sideroomMatcher.group(1));
             return String.format("T03^T03 SR%02d^SR%02d-%02d", sideroomNumber, sideroomNumber, sideroomNumber);
         } else {
-            final Pattern bedPattern = Pattern.compile("UCHT03ICUBD(\\d+)");
+            final Pattern bedPattern = Pattern.compile("UCHT03ICUBED(\\d+)");
             Matcher bedMatcher = bedPattern.matcher(capsuleLocation);
             if (bedMatcher.find()) {
                 // bay+bed schema

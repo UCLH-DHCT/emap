@@ -37,8 +37,9 @@ class TestHl7ParseAndSend {
     @Test
     void goodMessageNormalBed() throws IOException, URISyntaxException, Hl7ParseException {
         String hl7String = readHl7FromResource("hl7/test1.hl7");
-        hl7String = hl7String.replaceAll("UCHT03ICURM08", "UCHT03ICUBD15");
-        checkMessage(hl7String, "UCHT03ICUBD15", "T03^T03 BY01^BY01-15");
+        String bed15 = "UCHT03ICUBED15";
+        hl7String = hl7String.replaceAll("UCHT03ICURM08", bed15);
+        checkMessage(hl7String, bed15, "T03^T03 BY01^BY01-15");
     }
 
     @Test
