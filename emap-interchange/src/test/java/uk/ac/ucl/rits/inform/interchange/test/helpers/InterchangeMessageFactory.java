@@ -289,7 +289,7 @@ public class InterchangeMessageFactory {
             waveformMessage.setMappedLocationString(mappedLocation);
             var values = new ArrayList<Double>();
             for (int i = 0; i < samplesThisMessage; i++) {
-                values.add(Math.sin(i * 0.01));
+                values.add(Math.sin((numSamples - samplesRemaining + i) * 0.01));
             }
             waveformMessage.setNumericValues(new InterchangeValue<>(values));
             Instant obsDatetimeRounded = roundInstantToNearest(obsDatetime, roundToUnit);

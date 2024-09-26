@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestWaveformProcessing extends MessageProcessingBase {
@@ -140,13 +139,8 @@ class TestWaveformProcessing extends MessageProcessingBase {
                 assertTrue(row.getValuesArray().length <= test.maxSamplesPerMessage);
                 actualDataPointsAtLocation.addAll(Arrays.asList(row.getValuesArray()));
             }
-            for (int i = 1; i < actualDataPointsAtLocation.size(); i++) {
-                Double thisValue = actualDataPointsAtLocation.get(i);
-                Double previousValue = actualDataPointsAtLocation.get(i - 1);
-                // test data is a sine wave, check that it has plausible values
-                assertTrue(-1 <= thisValue && thisValue <= 1);
-                assertNotEquals(thisValue, previousValue);
-            }
+            checkLooksLikeSineWave(actualDataPointsAtLocation);
+
             Instant projectedEndTime = null;
             for (var row : waveformRows) {
                 Instant thisStartTime = row.getObservationDatetime();
@@ -177,6 +171,88 @@ class TestWaveformProcessing extends MessageProcessingBase {
             assertEquals("stream " + id, vot.getName());
             assertTrue(vot.getIsRealTime());
         }
+    }
+
+    /**
+     * Does the list of points look roughly like a sine wave?
+     * A triangular wave would probably pass too, but the most likely error is that
+     * data would be missing or out of order.
+     */
+    private void checkLooksLikeSineWave(List<Double> actualDataPointsAtLocation) {
+        List<Integer> crossesZero = new ArrayList<>();
+        List<Integer> inflectionPoints = new ArrayList<>();
+        Double max = actualDataPointsAtLocation.stream().max(Double::compare).get();
+        Double min = actualDataPointsAtLocation.stream().min(Double::compare).get();
+        assertTrue(approxEqualsAbs(max, 1.0, 0.0001));
+        assertTrue(approxEqualsAbs(min, -1.0, 0.0001));
+        Double previousGradient = null;
+        Double maxGradient = Double.MIN_VALUE;
+        Double minGradient = Double.MAX_VALUE;
+        for (int i = 1; i < actualDataPointsAtLocation.size(); i++) {
+            Double thisValue = actualDataPointsAtLocation.get(i);
+            Double previousValue = actualDataPointsAtLocation.get(i - 1);
+            Double thisGradient = thisValue - previousValue; // ignore x scale
+            if (thisGradient > maxGradient) {
+                maxGradient = thisGradient;
+            }
+            if (thisGradient < minGradient) {
+                minGradient = thisGradient;
+            }
+            if (thisValue.compareTo(0.0) != previousValue.compareTo(0.0)) {
+                crossesZero.add(i);
+                // At zero crossings, gradient should be at its max (or min).
+                // Wait for an entire cycle to have passed so the min and max gradients are correct.
+                if (crossesZero.size() >= 3) {
+                    approxEqualsAbs(Math.abs(thisGradient), maxGradient, maxGradient * 0.01);
+                    approxEqualsAbs(maxGradient, -minGradient, maxGradient * 0.01);
+                }
+            }
+            if (previousGradient != null && thisGradient.compareTo(0.0) != previousGradient.compareTo(0.0)) {
+                inflectionPoints.add(i);
+                // at inflection points, gradient should be 0
+                approxEqualsAbs(thisGradient, 0, 0.01);
+            }
+            // sine wave is never flat
+            assertNotEquals(thisValue, previousValue);
+
+            previousGradient = thisGradient;
+        }
+
+        // Check that inflection points and zero crossings are individually evenly spaced,
+        // and that zero crossings are evenly spaced from inflection points
+        List<Integer> gapsBetweenInfl = calcGapsBetweenValues(inflectionPoints);
+        List<Integer> gapsBetweenCrossings = calcGapsBetweenValues(crossesZero);
+        Double gapsInflMean = checkAllValuesRoughlyEqual(gapsBetweenInfl);
+        Double gapsCrosMean = checkAllValuesRoughlyEqual(gapsBetweenCrossings);
+        assertTrue(approxEqualsAbs(gapsCrosMean, gapsInflMean, gapsCrosMean * 0.01));
+        List<Integer> inflAndCrossings = new ArrayList<>();
+        inflAndCrossings.addAll(inflectionPoints);
+        inflAndCrossings.addAll(crossesZero);
+        inflAndCrossings.sort(Integer::compare);
+        List<Integer> gapsBetweenInflAndCrossings = calcGapsBetweenValues(inflAndCrossings);
+        double allPointsMean = checkAllValuesRoughlyEqual(gapsBetweenInflAndCrossings);
+        assertTrue(approxEqualsAbs(allPointsMean, gapsCrosMean / 2, allPointsMean * 0.01));
+    }
+
+    private static double checkAllValuesRoughlyEqual(List<Integer> list) {
+        double mean = list.stream().reduce(Integer::sum).get() / (double) list.size();
+        //System.out.println("checkAllValuesRoughlyEqual: mean = " + mean + ", list = " + list);
+        assertTrue(list.stream().allMatch(g -> approxEqualsAbs(g, mean, mean * 0.01)));
+        return mean;
+    }
+
+    private static List<Integer> calcGapsBetweenValues(List<Integer> list) {
+        List<Integer> gaps = new ArrayList<>();
+        for (int i = 1; i < list.size(); i++) {
+            var thisValue = list.get(i);
+            var previousValue = list.get(i - 1);
+            gaps.add(thisValue - previousValue);
+        }
+        return gaps;
+    }
+
+    private static boolean approxEqualsAbs(double d1, double d2, double absTol) {
+        return Math.abs(d1 - d2) <= Math.abs(absTol);
     }
 
     private static void checkVisitObservationTypes(List<Waveform> waveformRows,
