@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.datasources.waveform;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7ParseException;
@@ -72,6 +71,8 @@ class TestHl7ParseAndSend {
                 msgs.stream().map(WaveformMessage::getSamplingRate).toList());
         List<String> distinctMessageIds = msgs.stream().map(m -> m.getSourceMessageId()).distinct().toList();
         assertEquals(msgs.size(), distinctMessageIds.size());
+        List<String> actualUnits = msgs.stream().map(WaveformMessage::getUnit).toList();
+        assertEquals(List.of("mL", "cmH2O", "uV", "%", "%"), actualUnits);
         var expectedValues = List.of(
                 List.of(42.10),
                 List.of(42.20),

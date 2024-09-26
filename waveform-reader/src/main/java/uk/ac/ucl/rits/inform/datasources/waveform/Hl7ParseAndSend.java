@@ -115,11 +115,10 @@ public class Hl7ParseAndSend {
         waveformMessage.setSourceLocationString(locationId);
         waveformMessage.setMappedLocationString(mappedLocation);
         waveformMessage.setMappedStreamDescription(mappedStreamDescription);
-        // XXX: where does the unit go?
-
         waveformMessage.setObservationTime(messageStartTime);
         waveformMessage.setSourceMessageId(messageId);
         waveformMessage.setSourceStreamId(sourceStreamId);
+        waveformMessage.setUnit(unit);
         waveformMessage.setNumericValues(new InterchangeValue<>(arrayValues));
         logger.trace("output interchange waveform message = {}", waveformMessage);
         return waveformMessage;

@@ -46,12 +46,13 @@ public class TestWaveformCollation {
         List<WaveformMessage> uncollatedMsgs = messageFactory.getWaveformMsgs(
                 "59912", "something1",
                 300, 3000, 5, "UCHT03TEST",
-                "", messageStartDatetime, ChronoUnit.MILLIS);
+                "", messageStartDatetime, "unit1", ChronoUnit.MILLIS);
         List<WaveformMessage> uncollatedMsgs2 = messageFactory.getWaveformMsgs(
                 "59913", "something2",
                 300, 3000, 5, "UCHT03TEST",
                 "",
                 messageStartDatetime, //.plus(5500, ChronoUnit.MILLIS),
+                "unit2", // XXX: unit should be part of key??
                 ChronoUnit.MILLIS);
         uncollatedMsgs.addAll(uncollatedMsgs2);
         assertEquals(1200, uncollatedMsgs.size());

@@ -58,6 +58,11 @@ public class WaveformMessage extends EmapOperationMessage {
     private int samplingRate;
 
     /**
+     * Unit of the measurement.
+     */
+    private String unit;
+
+    /**
      * Numeric value.
      */
     private InterchangeValue<List<Double>> numericValues = InterchangeValue.unknown();

@@ -24,6 +24,9 @@ import java.time.Instant;
 /**
  * \brief A waveform observation recorded about a patient.
  *
+ * This is analogous to VisitObservation, but optimised for large series of
+ * numerical data.
+ *
  * @author Jeremy Stein
  */
 @Entity
@@ -51,7 +54,8 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
     /**
      * \brief Identifier for the VisitObservationType associated with this record.
      *
-     * This is a foreign key that joins the visitObservation table to the VisitObservationType table.
+     * The Waveform table is sufficiently similar in meaning to VisitObservation that it makes sense
+     * to reuse VisitObservationType rather than create a new waveform metadata table.
      */
     @ManyToOne
     @JoinColumn(name = "visitObservationTypeId", nullable = false)
@@ -85,6 +89,15 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
      */
     @Column(nullable = false)
     private String sourceLocation;
+
+    /**
+     * \brief The unit of the measurement.
+     *
+     * For consistency with VisitObservation, the unit goes here rather than in VisitObservationType,
+     * even though AIUI one waveform stream ID always uses the same unit.
+     */
+    @Column(nullable = false)
+    private String unit;
 
     /**
      * \brief Value as a floating point array.
@@ -124,6 +137,7 @@ public class Waveform extends TemporalCore<Waveform, WaveformAudit> {
         this.waveformId = other.waveformId;
         this.visitObservationTypeId = other.visitObservationTypeId;
         this.locationVisitId = other.locationVisitId;
+        this.unit = other.unit;
         this.valuesArray = other.valuesArray;
         this.observationDatetime = other.observationDatetime;
         this.samplingRate = other.samplingRate;

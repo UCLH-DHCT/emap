@@ -55,6 +55,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
         String sourceLocation;
         String mappedLocation;
         Instant obsDatetime;
+        public String unit;
         public Instant getEndObsTime() {
             return obsDatetime.plus(numSamples * 1000_000L / samplingRate, ChronoUnit.MICROS);
         }
@@ -68,25 +69,25 @@ class TestWaveformProcessing extends MessageProcessingBase {
                 // Intended to be two patients each connected to two machines, but the nature of the
                 // bed/machine IDs may not quite be like this.
                 new TestData( "23", "stream 23", 20_000, 300, 900,
-                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), 106001L),
+                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), "stream23unit", 106001L),
                 new TestData( "24", "stream 24", 25_000, 50, 500,
-                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), 106002L),
+                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), "stream24unit", 106002L),
                 // matches location but not time
                 new TestData( "23", "stream 23", 15_000, 300, 900,
-                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), null),
+                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), "stream23unit", null),
                 // matches time but not location
                 new TestData( "23", "stream 23", 17_000, 50, 500,
-                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null),
+                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), "stream23unit", null),
                 // unknown location
                 new TestData( "23", "stream 23", 17_000, 50, 500,
-                        "unknownlocation", null, Instant.parse("2010-09-10T12:00:00Z"), null)
+                        "unknownlocation", null, Instant.parse("2010-09-10T12:00:00Z"), "stream23unit", null)
         };
         List<WaveformMessage> allMessages = new ArrayList<>();
         for (var test: allTests) {
             allMessages.addAll(
                     messageFactory.getWaveformMsgs(test.sourceStreamId, test.mappedStreamName,
                             test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.sourceLocation,
-                            test.mappedLocation, test.obsDatetime, null));
+                            test.mappedLocation, test.obsDatetime, test.unit, null));
         }
 
         // must cope with messages in any order! Fixed seed to aid in debugging.
@@ -137,6 +138,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
             List<Double> actualDataPointsAtLocation = new ArrayList<>();
             for (var row: waveformRows) {
                 assertTrue(row.getValuesArray().length <= test.maxSamplesPerMessage);
+                assertEquals(test.unit, row.getUnit());
                 actualDataPointsAtLocation.addAll(Arrays.asList(row.getValuesArray()));
             }
             checkLooksLikeSineWave(actualDataPointsAtLocation);
