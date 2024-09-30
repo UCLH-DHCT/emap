@@ -41,7 +41,10 @@ public class Hl7ParseAndSend {
 
     List<WaveformMessage> parseHl7(String messageAsStr) throws Hl7ParseException {
         List<WaveformMessage> allWaveformMessages = new ArrayList<>();
-        logger.debug("Parsing message of size {}", messageAsStr.length());
+        int origSize = messageAsStr.length();
+        // messages are separated with vertical tabs and extra carriage returns, so remove
+        messageAsStr = messageAsStr.strip();
+        logger.debug("Parsing message of size {} ({} including stray whitespace)", messageAsStr.length(), origSize);
         Hl7Message message = new Hl7Message(messageAsStr);
         String messageIdBase = message.getField("MSH", 10);
         String pv1LocationId = message.getField("PV1", 3);
