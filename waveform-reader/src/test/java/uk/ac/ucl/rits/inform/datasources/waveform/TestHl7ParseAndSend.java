@@ -19,6 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.ac.ucl.rits.inform.datasources.waveform.Utils.readHl7FromResource;
 
 @SpringJUnitConfig
 @SpringBootTest
@@ -105,11 +106,5 @@ class TestHl7ParseAndSend {
         assertTrue(e.getMessage().contains("Unexpected location"));
     }
 
-    private String readHl7FromResource(String relativeResourceFilePath) throws IOException, URISyntaxException {
-        ClassLoader classLoader = this.getClass().getClassLoader();
-        URI uri = classLoader.getResource(relativeResourceFilePath).toURI();
-        List<String> readAllLines = Files.readAllLines(Path.of(uri));
-        return String.join("\r", readAllLines) + "\r";
-    }
 
 }

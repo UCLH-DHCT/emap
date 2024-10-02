@@ -44,6 +44,11 @@ public class Hl7ParseAndSend {
         int origSize = messageAsStr.length();
         // messages are separated with vertical tabs and extra carriage returns, so remove
         messageAsStr = messageAsStr.strip();
+        if (messageAsStr.isEmpty()) {
+            // message was all whitespace, ignore
+            logger.info("Ignoring empty or all-whitespace message");
+            return allWaveformMessages;
+        }
         logger.debug("Parsing message of size {} ({} including stray whitespace)", messageAsStr.length(), origSize);
         Hl7Message message = new Hl7Message(messageAsStr);
         String messageIdBase = message.getField("MSH", 10);
