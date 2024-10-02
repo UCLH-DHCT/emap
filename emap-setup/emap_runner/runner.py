@@ -1,6 +1,7 @@
 import argparse
 
 from pathlib import Path
+from typing import Any
 
 from emap_runner.parser import Parser
 from emap_runner.utils import TimeWindow
@@ -100,20 +101,28 @@ def create_parser() -> Parser:
         action="store_true",
     )
 
-    validation_source_group = validation_parser.add_mutually_exclusive_group()
-    validation_source_group.add_argument(
-        "--only-hl7",
-        dest="use_only_hl7_reader",
-        help="Use only the hl7-reader service (no hoover)",
-        default=False,
-        action="store_true",
+    validation_parser.add_argument(
+        "--use-hl7-reader",
+        dest="use_hl7_reader",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable/disable the main HL7 ADT reader",
     )
-    validation_source_group.add_argument(
-        "--only-hoover",
-        dest="use_only_hoover",
-        help="Use only the hoover service (no hl7-reader)",
+
+    validation_parser.add_argument(
+        "--use-waveform-synth",
+        dest="use_waveform_synth",
+        action=argparse.BooleanOptionalAction,
         default=False,
-        action="store_true",
+        help="Enable/disable synthetic waveform generator",
+    )
+
+    validation_parser.add_argument(
+        "--use-hoover",
+        dest="use_hoover",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable/disable the hoover service",
     )
 
     config_parser = subparsers.add_parser("config", help="Configuration operations")
@@ -188,10 +197,10 @@ class EMAPRunner:
 
         return None
 
-    def validation(self) -> None:
+    def validation(self) -> ValidationRunner:
         """Run a validation run of EMAP"""
         # allow for hoover not to be defined in global config
-        use_hoover = ("hoover" in self.global_config["repositories"]) and (not self.args.use_only_hl7_reader)
+        use_hoover = ("hoover" in self.global_config["repositories"]) and self.args.use_hoover
 
         runner = ValidationRunner(
             docker_runner=DockerRunner(project_dir=Path.cwd(), config=self.global_config),
@@ -199,17 +208,17 @@ class EMAPRunner:
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),
             should_build=not self.args.skip_build,
-            use_hl7_reader=not self.args.use_only_hoover,
+            use_hl7_reader=self.args.use_hl7_reader,
             use_hoover=use_hoover,
+            use_waveform_synth=self.args.use_waveform_synth,
         )
-
         runner.run()
+        return runner
 
-        return None
-
-    def run(self, method_name: str) -> None:
+    def run(self) -> Any:
         """Call a method of this runner instance defined by its name"""
 
+        method_name = self.args.subcommand
         if hasattr(self, method_name):
             return getattr(self, method_name)()
 
@@ -227,7 +236,7 @@ def main():
         exit(f"Configuration file {args.filename} not found. Exiting")
 
     runner = EMAPRunner(args=args, config=GlobalConfiguration(args.filename))
-    runner.run(args.subcommand)
+    runner.run()
 
     return None
 

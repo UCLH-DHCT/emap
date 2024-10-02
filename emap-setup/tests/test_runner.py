@@ -1,3 +1,5 @@
+from unittest.mock import patch, MagicMock
+
 import pytest
 
 from os import mkdir
@@ -15,8 +17,11 @@ from emap_runner.global_config import GlobalConfiguration
 from emap_runner.utils import TimeWindow
 from .utils import work_in_tmp_directory
 
-config_path = Path(
+config_path_only_docs = Path(
     dirname(abspath(__file__)), "data", "test-global-configuration-only-docs.yaml"
+)
+config_path_all = Path(
+    dirname(abspath(__file__)), "data", "test-global-configuration.yaml"
 )
 
 
@@ -24,10 +29,10 @@ config_path = Path(
 def test_clone_then_clean_repos():
 
     parser = create_parser()
-    config = GlobalConfiguration(config_path)
+    config = GlobalConfiguration(config_path_only_docs)
 
     runner = EMAPRunner(args=parser.parse_args(["setup", "-i"]), config=config)
-    runner.run("setup")
+    runner.run()
 
     # Ensure that the cloned directory exists
     assert exists("emap_documentation")
@@ -35,7 +40,7 @@ def test_clone_then_clean_repos():
 
     # and can be cleaned
     runner = EMAPRunner(args=parser.parse_args(["setup", "-c"]), config=config)
-    runner.run("setup")
+    runner.run()
 
     assert not exists("emap_documentation")
 
@@ -50,7 +55,7 @@ def test_default_time_window():
     assert window.start.toordinal() == date.today().toordinal() - 7
 
 
-@work_in_tmp_directory(to_copy=[config_path])
+@work_in_tmp_directory(to_copy=[config_path_only_docs])
 def test_time_window_is_set():
 
     config = GlobalConfiguration(Path("test-global-configuration-only-docs.yaml"))
@@ -73,31 +78,29 @@ def test_time_window_is_set():
                     assert line.strip().endswith("T00:00:00.00Z")
 
 
-def test_validation_source_arguments_cannot_be_both_only_hl7_and_hoover():
-    """Test that both hl7 and hoover can't be used as only-X arguments"""
+@pytest.mark.parametrize(
+    "args_list,use_hl7,use_hoover,use_waveform",
+    [
+        ([], True, True, False),
+        (["--no-use-hoover"], True, False, False),
+        (["--no-use-hl7"], False, True, False),
+        (["--use-waveform-synth"], True, True, True),
 
-    parser = create_parser()
-
-    with pytest.raises(SystemExit):
-        _ = parser.parse_args(["validation", "--only-hl7", "--only-hoover"])
-
-
-def test_validation_source_arguments_set_correct_runner_attributes():
+    ])
+def test_validation_source_arguments_set_correct_runner_attributes(args_list, use_hl7, use_hoover, use_waveform):
     """Test source parser arguments translate to correct runner attributes"""
-
     parser = create_parser()
 
-    args = parser.parse_args(["validation", "--only-hl7"])
-    global_config = GlobalConfiguration(config_path)
+    args = parser.parse_args(["validation", *args_list])
+    global_config = GlobalConfiguration(config_path_all)
 
-    runner = ValidationRunner(
-        docker_runner=DockerRunner(project_dir=Path.cwd(), config=global_config),
-        time_window=TimeWindow(args.start_date, args.end_date),
-        use_hl7_reader=not args.use_only_hoover,
-        use_hoover=not args.use_only_hl7_reader,
-    )
-
-    assert runner.use_hl7_reader and not runner.use_hoover
+    with patch.object(ValidationRunner, 'run', new_callable=MagicMock) as mock_obj:
+        emap_runner = EMAPRunner(args=args, config=global_config)
+        validation_runner = emap_runner.run()
+        mock_obj.assert_called_once()
+        assert validation_runner.use_hl7_reader == use_hl7
+        assert validation_runner.use_hoover == use_hoover
+        assert validation_runner.use_waveform_synth == use_waveform
 
 
 @pytest.mark.parametrize("queue_length,expected", [(0, True), (1, False)])

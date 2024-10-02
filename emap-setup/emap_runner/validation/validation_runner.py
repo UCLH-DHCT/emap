@@ -20,14 +20,14 @@ class ValidationRunner:
         should_build: bool = True,
         use_hl7_reader: bool = True,
         use_hoover: bool = True,
-        use_waveform_reader: bool = True,
+        use_waveform_synth: bool = False,
     ):
         """Validation runner that will be run over a time window"""
 
         self.should_build = should_build
         self.use_hl7_reader = use_hl7_reader
         self.use_hoover = use_hoover
-        self.use_waveform_reader = use_waveform_reader
+        self.use_waveform_synth = use_waveform_synth
 
         self.start_time = None
         self.timeout = timedelta(hours=10)
