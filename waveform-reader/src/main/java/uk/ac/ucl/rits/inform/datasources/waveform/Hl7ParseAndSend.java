@@ -27,14 +27,16 @@ public class Hl7ParseAndSend {
     private final WaveformOperations waveformOperations;
     private final WaveformCollator waveformCollator;
     private final SourceMetadata sourceMetadata;
+    private final LocationMapping locationMapping;
     private long numHl7 = 0;
 
     Hl7ParseAndSend(WaveformOperations waveformOperations,
                     WaveformCollator waveformCollator,
-                    SourceMetadata sourceMetadata) {
+                    SourceMetadata sourceMetadata, LocationMapping locationMapping) {
         this.waveformOperations = waveformOperations;
         this.waveformCollator = waveformCollator;
         this.sourceMetadata = sourceMetadata;
+        this.locationMapping = locationMapping;
     }
 
     List<WaveformMessage> parseHl7(String messageAsStr) throws Hl7ParseException {
@@ -86,7 +88,7 @@ public class Hl7ParseAndSend {
                 }
                 // Sampling rate and stream description is not in the message, so use the metadata
                 int samplingRate = metadata.samplingRate();
-                String mappedLocation = hl7AdtLocationFromCapsuleLocation(locationId);
+                String mappedLocation = locationMapping.hl7AdtLocationFromCapsuleLocation(locationId);
                 String mappedStreamDescription = metadata.mappedStreamDescription();
                 String unit = metadata.unit();
 
@@ -102,11 +104,6 @@ public class Hl7ParseAndSend {
         }
 
         return allWaveformMessages;
-    }
-
-    private String hl7AdtLocationFromCapsuleLocation(String capsuleLocation) {
-        // XXX: need to perform location mapping here (see Issue #41)
-        return capsuleLocation;
     }
 
     @SuppressWarnings("checkstyle:ParameterNumber")

@@ -218,6 +218,14 @@ public class Hl7Generator {
         return allMessages;
     }
 
+    private List<String> possibleLocations = List.of(
+            "UCHT03ICURM01", "UCHT03ICURM02", "UCHT03ICURM03", "UCHT03ICURM04", "UCHT03ICURM05", "UCHT03ICURM06",
+            "UCHT03ICURM07", "UCHT03ICURM08", "UCHT03ICURM09", "UCHT03ICURM10", "UCHT03ICURM32",
+            "UCHT03ICUBED11", "UCHT03ICUBED12", "UCHT03ICUBED14", "UCHT03ICUBED15", "UCHT03ICUBED16", "UCHT03ICUBED17",
+            "UCHT03ICUBED18", "UCHT03ICUBED19", "UCHT03ICUBED20", "UCHT03ICUBED21", "UCHT03ICUBED23", "UCHT03ICUBED24",
+            "UCHT03ICUBED25", "UCHT03ICUBED26", "UCHT03ICUBED27", "UCHT03ICUBED28", "UCHT03ICUBED29", "UCHT03ICUBED30",
+            "UCHT03ICUBED31", "UCHT03ICUBED32", "UCHT03ICUBED33", "UCHT03ICUBED34", "UCHT03ICUBED35", "UCHT03ICUBED36"
+            );
 
     /**
      * Generate synthetic waveform data for numPatients patients to cover a period of
@@ -230,8 +238,9 @@ public class Hl7Generator {
     public List<String> makeSyntheticWaveformMsgsAllPatients(
             Instant startTime, long numPatients, long numMillis) {
         List<String> waveformMsgs = new ArrayList<>();
+        numPatients = Math.min(numPatients, possibleLocations.size());
         for (int p = 0; p < numPatients; p++) {
-            var location = String.format("Bed%03d", p);
+            var location = possibleLocations.get(p);
             String streamId1 = "52912";
             String streamId2 = "27";
             int sizeBefore = waveformMsgs.size();
@@ -240,7 +249,7 @@ public class Hl7Generator {
             waveformMsgs.addAll(makeSyntheticWaveformMsgs(
                     location, streamId2, 300, numMillis, startTime, 10));
             int sizeAfter = waveformMsgs.size();
-            logger.debug("Patient {}, generated {} messages", p, sizeAfter - sizeBefore);
+            logger.debug("Patient {} (location {}), generated {} messages", p, location, sizeAfter - sizeBefore);
         }
 
         return waveformMsgs;
