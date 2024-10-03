@@ -156,7 +156,9 @@ class ValidationRunner:
                 output_filename=f"{self.log_file_prefix}_hoover.txt",
             )
 
-        if self.use_waveform_reader:
+        # This needs further thought: it only brings up the reader for now (which may be
+        # reading from a file), probably need to have separate options for file vs synth?
+        if self.use_waveform_synth:
             self.docker.run(
                 "up --exit-code-from waveform-reader waveform-reader",
                 output_filename=f"{self.log_file_prefix}_waveform-reader.txt",
