@@ -101,29 +101,10 @@ def create_parser() -> Parser:
         action="store_true",
     )
 
-    validation_parser.add_argument(
-        "--use-hl7-reader",
-        dest="use_hl7_reader",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Enable/disable the main HL7 ADT reader",
-    )
-
-    validation_parser.add_argument(
-        "--use-waveform-synth",
-        dest="use_waveform_synth",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Enable/disable synthetic waveform generator",
-    )
-
-    validation_parser.add_argument(
-        "--use-hoover",
-        dest="use_hoover",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Enable/disable the hoover service",
-    )
+    # add use-FOO and no-use-FOO options for enabling/disabling various services in validation
+    add_boolean_optional_action(validation_parser, "hl7-reader", True, "the main HL7 ADT reader")
+    add_boolean_optional_action(validation_parser, "hoover", True, "the hoover service")
+    add_boolean_optional_action(validation_parser, "waveform-synth", False, "synthetic waveform generator")
 
     config_parser = subparsers.add_parser("config", help="Configuration operations")
     config_parser.add_argument(
@@ -142,6 +123,26 @@ def create_parser() -> Parser:
     )
 
     return parser
+
+
+# BooleanOptionalAction doesn't exist on python 3.8, do it ourselves
+def add_boolean_optional_action(parser: Parser, name: str, enabled_by_default, help_str):
+    mutex = parser.add_mutually_exclusive_group()
+    dest_name = "use_{}".format(name.replace("-", "_"))
+    mutex.add_argument(
+        f"--use-{name}",
+        dest=dest_name,
+        action='store_true',
+        default=enabled_by_default,
+        help=f"Enable {help_str}",
+    )
+    mutex.add_argument(
+        f"--no-use-{name}",
+        dest=dest_name,
+        action='store_false',
+        default=enabled_by_default,
+        help=f"Disable {help_str}",
+    )
 
 
 class EMAPRunner:
