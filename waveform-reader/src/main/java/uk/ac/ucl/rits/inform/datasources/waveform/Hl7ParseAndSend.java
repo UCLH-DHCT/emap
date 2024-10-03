@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class Hl7ParseAndSend {
@@ -78,11 +79,6 @@ public class Hl7ParseAndSend {
                 Instant obsDatetime = Instant.from(ta);
 
                 String streamId = obx.getField(3);
-                String allPointsStr = obx.getField(5);
-                if (allPointsStr.contains("~")) {
-                    throw new Hl7ParseException("must only be 1 repeat in OBX-5");
-                }
-                List<Double> points = Arrays.stream(allPointsStr.split("\\^")).map(Double::parseDouble).toList();
 
                 Optional<SourceMetadataItem> metadataOpt = sourceMetadata.getStreamMetadata(streamId);
                 if (metadataOpt.isEmpty()) {
@@ -99,6 +95,20 @@ public class Hl7ParseAndSend {
                 String mappedLocation = locationMapping.hl7AdtLocationFromCapsuleLocation(locationId);
                 String mappedStreamDescription = metadata.mappedStreamDescription();
                 String unit = metadata.unit();
+
+                // non-numerical types won't be able to go in the waveform table, but it's possible
+                // we might need them as a VisitObservation
+                String hl7Type = obx.getField(2);
+                if (!Set.of("NM", "NA").contains(hl7Type)) {
+                    logger.warn("Skipping stream {} with type {}, not numerical", streamId, hl7Type);
+                    continue;
+                }
+                String allPointsStr = obx.getField(5);
+                if (allPointsStr.contains("~")) {
+                    throw new Hl7ParseException("must only be 1 repeat in OBX-5");
+                }
+
+                List<Double> points = Arrays.stream(allPointsStr.split("\\^")).map(Double::parseDouble).toList();
 
                 String messageIdSpecific = String.format("%s_%d_%d", messageIdBase, obrI, obxI);
                 logger.debug("location {}, time {}, messageId {}, value count = {}",
