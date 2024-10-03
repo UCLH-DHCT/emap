@@ -18,8 +18,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import static uk.ac.ucl.rits.inform.interchange.utils.DateTimeUtils.roundInstantToNearest;
-
 @Component
 public class WaveformCollator {
     private final Logger logger = LoggerFactory.getLogger(WaveformCollator.class);
@@ -224,28 +222,31 @@ public class WaveformCollator {
 
     private Instant checkGap(WaveformMessage msg, Instant expectedNextDatetime, ChronoUnit assumedRounding) {
         // gap between this message and previous message
-        long samplePeriodMicros = 1_000_000L / msg.getSamplingRate();
-        Instant expectedNextDatetimeRounded = roundInstantToNearest(expectedNextDatetime, assumedRounding);
         long gapSizeMicros = expectedNextDatetime.until(msg.getObservationTime(), ChronoUnit.MICROS);
-        long gapSizeToRoundedMicros = expectedNextDatetimeRounded.until(msg.getObservationTime(), ChronoUnit.MICROS);
-        /* The timestamps in the messages will be rounded. Currently assuming that it's to the nearest
-         * millisecond, but for all I know it could be rounding down.
-         * Take 3.33 ms, a common sampling period (300Hz): rounding to the nearest ms can produce a large
-         * relative error. The error will also be inconsistent: when the stars align it might be zero.
-         * So try for now: To be counted as abutting, the actual timestamp has to be close to *either* the
-         * rounded or unrounded expected timestamp, thus allowing the error margin to be set much stricter,
-         * since it's now only accounting for non-rounding sources of error (whatever they might be).
-         * Ah no, just allow it to be one rounding unit off :/
+        /* The timestamps in the messages will be rounded. Not sure if they round down or round to nearest.
+         * Take 3.33 ms as an example, a common sampling period (300Hz): rounding to the nearest ms
+         * can produce a large relative error, but never more than a millisecond.
+         * So, if it has been rounded to the millisecond, allow it to be one millisecond out, and so on.
          */
-        logger.trace("expectedNextDatetime {}, expectedNextDatetimeRounded {}, msg.getObservationTime() {}",
-                expectedNextDatetime, expectedNextDatetimeRounded, msg.getObservationTime());
+        logger.trace("expectedNextDatetime {}, msg.getObservationTime() {}",
+                expectedNextDatetime, msg.getObservationTime());
 
-        // if it has been rounded to the millisecond, allow it to be one millisecond out, and so on
         long allowedGapMicros = assumedRounding.getDuration().toNanos() / 1000;
-        if (Math.abs(gapSizeMicros) > allowedGapMicros && Math.abs(gapSizeToRoundedMicros) > allowedGapMicros) {
-            logger.info("Key {}, Gap too big ({} microsecs vs rounded, {} vs unrounded)",
-                    makeKey(msg), gapSizeToRoundedMicros, gapSizeMicros);
+        // Distinguish between gaps (positive difference) and overlap (negative difference).
+        // Overlap is a sign that the actual sampling rate is inconsistent with the metadata!
+        boolean gapTooBig = gapSizeMicros > allowedGapMicros;
+        boolean overlapTooBig = gapSizeMicros < -allowedGapMicros;
+        if (gapTooBig) {
+            // We expect this to happen occasionally - it's not an error.
+            logger.info("Key {}, Gap too big ({} vs unrounded)", makeKey(msg), gapSizeMicros);
             return msg.getObservationTime();
+        }
+        if (overlapTooBig) {
+            // Overlap is an error that can't really be recovered from.
+            // Would need to investigate whether the sampling rate is different to what we expected based on
+            // metadata.
+            logger.error("OVERLAP of {} µs, between this message ({}) vs expected {}",
+                    gapSizeMicros, msg.getObservationTime(), expectedNextDatetime);
         }
 
         return null;

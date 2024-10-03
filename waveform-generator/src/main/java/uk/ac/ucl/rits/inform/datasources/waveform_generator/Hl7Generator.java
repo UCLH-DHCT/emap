@@ -30,17 +30,44 @@ public class Hl7Generator {
     @Value("${test.synthetic.num_patients:30}")
     private int numPatients;
 
-    @Value("${test.synthetic.warp_factor:1}")
-    private int warpFactor;
 
     /**
-     * You might want startDatetime and endDatetime to match the validation run start time.
+     * The generator can be run in "live" or "catch-up" mode.
+     *
+     * Live: you are simulating the generation of data that has just happened. This will
+     * be useful for the testing of waiting for data to arrive if gaps are detected.
+     * startDatetime should be set to null.
+     *
+     * Catch-up: start at a particular point (usually in the past) and generate data at a certain rate
+     * until the end date (if specified) is reached. Useful for validation runs. You would typically
+     * want startDatetime and endDatetime to match the validation run start/end time.
+     * In catch-up mode, warp factor can be used to control how quickly data
+     * will be fed in (measure in multiples of real time).
      */
     @Value("${test.synthetic.start_datetime:#{null}}")
     private Instant startDatetime;
+    /**
+     * Where we are up to in generating data (observation time).
+     */
+    private Instant progressDatetime;
+    /**
+     * @return Where we want to be up to in generating data (observation time).
+     * This value is used to generate data at the correct rate.
+     * In live mode (ie. warp factor 1), this will track just behind the current time at a steady-ish rate.
+     */
+    private Instant getExpectedProgressDatetime() {
+        long monotonicNowNanos = System.nanoTime();
+        return startDatetime.plus(
+                (monotonicNowNanos - monotonicStartTimeNanos) * warpFactor,
+                ChronoUnit.NANOS);
+    }
 
+    // system time (not observation time) when we started running
+    private Long monotonicStartTimeNanos = null;
     @Value("${test.synthetic.end_datetime:#{null}}")
     private Instant endDatetime;
+    @Value("${test.synthetic.warp_factor:1}")
+    private int warpFactor;
 
     @Value("${test.synthetic.tcp_client_pool_size:1}")
     private int tcpClientPoolSize;
@@ -50,8 +77,14 @@ public class Hl7Generator {
      */
     @PostConstruct
     public void setComputedDefaults() {
+        monotonicStartTimeNanos = System.nanoTime();
         if (startDatetime == null) {
-            startDatetime = Instant.now();
+            // live mode, start generating data in the very recent past
+            startDatetime = Instant.now().minus(5, ChronoUnit.SECONDS);
+            progressDatetime = startDatetime;
+            warpFactor = 1;
+        } else {
+            progressDatetime = startDatetime;
         }
     }
 
@@ -70,25 +103,28 @@ public class Hl7Generator {
      * Assume a given number of patients, each with a 300Hz and a 50Hz machine.
      * @throws IOException on networking error
      */
-    @Scheduled(fixedRate = 5 * 1000)
+    @Scheduled(fixedDelay = 1000)
     public void generateMessages() throws IOException {
         var start = Instant.now();
-        // Usually if this method runs every N seconds, you would want to generate N
-        // seconds worth of data. However, for non-live tests such as validation runs,
-        // you may be processing (eg.) a week's worth of data in only a few hours,
-        // so it makes sense to turn up the warp factor to generate a larger amount of data.
-        int numMillis = 5 * 1000;
-        logger.info("Starting scheduled message dump (from {} for {} milliseconds)", startDatetime, numMillis);
+        // The warp factor is the main mechanism used to control how much data to put in now.
+        // Although the scheduling interval and chunk size/count will affect what warp factor is achievable.
+        // Analogy: A combination of scheduling interval, maxChunks, millisPerChunk
+        // and your machine's power is the power of the heater; the warp factor is your thermostat.
+        final int millisPerChunk = 5 * 1000;
+        logger.info("Starting scheduled message dump (from {} for {} milliseconds)", progressDatetime, millisPerChunk);
         boolean shouldExit = false;
-        for (int warpIdx = 0; warpIdx < warpFactor; warpIdx++) {
+        final int maxChunks = 10;
+        int numChunks = 0;
+        Instant progressAtStart = progressDatetime;
+        while (progressDatetime.isBefore(getExpectedProgressDatetime())) {
             logger.info("Making HL7 messages");
-            List<String> synthMsgs = makeSyntheticWaveformMsgsAllPatients(startDatetime, numPatients, numMillis);
+            List<String> synthMsgs = makeSyntheticWaveformMsgsAllPatients(progressDatetime, numPatients, millisPerChunk);
             logger.info("Sending {} HL7 messages", synthMsgs.size());
             // To avoid the worker threads in the reader being blocked trying to write to the
             // same location+stream at the same time, shuffling the list might be a good idea.
-            // However, it can lead to fragmentation if numMillis is too large,
+            // However, it can lead to fragmentation if millisPerChunk is too large,
             // because time-adjacent data might be very far apart in the list. So there might be a way to make it
-            // work by doing a greater number of smaller dumps by keeping numMillis below the message collation
+            // work by doing a greater number of smaller dumps by keeping millisPerChunk below the message collation
             // threshold. Let's leave this performance tweaking until later.
 //            Collections.shuffle(synthMsgs);
 
@@ -108,16 +144,26 @@ public class Hl7Generator {
             }
             logger.info("Done sending {} HL7 messages", synthMsgs.size());
 
-            startDatetime = startDatetime.plus(numMillis, ChronoUnit.MILLIS);
-            if (endDatetime != null && startDatetime.isAfter(endDatetime)) {
+            progressDatetime = progressDatetime.plus(millisPerChunk, ChronoUnit.MILLIS);
+            if (endDatetime != null && progressDatetime.isAfter(endDatetime)) {
                 shouldExit = true;
+                break;
+            }
+
+            numChunks++;
+            if (numChunks > maxChunks) {
+                // Let the scheduled task finish intermittently, so we don't spend forever in this loop
+                // catching up (the next scheduled task will come along soon enough).
                 break;
             }
         }
         var end = Instant.now();
-        logger.info("Full dump took {} milliseconds", start.until(end, ChronoUnit.MILLIS));
+        long procTimeMillis = start.until(end, ChronoUnit.MILLIS);
+        long dataTimeMillis = progressAtStart.until(progressDatetime, ChronoUnit.MILLIS);
+        logger.info("Full dump took {} milliseconds, covered {} milliseconds of data (real time factor {})",
+                procTimeMillis, dataTimeMillis, ((double) dataTimeMillis) / procTimeMillis);
         if (shouldExit) {
-            logger.info("End date {} has been reached (cur={}), EXITING", endDatetime, startDatetime);
+            logger.warn("End date {} has been reached (cur={}), EXITING", endDatetime, progressDatetime);
             System.exit(0);
         }
     }
