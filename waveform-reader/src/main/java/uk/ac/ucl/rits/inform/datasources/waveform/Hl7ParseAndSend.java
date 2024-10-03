@@ -19,24 +19,27 @@ import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class Hl7ParseAndSend {
     private final Logger logger = LoggerFactory.getLogger(Hl7ParseAndSend.class);
-
     private final WaveformOperations waveformOperations;
     private final WaveformCollator waveformCollator;
+    private final SourceMetadata sourceMetadata;
+    private long numHl7 = 0;
 
     Hl7ParseAndSend(WaveformOperations waveformOperations,
-                    WaveformCollator waveformCollator) {
+                    WaveformCollator waveformCollator,
+                    SourceMetadata sourceMetadata) {
         this.waveformOperations = waveformOperations;
         this.waveformCollator = waveformCollator;
+        this.sourceMetadata = sourceMetadata;
     }
 
     List<WaveformMessage> parseHl7(String messageAsStr) throws Hl7ParseException {
         List<WaveformMessage> allWaveformMessages = new ArrayList<>();
-        logger.info("Parsing message of size {}", messageAsStr.length());
-        Instant start = Instant.now();
+        logger.debug("Parsing message of size {}", messageAsStr.length());
         Hl7Message message = new Hl7Message(messageAsStr);
         String messageIdBase = message.getField("MSH", 10);
         String pv1LocationId = message.getField("PV1", 3);
@@ -59,7 +62,7 @@ public class Hl7ParseAndSend {
                     throw new Hl7ParseException("Unexpected location " + locationId + "|" + pv1LocationId);
                 }
 
-                logger.info("Parsing datetime {}", obsDatetimeStr);
+                logger.trace("Parsing datetime {}", obsDatetimeStr);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSSZZ");
                 TemporalAccessor ta = formatter.parse(obsDatetimeStr);
                 Instant obsDatetime = Instant.from(ta);
@@ -71,40 +74,52 @@ public class Hl7ParseAndSend {
                 }
                 List<Double> points = Arrays.stream(allPointsStr.split("\\^")).map(Double::parseDouble).toList();
 
-                // XXX: Sampling rate is not in the message.
-                // Will be fixed by implementing issue #45.
-                long samplingRate;
-                if (streamId.equals("59912")) {
-                    samplingRate = 50L;
-                } else {
-                    samplingRate = 300L;
+                Optional<SourceMetadataItem> metadataOpt = sourceMetadata.getStreamMetadata(streamId);
+                if (metadataOpt.isEmpty()) {
+                    logger.warn("Skipping stream {}, unrecognised streamID", streamId);
+                    continue;
                 }
+                SourceMetadataItem metadata = metadataOpt.get();
+                if (!metadata.isUsable()) {
+                    logger.warn("Skipping stream {}, insufficient metadata", streamId);
+                    continue;
+                }
+                // Sampling rate and stream description is not in the message, so use the metadata
+                int samplingRate = metadata.samplingRate();
+                String mappedLocation = hl7AdtLocationFromCapsuleLocation(locationId);
+                String mappedStreamDescription = metadata.mappedStreamDescription();
+                String unit = metadata.unit();
 
                 String messageIdSpecific = String.format("%s_%d_%d", messageIdBase, obrI, obxI);
                 logger.debug("location {}, time {}, messageId {}, value count = {}",
                         locationId, obsDatetime, messageIdSpecific, points.size());
                 WaveformMessage waveformMessage = waveformMessageFromValues(
-                        samplingRate, locationId, obsDatetime, messageIdSpecific, streamId, points);
+                        samplingRate, locationId, mappedLocation, obsDatetime, messageIdSpecific,
+                        streamId, mappedStreamDescription, unit, points);
 
                 allWaveformMessages.add(waveformMessage);
             }
         }
 
-        Instant afterParse2 = Instant.now();
-        logger.info("Timing: message length {}, parse {} ms",
-                messageAsStr.length(),
-                start.until(afterParse2, ChronoUnit.MILLIS));
         return allWaveformMessages;
     }
 
+    private String hl7AdtLocationFromCapsuleLocation(String capsuleLocation) {
+        // XXX: need to perform location mapping here (see Issue #41)
+        return capsuleLocation;
+    }
+
+    @SuppressWarnings("checkstyle:ParameterNumber")
     private WaveformMessage waveformMessageFromValues(
-            Long samplingRate, String locationId, Instant messageStartTime, String messageId,
-            String sourceStreamId, List<Double> arrayValues) {
+            int samplingRate, String locationId, String mappedLocation, Instant messageStartTime, String messageId,
+            String sourceStreamId, String mappedStreamDescription, String unit, List<Double> arrayValues) {
         WaveformMessage waveformMessage = new WaveformMessage();
         waveformMessage.setSamplingRate(samplingRate);
         waveformMessage.setSourceLocationString(locationId);
-        // XXX: need to perform location mapping here and set the mapped location (see Issue #41)
-        // XXX: ditto stream ID mapping (Issue #45)
+        waveformMessage.setMappedLocationString(mappedLocation);
+        waveformMessage.setMappedStreamDescription(mappedStreamDescription);
+        // XXX: where does the unit go?
+
         waveformMessage.setObservationTime(messageStartTime);
         waveformMessage.setSourceMessageId(messageId);
         waveformMessage.setSourceStreamId(sourceStreamId);
@@ -122,8 +137,16 @@ public class Hl7ParseAndSend {
     public void parseAndQueue(String messageAsStr) throws Hl7ParseException, WaveformCollator.CollationException {
         List<WaveformMessage> msgs = parseHl7(messageAsStr);
 
-        logger.info("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
+        logger.trace("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
         waveformCollator.addMessages(msgs);
+        numHl7++;
+        if (numHl7 % 5000 == 0) {
+            logger.debug("Have parsed and queued {} HL7 messages in total, {} pending messages, "
+                            + " {} pending samples",
+                    numHl7,
+                    waveformCollator.getPendingMessageCount(),
+                    waveformCollator.getPendingSampleCount());
+        }
     }
 
     @Setter
@@ -143,12 +166,15 @@ public class Hl7ParseAndSend {
      */
     @Scheduled(fixedDelay = 10 * 1000)
     public void collateAndSend() throws InterruptedException, WaveformCollator.CollationException {
+        logger.debug("{} uncollated waveform messages pending", waveformCollator.pendingMessages.size());
         List<WaveformMessage> msgs = waveformCollator.getReadyMessages(
                 Instant.now(), maxCollatedMessageSamples, waitForDataLimitMillis, assumedRounding);
-        logger.info("{} Waveform messages ready for sending", msgs.size());
+        logger.info("{} collated waveform messages ready for sending", msgs.size());
         for (var m: msgs) {
             // consider sending to publisher in batches?
             waveformOperations.sendMessage(m);
         }
+        logger.info("collateAndSend end");
     }
+
 }

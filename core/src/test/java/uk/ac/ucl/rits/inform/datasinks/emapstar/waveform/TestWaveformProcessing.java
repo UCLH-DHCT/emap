@@ -48,7 +48,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
         String sourceStreamId;
         String mappedStreamName;
         int numSamples;
-        long samplingRate;
+        int samplingRate;
         int maxSamplesPerMessage;
         String sourceLocation;
         String mappedLocation;

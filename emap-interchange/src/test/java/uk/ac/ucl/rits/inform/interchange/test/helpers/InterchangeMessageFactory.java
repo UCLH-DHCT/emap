@@ -272,7 +272,7 @@ public class InterchangeMessageFactory {
      * @return list of messages containing synthetic data
      */
     public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, String mappedStreamName,
-                                                 long samplingRate, final int numSamples, int maxSamplesPerMessage,
+                                                 int samplingRate, final int numSamples, int maxSamplesPerMessage,
                                                  String sourceLocation, String mappedLocation,
                                                  Instant obsDatetime, ChronoUnit roundToUnit) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?

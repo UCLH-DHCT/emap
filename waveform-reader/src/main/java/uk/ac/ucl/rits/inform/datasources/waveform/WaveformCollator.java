@@ -25,41 +25,49 @@ public class WaveformCollator {
     private final Logger logger = LoggerFactory.getLogger(WaveformCollator.class);
     protected final Map<Pair<String, String>, SortedMap<Instant, WaveformMessage>> pendingMessages = new HashMap<>();
 
-    private Pair<String, String> makeKey(WaveformMessage msg) {
+    Pair<String, String> makeKey(WaveformMessage msg) {
         return new ImmutablePair<>(msg.getSourceLocationString(), msg.getSourceStreamId());
     }
 
     /**
      * Add short messages from the same patient for collating.
-     * @param messagesToAdd messages to add, must all be for same patient
+     * @param messagesToAdd messages to add, can be for different location+stream
      * @throws CollationException if a message duplicates another message
      */
     public void addMessages(List<WaveformMessage> messagesToAdd) throws CollationException {
-        /*
-         * Lock the whole structure because we may add items here, and mustn't simultaneously iterate over it
-         * in the reader thread.
-         * Also take out lock on the per-patient data, because we may be trying to collate at the same time as
-         * we're adding here.
-         * This could be improved further by doing computeIfAbsent at the top outside the loop, and thus
-         * avoiding holding the pendingMessages lock for too long. (Relying on all being for same patient, and
-         * thus maximum one item will need adding).
+        Map<Pair<String, String>, List<WaveformMessage>> messagesToAddByKey = new HashMap<>();
+        for (WaveformMessage toAdd: messagesToAdd) {
+            Pair<String, String> key = makeKey(toAdd);
+            messagesToAddByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(toAdd);
+        }
+
+        /* Lock the entire structure as briefly as possible, only to add new entries that don't exist.
+         * Lock because we mustn't simultaneously iterate over it in the reader thread.
          */
         synchronized (pendingMessages) {
-            for (var msg : messagesToAdd) {
-                // can we optimise on the basis that all messages in the list will have the same key?
-                Pair<String, String> messageKey = makeKey(msg);
-                SortedMap<Instant, WaveformMessage> existingMessages = pendingMessages.computeIfAbsent(
-                        messageKey, k -> new TreeMap<>());
-                synchronized (existingMessages) {
+            for (var key: messagesToAddByKey.keySet()) {
+                pendingMessages.computeIfAbsent(key, k -> new TreeMap<>());
+            }
+        }
+
+        /* The bulk of time is spent only with a lock held on the data structure specific to
+         * the location+stream, thus enabling more parallelism.
+         * Need lock because we may be trying to collate at the same time as we're adding here.
+         * Group together all the messages for a particular location+stream, so that the lock
+         * for each one only needs to be taken out once.
+         */
+        for (var key: messagesToAddByKey.keySet()) {
+            SortedMap<Instant, WaveformMessage> existingMessages = pendingMessages.get(key);
+            synchronized (existingMessages) {
+                for (WaveformMessage msg: messagesToAddByKey.get(key)) {
                     Instant observationTime = msg.getObservationTime();
                     // messages may arrive out of order, but TreeMap will keep them sorted by obs time
-                    WaveformMessage existing = existingMessages.get(observationTime);
+                    WaveformMessage existing = existingMessages.put(observationTime, msg);
                     if (existing != null) {
                         // in future we may want to compare them and only log error if they differ
-                        throw new CollationException(String.format("Would replace message with time %s: %s",
+                        throw new CollationException(String.format("Already existing message with time %s: %s",
                                 observationTime, existing));
                     }
-                    existingMessages.put(observationTime, msg);
                 }
             }
         }
@@ -86,10 +94,11 @@ public class WaveformCollator {
                                                   int waitForDataLimitMillis,
                                                   ChronoUnit assumedRounding) throws CollationException {
         List<WaveformMessage> newMessages = new ArrayList<>();
-        logger.info("Pending messages: {} location+stream combos (of which {} non-empty), {} total samples",
+        logger.info("Pending messages: {} - {} location+stream combos (of which {} non-empty)",
+                getPendingMessageCount(),
                 pendingMessages.size(),
-                pendingMessages.values().stream().filter(pm -> !pm.isEmpty()).count(),
-                pendingMessages.values().stream().map(Map::size).reduce(Integer::sum).orElse(0));
+                pendingMessages.values().stream().filter(pm -> !pm.isEmpty()).count());
+        logger.debug("Pending total samples: {}", getPendingSampleCount());
         List<SortedMap<Instant, WaveformMessage>> pendingMessagesSnapshot;
         synchronized (pendingMessages) {
             // Here we (briefly) iterate over pendingMessages, so take out a lock to prevent
@@ -97,7 +106,8 @@ public class WaveformCollator {
             // (Note that items are never deleted)
             pendingMessagesSnapshot = new ArrayList<>(pendingMessages.values());
         }
-        // The snapshot may become slightly out of date, but that's fine because it allows
+        // The snapshot may become slightly out of date, but that's fine because any new
+        // entries will get handled next time. The advantage is to allow
         // more fine-grained locking to take place here.
         for (SortedMap<Instant, WaveformMessage> perPatientMap: pendingMessagesSnapshot) {
             while (true) {
@@ -116,6 +126,7 @@ public class WaveformCollator {
         }
         return newMessages;
     }
+
 
     /**
      * Given a sorted map of messages (all for same patient+stream), squash as much as possible
@@ -161,7 +172,7 @@ public class WaveformCollator {
 
             sampleCount += msg.getNumericValues().get().size();
             if (sampleCount > targetCollatedMessageSamples) {
-                logger.info("Reached sample target ({} > {}), collated message span: {} -> {}",
+                logger.debug("Reached sample target ({} > {}), collated message span: {} -> {}",
                         sampleCount, targetCollatedMessageSamples,
                         firstMsg.getObservationTime(), msg.getObservationTime());
                 break;
@@ -238,6 +249,33 @@ public class WaveformCollator {
         }
 
         return null;
+    }
+
+    /**
+     * @return The total number of samples pending in the queue.
+     */
+    public int getPendingSampleCount() {
+        // Iteration, even without modification, can't be done while the structure might be being modified.
+        synchronized (pendingMessages) {
+            int totalSamples = 0;
+            for (var perPatientStream: pendingMessages.values()) {
+                synchronized (perPatientStream) {
+                    for (var msgs: perPatientStream.values()) {
+                        totalSamples += msgs.getNumericValues().get().size();
+                    }
+                }
+            }
+            return totalSamples;
+        }
+    }
+
+    /**
+     * @return The number of messages pending (uncollated) in the queue.
+     */
+    public int getPendingMessageCount() {
+        synchronized (pendingMessages) {
+            return pendingMessages.values().stream().map(Map::size).reduce(Integer::sum).orElse(0);
+        }
     }
 
     class CollationException extends Throwable {
