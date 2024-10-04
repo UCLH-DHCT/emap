@@ -95,7 +95,7 @@ public class Hl7Message {
     }
 
     private Hl7Segment getSingleHl7Segment(String segmentName, int field1Index) throws Hl7ParseException {
-        List<Hl7Segment> seg = segmentsBySegmentName.get(segmentName);
+        List<Hl7Segment> seg = getSegments(segmentName);
         if (seg.size() != 1) {
             throw new Hl7ParseException(
                     String.format("getField(%s, %d) can only be called on single segments seg, got size %d",
@@ -105,7 +105,7 @@ public class Hl7Message {
     }
 
     public List<Hl7Segment> getSegments(String segmentName) {
-        return segmentsBySegmentName.get(segmentName);
+        return segmentsBySegmentName.getOrDefault(segmentName, new ArrayList<>());
     }
 
 }
