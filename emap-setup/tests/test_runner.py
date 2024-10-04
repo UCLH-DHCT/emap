@@ -114,5 +114,5 @@ def test_zero_length_queues(queue_length, expected):
         "hl7Queue        0\n",
     ]
 
-    method = ValidationRunner._stdout_rabbitmq_lines_have_zero_length_queues
+    method = ValidationRunner._stdout_rabbitmq_queues_all_zero_length
     assert method(lines) == expected

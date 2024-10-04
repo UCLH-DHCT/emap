@@ -217,10 +217,10 @@ class ValidationRunner:
             "exec rabbitmq rabbitmqctl -q list_queues", output_lines=output_lines
         )
 
-        return self._stdout_rabbitmq_lines_have_zero_length_queues(output_lines)
+        return not self._stdout_rabbitmq_queues_all_zero_length(output_lines)
 
     @staticmethod
-    def _stdout_rabbitmq_lines_have_zero_length_queues(lines: List[str]) -> bool:
+    def _stdout_rabbitmq_queues_all_zero_length(lines: List[str]) -> bool:
         """
         Do a set of output lines generated from querying the rabbitmq
         queues indicate that all queues are empty?
