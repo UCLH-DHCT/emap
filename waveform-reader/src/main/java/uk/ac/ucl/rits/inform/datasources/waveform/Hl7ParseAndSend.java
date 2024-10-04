@@ -144,12 +144,20 @@ public class Hl7ParseAndSend {
 
     /**
      * Parse an HL7 message and store the resulting WaveformMessage in the queue awaiting collation.
+     * If HL7 is invalid or in a form that the ad hoc parser can't handle, log error and skip.
      * @param messageAsStr One HL7 message as a string
-     * @throws Hl7ParseException if HL7 is invalid or in a form that the ad hoc parser can't handle
      * @throws WaveformCollator.CollationException if the data has a logical error that prevents collation
      */
-    public void parseAndQueue(String messageAsStr) throws Hl7ParseException, WaveformCollator.CollationException {
-        List<WaveformMessage> msgs = parseHl7(messageAsStr);
+    public void parseAndQueue(String messageAsStr) throws WaveformCollator.CollationException {
+        List<WaveformMessage> msgs;
+        try {
+            msgs = parseHl7(messageAsStr);
+        } catch (Hl7ParseException e) {
+            logger.error("HL7 parsing failed, first 100 chars: {}\nstacktrace {}",
+                    messageAsStr.substring(0, 100),
+                    e.getStackTrace());
+            return;
+        }
 
         logger.trace("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
         waveformCollator.addMessages(msgs);
