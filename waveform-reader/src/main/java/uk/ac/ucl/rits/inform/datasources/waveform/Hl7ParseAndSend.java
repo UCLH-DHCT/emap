@@ -154,7 +154,7 @@ public class Hl7ParseAndSend {
             msgs = parseHl7(messageAsStr);
         } catch (Hl7ParseException e) {
             logger.error("HL7 parsing failed, first 100 chars: {}\nstacktrace {}",
-                    messageAsStr.substring(0, 100),
+                    messageAsStr.substring(0, Math.min(100, messageAsStr.length())),
                     e.getStackTrace());
             return;
         }
