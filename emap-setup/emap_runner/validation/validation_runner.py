@@ -197,8 +197,8 @@ class ValidationRunner:
 
     @property
     def _elapsed_time(self) -> timedelta:
-        """Seconds elapsed since the runner started"""
-        return timedelta(microseconds=time() - self.start_time)
+        """Time elapsed since the runner started"""
+        return timedelta(seconds=time() - self.start_time)
 
     @property
     def _has_populated_queues(self) -> bool:
