@@ -33,8 +33,18 @@ public class Hl7Segment {
         logger.trace("Segment: name = {}, fields = {}", this.segmentName, this.fields);
     }
 
-    public String getField(int field1Index) {
-        return fields[field1Index];
+    /**
+     * Get unparsed contents of HL7 field for this segment.
+     * @param field1Index The HL7 field index within the segment, starting at 1
+     * @return unparsed string contents of the field
+     * @throws Hl7ParseException if field does not exist
+     */
+    public String getField(int field1Index) throws Hl7ParseException {
+        try {
+            return fields[field1Index];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw (Hl7ParseException) new Hl7ParseException("non existent field").initCause(e);
+        }
     }
 
     public void addChildSegment(Hl7Segment seg) {

@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7Segment;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -75,8 +76,13 @@ public class Hl7ParseAndSend {
 
                 logger.trace("Parsing datetime {}", obsDatetimeStr);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSSZZ");
-                TemporalAccessor ta = formatter.parse(obsDatetimeStr);
-                Instant obsDatetime = Instant.from(ta);
+                Instant obsDatetime;
+                try {
+                    TemporalAccessor ta = formatter.parse(obsDatetimeStr);
+                    obsDatetime = Instant.from(ta);
+                } catch (DateTimeException e) {
+                    throw (Hl7ParseException) new Hl7ParseException("Datetime parsing failed").initCause(e);
+                }
 
                 String streamId = obx.getField(3);
 
