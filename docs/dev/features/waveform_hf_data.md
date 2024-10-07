@@ -3,23 +3,40 @@
 
 ## Feature overview
 
+## Config options added
+
+- retention time
+- ???
 
 ## Design details
 
 ### Emap DB design
 
-As we understand it, there is no mechanism for correcting or updating waveform data, so we may just not have audit tables at all,
-as nothing would ever be put into them. Does this remove the need for the valid_from / stored_from columns?
+A key part of the waveform data table design is the use of SQL arrays, without which the storage would be
+extremely inefficient. This way we can store up to 3000 data points in a single database row.
 
-We will still need an observation date, which in a less storage critical table would be identical to the valid_from date.
-Removing that duplication could be worth it, even if we lose some semantic tidiness.
+There is one set of metadata per row regardless of array size,
+so increasing the array size increases the storage efficiency.
 
-stored_from might still be useful to know when that item got written to the database, even if we never intend to unstore it.
+But there is a tradeoff with timeliness. Since we don't append to arrays once written, we have to wait for all
+data points to arrive before we can write them in one go. 3000 points at 300Hz is 10 seconds worth of data.
+Having to wait for too much data would mean that our aim to make Emap no more than 10-20 seconds out of date would
+no longer hold.
+(see also https://github.com/UCLH-DHCT/emap/issues/65 )
 
-TODO: the actual DB design. See the Core processor logic issue for more discussion on this.
+As far as we know, there is no mechanism for correcting or updating waveform data,
+so the audit table will always be empty.
+Although we do delete old data for storage capacity reasons, moving it to the audit table in this case
+would defeat the whole purpose of its deletion!
+
+Stream metadata is stored in the `visit_observation_type` table, as it is for visit observations.
+Waveform data semantically could have gone in the `visit_observation` table if it weren't for the
+storage efficiency problems this would cause.
 
 
 ### Core processor logic (orphan data problem)
+
+See issue https://github.com/UCLH-DHCT/emap/issues/36
 
 The HL7 messages that Emap has been ingesting up to this point tend to be highly redundant.
 Every message contains basic patient demographic/encounter data.
@@ -88,9 +105,12 @@ Performance metrics that we need to watch:
 
 ### Storage efficiency
 
-My initial tests have assumed that there will be 30 patients generating data from one 50Hz and one 300Hz waveform source at all times.
+My initial tests assumed that there will be 30 patients generating data from one 50Hz and one 300Hz waveform source at all times.
+(In actual fact it's going to be more like 5-10 patients
+ventilated at any one time, but the ventilator has more than two data streams)
 
-At this rate of data flow, my very naive DB implementation results in ~100GB of backend postgres disk usage being generated per day
+At this rate of data flow, my very naive DB implementation using 1 data point per row
+resulted in ~100GB of backend postgres disk usage being generated per day
 - clearly far too much if we're aiming for the UDS to stay under 1TB, although that figure may be quite out of date!
 
 You can calculate a theoretical minimum:
@@ -100,40 +120,50 @@ If we keep only the last 7 days of data, that caps it at **~60GB overall**.
 Will need to allow for some row metadata, the underlying DB having to be padded/aligned/whatever, and it will be a bit more.
 Am assuming compression is impossible.
 
-Using SQL arrays is likely to significantly reduce the data storage needed vs the naive implementation.
+Using SQL arrays vastly improves the actual efficiency vs 1 per row.
 
+#### Further improvements
+
+See issue https://github.com/UCLH-DHCT/emap/issues/62 for a discussion of further improvements.
 
 ### HL7 ingress
 
-There is a piece of software in the hospital called Smartlinx, which can apparently be fairly easily configured to stream HL7 waveform data in our direction.
-Looking at Elise's code for performing dumps of waveform data, it seems to be setting up a server, which Smartlinx then connects to.
+There is a piece of software in the hospital called Smartlinx which collates data from little dongles
+which plug into the back of ventilators and bedside monitors.
+It can be easily configured to stream HL7 waveform data in our direction. However, a large concern is that we avoid
+jeopardizing the existing flow of (non-waveform) data that goes from Smartlinx to Epic.
+
+Therefore we will need to have our own Smartlinx licence and the server to run it on, so we are separate from the
+existing one.
+
+So far, it has only been set up to provide one patient's waveform data at a time, and only for short periods. It's
+unknown how it would cope if it were sending *all* patients' data to us.
+
+To receive waveform data from Smartlinx, you must listen on a TCP port which Smartlinx then connects to.
 This seems rather unusual to me! We should be validating the source IP address at the very least if this is how it has to work.
 
- - Can Smartlinx replay missed messages if we go down?
- - Does Smartlinx support/require acknowledgement messages?
- - Will we need to do our own buffering? Can we do the same thing the IDS does (whatever that is)?
+Can Smartlinx replay missed messages if we go down? No.
+
+Does Smartlinx support/require acknowledgement messages? No.
+
+Will we need to do our own buffering? Can we do the same thing the IDS does (whatever that is)?
+Maybe. See issue https://github.com/UCLH-DHCT/emap/issues/48 for why we might have to implement some sort of buffering.
 
 HL7 messages from bedside monitor have ~40 measurements per message; ventilators ~1-10 (50Hz); ECGs (300Hz) not known.
 So this will be a high volume of text relative to the actual data.
 Although this inefficiency might keep a CPU core on the GAE fairly busy, at least it won't have any effect on the Emap queue and DB.
 Since we plan to use SQL arrays in the DB, and Emap doesn't have a mechanism to collate multiple incoming interchange messages,
-we want each interchange message to result in (at least) one DB row being written in its final form (updating an SQL array is likely not efficient).
-Therefore I plan to collect up about a second's worth of data for a given patient/machine and send that as one interchange message, so it can become a single row in the DB.
+we want each interchange message to result in one DB waveform row.
+Therefore I collect up to 3000 data points in memory for each patient+data stream, collate it and send as a single
+interchange message, so it can become a single row in the DB.
 
-This could mean having some sort of buffer for the HL7 reader that stores pending data. Probably post-parsing.
-
-Or you could just wait for 1 second of HL7 messages to come in - which will span many patients/machines of course - and
-process them in a batch, in memory, assigning all data points for the same patient/machine to the same message, then send them all.
-This avoids the need for storing pending data, but could mean the data is chopped up into slightly uneven fragments (consider
-what happens if machine type A likes to batch up 5 second's worth of messages, and machine type B likes to drip feed them).
-Also, this will be 1 second of message receipt, not of observation time!
-
-Speaking of timestamps, the HL7 messages contain two of them. The "capsule axon" time, and the server time.
-I've forgotten the difference, but Elise knows. The local time on the ventilators that has to be set manually twice a year to account for DST is not in the HL7 messages.
+The HL7 messages contain two timestamps. The "capsule axon" time (observation time?), and the server time (in MSH?).
+I've forgotten the difference, but Elise knows.
+The local time on the ventilators that has to be set manually twice a year to account for DST is not in the HL7 messages.
 
 ### Pre-release validation
 
-This assumes we have the ability to replay waveform HL7 messages.
+This requires the ability to replay waveform HL7 messages. We can currently do this using a text HL7 dump file.
 We could keep a test stream of real or synthetic messages, but it would have to be continously updated to store (say) the last 7 days of messages,
 otherwise this would lose some of the benefits of the validation process.
 As a fallback, you could perform waveform validation live, but this would mean a 7 day validation period would take 7 days to run,
