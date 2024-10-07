@@ -14,7 +14,7 @@ from emap_runner.validation.validation_runner import (
 )
 from emap_runner.docker.docker_runner import DockerRunner
 from emap_runner.global_config import GlobalConfiguration
-from emap_runner.utils import TimeWindow
+from emap_runner.utils import TimeWindow, EMAPRunnerException
 from .utils import work_in_tmp_directory
 
 config_path_only_docs = Path(
@@ -43,6 +43,34 @@ def test_clone_then_clean_repos():
     runner.run()
 
     assert not exists("emap_documentation")
+
+
+@work_in_tmp_directory(to_copy=None)
+def test_double_clone():
+    """
+    Reproduce issue #25
+    """
+    parser = create_parser()
+    config = GlobalConfiguration(config_path_only_docs)
+
+    args = ["setup", "-i"]
+    runner = EMAPRunner(args=parser.parse_args(args), config=config)
+    runner.run()
+    # Make some un-pushed changes to newly cloned repo
+    file_to_keep = Path('emap_documentation/my_favourite_file.txt')
+    with open(file_to_keep, 'w') as fh:
+        fh.write("cheese")
+
+    assert file_to_keep.exists()
+
+    # try to clone again, should get error
+    with pytest.raises(EMAPRunnerException, match='already existed'):
+        runner = EMAPRunner(args=parser.parse_args(args), config=config)
+        runner.run()
+
+    # my local changes are still there
+    assert file_to_keep.exists()
+
 
 
 def test_default_time_window():
