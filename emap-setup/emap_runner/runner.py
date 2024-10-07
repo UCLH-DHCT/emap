@@ -104,7 +104,7 @@ def create_parser() -> Parser:
     # add use-FOO and no-use-FOO options for enabling/disabling various services in validation
     add_boolean_optional_action(validation_parser, "hl7-reader", True, "the main HL7 ADT reader")
     add_boolean_optional_action(validation_parser, "hoover", True, "the hoover service")
-    add_boolean_optional_action(validation_parser, "waveform-synth", False, "synthetic waveform generator")
+    add_boolean_optional_action(validation_parser, "waveform", False, "waveform reader")
 
     config_parser = subparsers.add_parser("config", help="Configuration operations")
     config_parser.add_argument(
@@ -211,7 +211,7 @@ class EMAPRunner:
             should_build=not self.args.skip_build,
             use_hl7_reader=self.args.use_hl7_reader,
             use_hoover=use_hoover,
-            use_waveform_synth=self.args.use_waveform_synth,
+            use_waveform=self.args.use_waveform,
         )
         runner.run()
         return runner

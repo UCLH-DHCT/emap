@@ -84,7 +84,7 @@ def test_time_window_is_set():
         ([], True, True, False),
         (["--no-use-hoover"], True, False, False),
         (["--no-use-hl7"], False, True, False),
-        (["--use-waveform-synth"], True, True, True),
+        (["--use-waveform"], True, True, True),
 
     ])
 def test_validation_source_arguments_set_correct_runner_attributes(args_list, use_hl7, use_hoover, use_waveform):
@@ -100,7 +100,7 @@ def test_validation_source_arguments_set_correct_runner_attributes(args_list, us
         mock_obj.assert_called_once()
         assert validation_runner.use_hl7_reader == use_hl7
         assert validation_runner.use_hoover == use_hoover
-        assert validation_runner.use_waveform_synth == use_waveform
+        assert validation_runner.use_waveform == use_waveform
 
 
 @pytest.mark.parametrize("queue_length,expected", [(0, True), (1, False)])

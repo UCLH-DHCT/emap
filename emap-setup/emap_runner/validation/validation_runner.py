@@ -20,14 +20,14 @@ class ValidationRunner:
         should_build: bool = True,
         use_hl7_reader: bool = True,
         use_hoover: bool = True,
-        use_waveform_synth: bool = False,
+        use_waveform: bool = False,
     ):
         """Validation runner that will be run over a time window"""
 
         self.should_build = should_build
         self.use_hl7_reader = use_hl7_reader
         self.use_hoover = use_hoover
-        self.use_waveform_synth = use_waveform_synth
+        self.use_waveform = use_waveform
 
         self.start_time = None
         self.timeout = timedelta(hours=10)
@@ -156,9 +156,10 @@ class ValidationRunner:
                 output_filename=f"{self.log_file_prefix}_hoover.txt",
             )
 
-        # This needs further thought: it only brings up the reader for now (which may be
-        # reading from a file), probably need to have separate options for file vs synth?
-        if self.use_waveform_synth:
+        # Assume for the time being that this validation option is only to control whether
+        # the waveform *reader* is brought up, which will be reading from an HL7 dump file
+        # and therefore doesn't require the waveform-generator.
+        if self.use_waveform:
             self.docker.run(
                 "up --exit-code-from waveform-reader waveform-reader",
                 output_filename=f"{self.log_file_prefix}_waveform-reader.txt",
