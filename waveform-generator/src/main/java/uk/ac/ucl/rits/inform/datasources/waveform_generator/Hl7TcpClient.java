@@ -19,15 +19,20 @@ public class Hl7TcpClient implements AutoCloseable {
     }
 
     /**
-     * Send a message with CRLF.
+     * Send a message headed with a vertical tab (0b), and
+     * terminated with the file separator char (1c).
      *
-     * @param msg the byte array of the message to send, without the terminating CRLF
+     * @param msg the byte array of the message to send, without any whitespace header/footer.
      * @throws IOException tcp error
      */
     public void sendMessage(byte[] msg) throws IOException {
         OutputStream os = socket.getOutputStream();
+        os.write("\r\u000b".getBytes());
         os.write(msg);
-        os.write("\r\n".getBytes());
+        // There can't be any characters after this in the TCP message, or the
+        // Spring Integration TCP server will give errors.
+        // I can't yet be sure that this is how Smartlinx behaves!
+        os.write("\r\u001c".getBytes());
     }
 
     /**

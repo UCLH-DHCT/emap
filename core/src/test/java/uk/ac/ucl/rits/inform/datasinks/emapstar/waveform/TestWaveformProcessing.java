@@ -21,9 +21,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +55,7 @@ class TestWaveformProcessing extends MessageProcessingBase {
         String sourceLocation;
         String mappedLocation;
         Instant obsDatetime;
+        public String unit;
         public Instant getEndObsTime() {
             return obsDatetime.plus(numSamples * 1000_000L / samplingRate, ChronoUnit.MICROS);
         }
@@ -66,25 +69,25 @@ class TestWaveformProcessing extends MessageProcessingBase {
                 // Intended to be two patients each connected to two machines, but the nature of the
                 // bed/machine IDs may not quite be like this.
                 new TestData( "23", "stream 23", 20_000, 300, 900,
-                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), 106001L),
+                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-10T12:00:00Z"), "stream23unit", 106001L),
                 new TestData( "24", "stream 24", 25_000, 50, 500,
-                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), 106002L),
+                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-14T15:27:00Z"), "stream24unit", 106002L),
                 // matches location but not time
                 new TestData( "23", "stream 23", 15_000, 300, 900,
-                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), null),
+                        "source1", "T11E^T11E BY02^BY02-25", Instant.parse("2010-09-14T16:00:00Z"), "stream23unit", null),
                 // matches time but not location
                 new TestData( "23", "stream 23", 17_000, 50, 500,
-                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), null),
+                        "source2", "T42E^T42E BY03^BY03-17", Instant.parse("2010-09-10T12:00:00Z"), "stream23unit", null),
                 // unknown location
                 new TestData( "23", "stream 23", 17_000, 50, 500,
-                        "unknownlocation", null, Instant.parse("2010-09-10T12:00:00Z"), null)
+                        "unknownlocation", null, Instant.parse("2010-09-10T12:00:00Z"), "stream23unit", null)
         };
         List<WaveformMessage> allMessages = new ArrayList<>();
         for (var test: allTests) {
             allMessages.addAll(
                     messageFactory.getWaveformMsgs(test.sourceStreamId, test.mappedStreamName,
                             test.samplingRate, test.numSamples, test.maxSamplesPerMessage, test.sourceLocation,
-                            test.mappedLocation, test.obsDatetime, null));
+                            test.mappedLocation, test.obsDatetime, test.unit, null));
         }
 
         // must cope with messages in any order! Fixed seed to aid in debugging.
@@ -135,15 +138,11 @@ class TestWaveformProcessing extends MessageProcessingBase {
             List<Double> actualDataPointsAtLocation = new ArrayList<>();
             for (var row: waveformRows) {
                 assertTrue(row.getValuesArray().length <= test.maxSamplesPerMessage);
+                assertEquals(test.unit, row.getUnit());
                 actualDataPointsAtLocation.addAll(Arrays.asList(row.getValuesArray()));
             }
-            for (int i = 1; i < actualDataPointsAtLocation.size(); i++) {
-                Double thisValue = actualDataPointsAtLocation.get(i);
-                Double previousValue = actualDataPointsAtLocation.get(i - 1);
-                // test data is a sine wave, check that it has plausible values
-                assertTrue(-1 <= thisValue && thisValue <= 1);
-                assertNotEquals(thisValue, previousValue);
-            }
+            checkLooksLikeSineWave(actualDataPointsAtLocation);
+
             Instant projectedEndTime = null;
             for (var row : waveformRows) {
                 Instant thisStartTime = row.getObservationDatetime();
@@ -162,9 +161,100 @@ class TestWaveformProcessing extends MessageProcessingBase {
             assertEquals(totalExpectedTimeMicros, totalActualTimeMicros);
         }
         assertEquals(Arrays.stream(allTests).map(d -> d.numSamples).reduce(Integer::sum).get(), totalObservedNumSamples);
-        // XXX: do more with this
-        List<VisitObservationType> allWaveformVO = visitObservationTypeRepository.findAllBySourceObservationType("waveform");
+        Map<String, VisitObservationType> allWaveformVO =
+                visitObservationTypeRepository.findAllBySourceObservationType("waveform")
+                        .stream().collect(Collectors.toMap(VisitObservationType::getIdInApplication, Function.identity()));
         assertEquals(2, allWaveformVO.size());
+
+        for (String id: List.of("23", "24")) {
+            VisitObservationType vot = allWaveformVO.get(id);
+            assertEquals(id, vot.getInterfaceId());
+            assertEquals(id, vot.getIdInApplication());
+            assertEquals("stream " + id, vot.getName());
+            assertTrue(vot.getIsRealTime());
+        }
+    }
+
+    /**
+     * Does the list of points look roughly like a sine wave?
+     * A triangular wave would probably pass too, but the most likely error is that
+     * data would be missing or out of order.
+     */
+    private void checkLooksLikeSineWave(List<Double> actualDataPointsAtLocation) {
+        List<Integer> crossesZero = new ArrayList<>();
+        List<Integer> inflectionPoints = new ArrayList<>();
+        Double max = actualDataPointsAtLocation.stream().max(Double::compare).get();
+        Double min = actualDataPointsAtLocation.stream().min(Double::compare).get();
+        assertTrue(approxEqualsAbs(max, 1.0, 0.0001));
+        assertTrue(approxEqualsAbs(min, -1.0, 0.0001));
+        Double previousGradient = null;
+        Double maxGradient = Double.MIN_VALUE;
+        Double minGradient = Double.MAX_VALUE;
+        for (int i = 1; i < actualDataPointsAtLocation.size(); i++) {
+            Double thisValue = actualDataPointsAtLocation.get(i);
+            Double previousValue = actualDataPointsAtLocation.get(i - 1);
+            Double thisGradient = thisValue - previousValue; // ignore x scale
+            if (thisGradient > maxGradient) {
+                maxGradient = thisGradient;
+            }
+            if (thisGradient < minGradient) {
+                minGradient = thisGradient;
+            }
+            if (thisValue.compareTo(0.0) != previousValue.compareTo(0.0)) {
+                crossesZero.add(i);
+                // At zero crossings, gradient should be at its max (or min).
+                // Wait for an entire cycle to have passed so the min and max gradients are correct.
+                if (crossesZero.size() >= 3) {
+                    approxEqualsAbs(Math.abs(thisGradient), maxGradient, maxGradient * 0.01);
+                    approxEqualsAbs(maxGradient, -minGradient, maxGradient * 0.01);
+                }
+            }
+            if (previousGradient != null && thisGradient.compareTo(0.0) != previousGradient.compareTo(0.0)) {
+                inflectionPoints.add(i);
+                // at inflection points, gradient should be 0
+                approxEqualsAbs(thisGradient, 0, 0.01);
+            }
+            // sine wave is never flat
+            assertNotEquals(thisValue, previousValue);
+
+            previousGradient = thisGradient;
+        }
+
+        // Check that inflection points and zero crossings are individually evenly spaced,
+        // and that zero crossings are evenly spaced from inflection points
+        List<Integer> gapsBetweenInfl = calcGapsBetweenValues(inflectionPoints);
+        List<Integer> gapsBetweenCrossings = calcGapsBetweenValues(crossesZero);
+        Double gapsInflMean = checkAllValuesRoughlyEqual(gapsBetweenInfl);
+        Double gapsCrosMean = checkAllValuesRoughlyEqual(gapsBetweenCrossings);
+        assertTrue(approxEqualsAbs(gapsCrosMean, gapsInflMean, gapsCrosMean * 0.01));
+        List<Integer> inflAndCrossings = new ArrayList<>();
+        inflAndCrossings.addAll(inflectionPoints);
+        inflAndCrossings.addAll(crossesZero);
+        inflAndCrossings.sort(Integer::compare);
+        List<Integer> gapsBetweenInflAndCrossings = calcGapsBetweenValues(inflAndCrossings);
+        double allPointsMean = checkAllValuesRoughlyEqual(gapsBetweenInflAndCrossings);
+        assertTrue(approxEqualsAbs(allPointsMean, gapsCrosMean / 2, allPointsMean * 0.01));
+    }
+
+    private static double checkAllValuesRoughlyEqual(List<Integer> list) {
+        double mean = list.stream().reduce(Integer::sum).get() / (double) list.size();
+        //System.out.println("checkAllValuesRoughlyEqual: mean = " + mean + ", list = " + list);
+        assertTrue(list.stream().allMatch(g -> approxEqualsAbs(g, mean, mean * 0.01)));
+        return mean;
+    }
+
+    private static List<Integer> calcGapsBetweenValues(List<Integer> list) {
+        List<Integer> gaps = new ArrayList<>();
+        for (int i = 1; i < list.size(); i++) {
+            var thisValue = list.get(i);
+            var previousValue = list.get(i - 1);
+            gaps.add(thisValue - previousValue);
+        }
+        return gaps;
+    }
+
+    private static boolean approxEqualsAbs(double d1, double d2, double absTol) {
+        return Math.abs(d1 - d2) <= Math.abs(absTol);
     }
 
     private static void checkVisitObservationTypes(List<Waveform> waveformRows,

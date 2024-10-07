@@ -267,6 +267,7 @@ public class InterchangeMessageFactory {
      * @param sourceLocation bed location according to the original data
      * @param mappedLocation bed location according to data reader's interpretation of the original data
      * @param obsDatetime when the data occurred
+     * @param unit the unit of the measurement
      * @param roundToUnit what precision to round obsDatetime to when creating messages (to be more realistic),
      *                    or null to not perform rounding
      * @return list of messages containing synthetic data
@@ -274,7 +275,7 @@ public class InterchangeMessageFactory {
     public List<WaveformMessage> getWaveformMsgs(String sourceStreamId, String mappedStreamName,
                                                  int samplingRate, final int numSamples, int maxSamplesPerMessage,
                                                  String sourceLocation, String mappedLocation,
-                                                 Instant obsDatetime, ChronoUnit roundToUnit) {
+                                                 Instant obsDatetime, String unit, ChronoUnit roundToUnit) {
         // XXX: perhaps make use of the hl7-reader utility function for splitting messages? Or is that cheating?
         // Or should such a utility function go into (non-test) Interchange?
         List<WaveformMessage> allMessages = new ArrayList<>();
@@ -289,8 +290,9 @@ public class InterchangeMessageFactory {
             waveformMessage.setMappedLocationString(mappedLocation);
             var values = new ArrayList<Double>();
             for (int i = 0; i < samplesThisMessage; i++) {
-                values.add(Math.sin(i * 0.01));
+                values.add(Math.sin((numSamples - samplesRemaining + i) * 0.01));
             }
+            waveformMessage.setUnit(unit);
             waveformMessage.setNumericValues(new InterchangeValue<>(values));
             Instant obsDatetimeRounded = roundInstantToNearest(obsDatetime, roundToUnit);
             waveformMessage.setObservationTime(obsDatetimeRounded);

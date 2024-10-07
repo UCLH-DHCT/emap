@@ -41,7 +41,15 @@ public class Hl7ParseAndSend {
 
     List<WaveformMessage> parseHl7(String messageAsStr) throws Hl7ParseException {
         List<WaveformMessage> allWaveformMessages = new ArrayList<>();
-        logger.debug("Parsing message of size {}", messageAsStr.length());
+        int origSize = messageAsStr.length();
+        // messages are separated with vertical tabs and extra carriage returns, so remove
+        messageAsStr = messageAsStr.strip();
+        if (messageAsStr.isEmpty()) {
+            // message was all whitespace, ignore
+            logger.info("Ignoring empty or all-whitespace message");
+            return allWaveformMessages;
+        }
+        logger.debug("Parsing message of size {} ({} including stray whitespace)", messageAsStr.length(), origSize);
         Hl7Message message = new Hl7Message(messageAsStr);
         String messageIdBase = message.getField("MSH", 10);
         String pv1LocationId = message.getField("PV1", 3);
@@ -115,11 +123,10 @@ public class Hl7ParseAndSend {
         waveformMessage.setSourceLocationString(locationId);
         waveformMessage.setMappedLocationString(mappedLocation);
         waveformMessage.setMappedStreamDescription(mappedStreamDescription);
-        // XXX: where does the unit go?
-
         waveformMessage.setObservationTime(messageStartTime);
         waveformMessage.setSourceMessageId(messageId);
         waveformMessage.setSourceStreamId(sourceStreamId);
+        waveformMessage.setUnit(unit);
         waveformMessage.setNumericValues(new InterchangeValue<>(arrayValues));
         logger.trace("output interchange waveform message = {}", waveformMessage);
         return waveformMessage;

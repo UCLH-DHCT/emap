@@ -62,17 +62,18 @@ public class WaveformController {
         // XXX: will have to do some sanity checks here to be sure that the HL7 feed hasn't gone down.
         // See issue #36, and here for discussion:
         // https://github.com/UCLH-DHCT/emap/blob/jeremy/hf-data/docs/dev/features/waveform_hf_data.md#core-processor-logic-orphan-data-problem
-        Waveform dataPoint = new Waveform(
+        Waveform dataRow = new Waveform(
                 observationTime,
                 observationTime,
                 storedFrom);
-        inferredLocationVisit.ifPresent(dataPoint::setLocationVisitId);
+        inferredLocationVisit.ifPresent(dataRow::setLocationVisitId);
         Double[] valuesAsArray = numericValues.toArray(new Double[0]);
-        dataPoint.setSamplingRate(msg.getSamplingRate());
-        dataPoint.setSourceLocation(msg.getSourceLocationString());
-        dataPoint.setVisitObservationTypeId(visitObservationType);
-        dataPoint.setValuesArray(valuesAsArray);
-        waveformRepository.save(dataPoint);
+        dataRow.setSamplingRate(msg.getSamplingRate());
+        dataRow.setSourceLocation(msg.getSourceLocationString());
+        dataRow.setVisitObservationTypeId(visitObservationType);
+        dataRow.setUnit(msg.getUnit());
+        dataRow.setValuesArray(valuesAsArray);
+        waveformRepository.save(dataRow);
     }
 
     /**

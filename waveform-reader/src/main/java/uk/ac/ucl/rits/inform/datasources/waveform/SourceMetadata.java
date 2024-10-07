@@ -84,6 +84,6 @@ record SourceMetadataItem(String sourceStreamId, String mappedStreamDescription,
     // allow unusable to exist for the sake of better logging messages
     public boolean isUsable() {
         // We need to know the sampling rate so we can check the data is free of gaps, for one thing
-        return samplingRate != null;
+        return samplingRate != null && unit != null;
     }
 }

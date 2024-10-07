@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.datasources.waveform;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7ParseException;
@@ -20,6 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.ac.ucl.rits.inform.datasources.waveform.Utils.readHl7FromResource;
 
 @SpringJUnitConfig
 @SpringBootTest
@@ -72,6 +72,8 @@ class TestHl7ParseAndSend {
                 msgs.stream().map(WaveformMessage::getSamplingRate).toList());
         List<String> distinctMessageIds = msgs.stream().map(m -> m.getSourceMessageId()).distinct().toList();
         assertEquals(msgs.size(), distinctMessageIds.size());
+        List<String> actualUnits = msgs.stream().map(WaveformMessage::getUnit).toList();
+        assertEquals(List.of("mL", "cmH2O", "uV", "%", "%"), actualUnits);
         var expectedValues = List.of(
                 List.of(42.10),
                 List.of(42.20),
@@ -102,13 +104,6 @@ class TestHl7ParseAndSend {
         String hl7WithReps = hl7String.replace("PV1||I|UCHT03ICURM08|", "PV1||I|UCHT03ICURM07|");
         Hl7ParseException e = assertThrows(Hl7ParseException.class, () -> hl7ParseAndSend.parseHl7(hl7WithReps));
         assertTrue(e.getMessage().contains("Unexpected location"));
-    }
-
-    private String readHl7FromResource(String relativeResourceFilePath) throws IOException, URISyntaxException {
-        ClassLoader classLoader = this.getClass().getClassLoader();
-        URI uri = classLoader.getResource(relativeResourceFilePath).toURI();
-        List<String> readAllLines = Files.readAllLines(Path.of(uri));
-        return String.join("\r", readAllLines) + "\r";
     }
 
 }

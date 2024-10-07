@@ -14,7 +14,7 @@ import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetConnection;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
-import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
+import org.springframework.integration.ip.tcp.serializer.ByteArraySingleTerminatorSerializer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -57,7 +57,15 @@ public class Hl7ListenerConfig {
         connFactory.setSoTimeout(10_000);
         connFactory.setSoTcpNoDelay(false);
         connFactory.setSoKeepAlive(true);
-        connFactory.setDeserializer(TcpCodecs.crlf(5_000_000));
+        // The message separator is actually "\r\x1c\r\x0b", but there is no pre-existing
+        // serializer which supports string separators.
+        // Since the 0x1c (file separator) character is pretty unusual and only occurs here,
+        // use this as a single byte separator and then we'll have to strip off the other junk later.
+        // Spring will get upset if we get sent anything after this character. May need to squash this
+        // error, at least if it's just some extraneous whitespace.
+        ByteArraySingleTerminatorSerializer serializer = new ByteArraySingleTerminatorSerializer((byte) 0x1c);
+        serializer.setMaxMessageSize(5_000_000);
+        connFactory.setDeserializer(serializer);
         connFactory.setTcpNetConnectionSupport(new DefaultTcpNetConnectionSupport() {
             @Override
             public TcpNetConnection createNewConnection(

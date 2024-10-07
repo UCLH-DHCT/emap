@@ -27,9 +27,9 @@ public class Hl7TcpClientPool implements AutoCloseable {
     }
 
     /**
-     * Send a message with CRLF.
+     * Send a message using the pool.
      *
-     * @param msg the byte array of the message to send, without the terminating CRLF
+     * @param msg the byte array of the message to send
      * @throws IOException tcp error
      */
     public void sendMessage(byte[] msg) throws IOException {
