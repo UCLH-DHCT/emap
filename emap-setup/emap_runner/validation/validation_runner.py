@@ -13,6 +13,10 @@ class ValidationRunnerException(EMAPRunnerException):
 
 
 class ValidationRunner:
+    timeout = timedelta(hours=10)
+    wait_secs = 120
+    final_wait_secs = 600
+
     def __init__(
         self,
         docker_runner: "DockerRunner",
@@ -28,8 +32,6 @@ class ValidationRunner:
         self.use_hl7_reader = use_hl7_reader
         self.use_hoover = use_hoover
         self.use_waveform = use_waveform
-
-        self.timeout = timedelta(hours=10)
 
         self.docker = docker_runner
         self.time_window = time_window
@@ -176,17 +178,17 @@ class ValidationRunner:
         start_time_monotonic = time.monotonic()
 
         while self._has_populated_queues:
-            time.sleep(120)
+            time.sleep(ValidationRunner.wait_secs)
             elapsed_time = timedelta(seconds=time.monotonic() - start_time_monotonic)
-            if elapsed_time > self.timeout:
+            if elapsed_time > ValidationRunner.timeout:
                 self._save_logs_and_stop()
                 raise ValidationRunnerException(
                     f"Waiting for queue timed out. Elapsed time "
-                    f"({elapsed_time}) > timeout ({self.timeout})"
+                    f"({elapsed_time}) > timeout ({ValidationRunner.timeout})"
                 )
 
         # exits too keenly from databaseExtracts queue, adding in a wait period
-        time.sleep(600)
+        time.sleep(ValidationRunner.final_wait_secs)
 
         return None
 
