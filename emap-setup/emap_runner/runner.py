@@ -199,8 +199,9 @@ class EMAPRunner:
 
     def validation(self) -> ValidationRunner:
         """Run a validation run of EMAP"""
-        # allow for hoover not to be defined in global config
-        use_hoover = ("hoover" in self.global_config["repositories"]) and self.args.use_hoover
+        # user should explicitly switch off hoover if not defined in global config
+        if self.args.use_hoover and "hoover" not in self.global_config["repositories"]:
+            raise ValueError("hoover requested but is missing from repositories in global config")
 
         runner = ValidationRunner(
             docker_runner=DockerRunner(project_dir=Path.cwd(), config=self.global_config),
@@ -209,7 +210,7 @@ class EMAPRunner:
             ),
             should_build=not self.args.skip_build,
             use_hl7_reader=self.args.use_hl7_reader,
-            use_hoover=use_hoover,
+            use_hoover=self.args.use_hoover,
             use_waveform=self.args.use_waveform,
         )
         runner.run()

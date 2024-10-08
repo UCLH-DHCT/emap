@@ -1,6 +1,6 @@
 from subprocess import Popen
 from datetime import date, timedelta
-from time import time, sleep
+import time
 from typing import Union, List
 from pathlib import Path
 
@@ -29,7 +29,6 @@ class ValidationRunner:
         self.use_hoover = use_hoover
         self.use_waveform = use_waveform
 
-        self.start_time = None
         self.timeout = timedelta(hours=10)
 
         self.docker = docker_runner
@@ -174,32 +173,22 @@ class ValidationRunner:
         If it's still going after 10 hours something's gone very wrong and we
         should give up
         """
-        self.start_time = time()
+        start_time_monotonic = time.monotonic()
 
         while self._has_populated_queues:
-
-            sleep(120)
-
-            if self._exceeded_timeout:
+            time.sleep(120)
+            elapsed_time = timedelta(seconds=time.monotonic() - start_time_monotonic)
+            if elapsed_time > self.timeout:
                 self._save_logs_and_stop()
                 raise ValidationRunnerException(
                     f"Waiting for queue timed out. Elapsed time "
-                    f"({self._elapsed_time}) > timeout ({self.timeout})"
+                    f"({elapsed_time}) > timeout ({self.timeout})"
                 )
 
         # exits too keenly from databaseExtracts queue, adding in a wait period
-        sleep(600)
+        time.sleep(600)
 
         return None
-
-    @property
-    def _exceeded_timeout(self) -> bool:
-        return self._elapsed_time > self.timeout
-
-    @property
-    def _elapsed_time(self) -> timedelta:
-        """Time elapsed since the runner started"""
-        return timedelta(seconds=time() - self.start_time)
 
     @property
     def _has_populated_queues(self) -> bool:
