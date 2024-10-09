@@ -62,6 +62,13 @@ public class Hl7FromFile {
                 logger.info("handled {} messages out of {}", mi + 1, messages.size());
             }
         }
-        logger.info("Queued {} HL7 messages from test dump file", messages.size());
+        logger.info("Queued {} HL7 messages from test dump file, now exiting", messages.size());
+        // Not sure how to wait for Publisher to finish, so just sleep for a bit
+        try {
+            Thread.sleep(10_000);
+        } catch (InterruptedException e) {
+            logger.warn("Thread was interrupted", e);
+        }
+        System.exit(0);
     }
 }
