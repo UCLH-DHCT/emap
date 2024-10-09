@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.datasources.waveform.hl7parse.Hl7Segment;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.WaveformMessage;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class Hl7ParseAndSend {
@@ -74,15 +76,15 @@ public class Hl7ParseAndSend {
 
                 logger.trace("Parsing datetime {}", obsDatetimeStr);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSSZZ");
-                TemporalAccessor ta = formatter.parse(obsDatetimeStr);
-                Instant obsDatetime = Instant.from(ta);
+                Instant obsDatetime;
+                try {
+                    TemporalAccessor ta = formatter.parse(obsDatetimeStr);
+                    obsDatetime = Instant.from(ta);
+                } catch (DateTimeException e) {
+                    throw (Hl7ParseException) new Hl7ParseException("Datetime parsing failed").initCause(e);
+                }
 
                 String streamId = obx.getField(3);
-                String allPointsStr = obx.getField(5);
-                if (allPointsStr.contains("~")) {
-                    throw new Hl7ParseException("must only be 1 repeat in OBX-5");
-                }
-                List<Double> points = Arrays.stream(allPointsStr.split("\\^")).map(Double::parseDouble).toList();
 
                 Optional<SourceMetadataItem> metadataOpt = sourceMetadata.getStreamMetadata(streamId);
                 if (metadataOpt.isEmpty()) {
@@ -99,6 +101,20 @@ public class Hl7ParseAndSend {
                 String mappedLocation = locationMapping.hl7AdtLocationFromCapsuleLocation(locationId);
                 String mappedStreamDescription = metadata.mappedStreamDescription();
                 String unit = metadata.unit();
+
+                // non-numerical types won't be able to go in the waveform table, but it's possible
+                // we might need them as a VisitObservation
+                String hl7Type = obx.getField(2);
+                if (!Set.of("NM", "NA").contains(hl7Type)) {
+                    logger.warn("Skipping stream {} with type {}, not numerical", streamId, hl7Type);
+                    continue;
+                }
+                String allPointsStr = obx.getField(5);
+                if (allPointsStr.contains("~")) {
+                    throw new Hl7ParseException("must only be 1 repeat in OBX-5");
+                }
+
+                List<Double> points = Arrays.stream(allPointsStr.split("\\^")).map(Double::parseDouble).toList();
 
                 String messageIdSpecific = String.format("%s_%d_%d", messageIdBase, obrI, obxI);
                 logger.debug("location {}, time {}, messageId {}, value count = {}",
@@ -134,12 +150,20 @@ public class Hl7ParseAndSend {
 
     /**
      * Parse an HL7 message and store the resulting WaveformMessage in the queue awaiting collation.
+     * If HL7 is invalid or in a form that the ad hoc parser can't handle, log error and skip.
      * @param messageAsStr One HL7 message as a string
-     * @throws Hl7ParseException if HL7 is invalid or in a form that the ad hoc parser can't handle
      * @throws WaveformCollator.CollationException if the data has a logical error that prevents collation
      */
-    public void parseAndQueue(String messageAsStr) throws Hl7ParseException, WaveformCollator.CollationException {
-        List<WaveformMessage> msgs = parseHl7(messageAsStr);
+    public void parseAndQueue(String messageAsStr) throws WaveformCollator.CollationException {
+        List<WaveformMessage> msgs;
+        try {
+            msgs = parseHl7(messageAsStr);
+        } catch (Hl7ParseException e) {
+            logger.error("HL7 parsing failed, first 100 chars: {}\nstacktrace {}",
+                    messageAsStr.substring(0, Math.min(100, messageAsStr.length())),
+                    e.getStackTrace());
+            return;
+        }
 
         logger.trace("HL7 message generated {} Waveform messages, sending for collation", msgs.size());
         waveformCollator.addMessages(msgs);

@@ -56,8 +56,11 @@ public class Hl7FromFile {
         }
         List<String> messages = readFromFile(hl7DumpFile);
         logger.info("Read {} HL7 messages from test dump file", messages.size());
-        for (var m: messages) {
-            hl7ParseAndSend.parseAndQueue(m);
+        for (int mi = 0; mi < messages.size(); mi++) {
+            hl7ParseAndSend.parseAndQueue(messages.get(mi));
+            if (mi % 100 == 0) {
+                logger.info("handled {} messages out of {}", mi + 1, messages.size());
+            }
         }
         logger.info("Queued {} HL7 messages from test dump file", messages.size());
     }

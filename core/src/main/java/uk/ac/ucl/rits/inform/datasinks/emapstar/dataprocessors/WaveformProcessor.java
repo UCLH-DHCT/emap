@@ -27,8 +27,8 @@ public class WaveformProcessor {
 
     @Value("${core.waveform.retention_hours}")
     private int retentionTimeHours;
-    @Value("${core.waveform.is_synthetic_data}")
-    private boolean isSyntheticData;
+    @Value("${core.waveform.is_non_current_test_data}")
+    private boolean isNonCurrentTestData;
 
     /**
      * @param visitObservationController visit observation controller
@@ -61,8 +61,8 @@ public class WaveformProcessor {
     public void deleteOldWaveformData() {
         logger.info("deleteOldWaveformData: Checking for old waveform data for deletion");
         Instant baselineDatetime;
-        if (isSyntheticData) {
-            // while still in proof of concept, use the current data (which may be for a
+        if (isNonCurrentTestData) {
+            // while testing, use the current data (which may be for a
             // date far from the present) as a reference for when to apply retention cutoff date from.
             // ie. assume the time of the most recent data is "now"
             baselineDatetime = waveformController.mostRecentObservationDatatime();
@@ -74,8 +74,6 @@ public class WaveformProcessor {
         } else {
             baselineDatetime = Instant.now();
         }
-        // probably want to round to the nearest day so we do all the day at once,
-        // rather than little and often
         Instant cutoff = baselineDatetime.minus(retentionTimeHours, ChronoUnit.HOURS);
         logger.info("deleteOldWaveformData: baseline = {}, cutoff = {}", baselineDatetime, cutoff);
         int numDeleted = waveformController.deleteOldWaveformData(cutoff);
