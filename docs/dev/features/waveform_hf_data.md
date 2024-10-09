@@ -1,12 +1,52 @@
 # Waveform (high-frequency) data
 
+Waveform data is data such as ECG traces and ventilator pressure readings that is sampled multiple times a second.
 
-## Feature overview
+## User data requirements
+
+Data requirements differ depending on the project and cover concerns such as
+how far back the data needs to go, how up-to-date it needs to be, and quality issues like
+how many gaps it can tolerate.
+
+One project is interested in looking at 30 second snapshots before and after making some adjustment
+to the patient's care. (eg. change ventilator settings)
+
+In the future they may wish to look at a period of ~12 hours, to see if secretions
+are building up gradually over time and maybe some intervention is needed.
+
+How long do we need to keep waveform data for? The data is very large, so being able to delete data older than
+a configurable time period has been implemented to mitigate storage problems. I foresee 1-7 days being a useful
+value.
+This is implemented as a Spring scheduled task in the core processor. Notably this is the first
+background database operation in Emap, so it could happen alongside regular Emap processing.
+This will produce significant "churn" in the database; I'm assuming postgres is designed to handle this, but
+it's something to consider if any performance problems appear.
+
+How live does it have to be? Our standard guarantee is no more than a minute out of date,
+but in practice it's typically 20 seconds. We have aimed for similar.
 
 ## Config options added
 
-- retention time
-- ???
+Core:
+  - `core.waveform.retention_hours` periodically delete data more than this many hours old
+  - `core.waveform.is_non_current_test_data` for testing only - when deciding which data to delete/retain, if set to true,
+     then treat the "now" point as the most recent observation date in the waveform table, rather than the actual
+     current time. Purpose is to avoid test data getting immediately deleted because it's too old, which could happen
+     if we have a fixed set of test data with observation dates way in the past.
+
+Waveform Generator:
+  - `waveform.hl7.send_host`, `waveform.hl7.send_port` - the host and port to send the generated data to
+  - `test.synthetic.num_patients` - number of different patients (locations) to generate data for
+  - `test.synthetic.start_datetime` observation date to start generating data from or null to simulate live data
+    (see comment in code for more)
+  - `test.synthetic.end_datetime` if not null, exit the generator when observation date hits this date
+  - `test.synthetic.warp_factor` How many times real time to generate data at. Live mode implies warp factor = 1.
+
+Waveform Reader:
+  - `waveform.hl7.listen_port` port inside the container to listen on for waveform HL7 generator
+  - `waveform.hl7.source_address_allow_list` comma-separated list of source IP addresses to accept connections from.
+      If the listen contains the value "ALL", then all source IP addresses are allowed.
+  - `waveform.hl7.test_dump_file` If specified, read messages from this file and then exit - intended for validation
 
 ## Design details
 
@@ -85,13 +125,6 @@ the middle of the night, when waveform data will still be coming in.
 Other solution is to fix it up later when the feed comes back, but that involves a lot of continuously rechecking stuff,
 and we will have been giving out wrong information in the meantime. And then we will need that audit table!
 
-### User requirements
-
-What data do our users require? What sort of queries will they be making?
-
-How live does it have to be? I'm guessing 10 minutes is ok, 60 minutes isn't.
-
-How long do we need to keep live data for? Can we delete data older than eg. 7 days? This could mitigate storage problems.
 
 ### Performance monitoring
 
@@ -110,14 +143,15 @@ My initial tests assumed that there will be 30 patients generating data from one
 ventilated at any one time, but the ventilator has more than two data streams)
 
 At this rate of data flow, my very naive DB implementation using 1 data point per row
-resulted in ~100GB of backend postgres disk usage being generated per day
-- clearly far too much if we're aiming for the UDS to stay under 1TB, although that figure may be quite out of date!
+resulted in ~100GB of backend postgres disk usage being generated per day - clearly
+far too much if we're aiming for the UDS to stay under 1TB (which used to be the limit we were observing), given
+that there could be three or more Emap instances in the DB at once (two lives and at least one in dev)
 
 You can calculate a theoretical minimum:
-30 * 86400 * 350 = 907 million data points per day.
+30 * 86400 * (300 + 50) = 907 million data points per day.
 I don't know what numerical type the original data uses, but assuming 8 bytes per data point, that's **~8GB per day**.
-If we keep only the last 7 days of data, that caps it at **~60GB overall**.
-Will need to allow for some row metadata, the underlying DB having to be padded/aligned/whatever, and it will be a bit more.
+If we keep only the last 7 days of data, that caps it at **~60GB** per instance of Emap.
+Allowing for some row metadata, the underlying DB to be padded/aligned/whatever, and it will be a bit more.
 Am assuming compression is impossible.
 
 Using SQL arrays vastly improves the actual efficiency vs 1 per row.
@@ -128,15 +162,15 @@ See issue https://github.com/UCLH-DHCT/emap/issues/62 for a discussion of furthe
 
 ### HL7 ingress
 
-There is a piece of software in the hospital called Smartlinx which collates data from little dongles
+There is a piece of software in the hospital called Smartlinx which collects data from little dongles
 which plug into the back of ventilators and bedside monitors.
 It can be easily configured to stream HL7 waveform data in our direction. However, a large concern is that we avoid
 jeopardizing the existing flow of (non-waveform) data that goes from Smartlinx to Epic.
 
-Therefore we will need to have our own Smartlinx licence and the server to run it on, so we are separate from the
-existing one.
+Therefore we will need to have our own Smartlinx server (with accompanying software licence) to run it on, so we
+are separate from the existing one.
 
-So far, it has only been set up to provide one patient's waveform data at a time, and only for short periods. It's
+So far, it has only been used to provide one patient's waveform data at a time, and only for short periods. It's
 unknown how it would cope if it were sending *all* patients' data to us.
 
 To receive waveform data from Smartlinx, you must listen on a TCP port which Smartlinx then connects to.
@@ -146,14 +180,15 @@ Can Smartlinx replay missed messages if we go down? No.
 
 Does Smartlinx support/require acknowledgement messages? No.
 
-Will we need to do our own buffering? Can we do the same thing the IDS does (whatever that is)?
+Will we need to do our own buffering? Can we do the same sort of thing the IDS does?
 Maybe. See issue https://github.com/UCLH-DHCT/emap/issues/48 for why we might have to implement some sort of buffering.
 
-HL7 messages from bedside monitor have ~40 measurements per message; ventilators ~1-10 (50Hz); ECGs (300Hz) not known.
+HL7 messages are not particularly space efficient: messages from bedside monitors have ~40 measurements per message;
+ventilators have ~1-10 per message (50Hz); ECGs (300Hz) not known.
 So this will be a high volume of text relative to the actual data.
-Although this inefficiency might keep a CPU core on the GAE fairly busy, at least it won't have any effect on the Emap queue and DB.
+Although this inefficiency might keep a CPU core or two on the GAE fairly busy, at least it won't have any effect on the Emap queue and DB.
 Since we plan to use SQL arrays in the DB, and Emap doesn't have a mechanism to collate multiple incoming interchange messages,
-we want each interchange message to result in one DB waveform row.
+we want each interchange message to result in one DB waveform row being created.
 Therefore I collect up to 3000 data points in memory for each patient+data stream, collate it and send as a single
 interchange message, so it can become a single row in the DB.
 
@@ -163,10 +198,13 @@ The local time on the ventilators that has to be set manually twice a year to ac
 
 ### Pre-release validation
 
-This requires the ability to replay waveform HL7 messages. We can currently do this using a text HL7 dump file.
-We could keep a test stream of real or synthetic messages, but it would have to be continously updated to store (say) the last 7 days of messages,
-otherwise this would lose some of the benefits of the validation process.
-As a fallback, you could perform waveform validation live, but this would mean a 7 day validation period would take 7 days to run,
+This requires the ability to replay waveform HL7 messages. We currently do this using a text HL7 dump file.
+
+An alternative would be to maintain a test stream of real or synthetic messages, but it would have to be continuously
+updated to store (say) the last 7 days of messages, so that it overlaps with the validation period, which is by default
+the last 7 days.
+
+Or you could perform waveform validation live, but this would mean a 7 day validation period would take 7 days to run,
 and you'd have to run this separately from the main Emap validation process.
 
 Things you could check in validation:
