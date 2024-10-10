@@ -47,6 +47,13 @@ public class Hl7FromFile {
     @Scheduled(fixedRate = Long.MAX_VALUE) // do once only
     void readOnceAndQueueScheduled() throws Hl7ParseException, WaveformCollator.CollationException, IOException {
         readOnceAndQueue(hl7DumpFile);
+        // Not sure how to wait for Publisher to finish, so just sleep for a bit
+        try {
+            Thread.sleep(10_000);
+        } catch (InterruptedException e) {
+            logger.warn("Thread was interrupted", e);
+        }
+        System.exit(0);
     }
 
     void readOnceAndQueue(File hl7DumpFile) throws Hl7ParseException, WaveformCollator.CollationException, IOException {
