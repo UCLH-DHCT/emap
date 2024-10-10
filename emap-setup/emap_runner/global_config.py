@@ -1,3 +1,5 @@
+import re
+
 import yaml
 
 from typing import Optional
@@ -123,8 +125,11 @@ class GlobalConfiguration(dict):
 
         for i, line in enumerate(env_file.lines):
 
-            if line.startswith("#"):
+            if re.match(r"\s*#", line):
                 env_file.set_comment_line_at(line, idx=i)
+                continue
+
+            if re.match(r"\s*$", line):
                 continue
 
             key, value = line.split("=")  # e.g. IDS_SCHEMA=schemaname
