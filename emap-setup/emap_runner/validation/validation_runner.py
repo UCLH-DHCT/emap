@@ -138,12 +138,10 @@ class ValidationRunner:
         the time delay required for RabbitMQ to be there. Should this prove not to be sufficient, then the running order
         may need to change, i.e. the data sources to be started first (as background services though!).
         """
-        _ = Popen(
-            "sleep 180 && "
-            + self.docker.base_docker_compose_command
-            + "up -d core",
-            shell=True,
-        )
+        # not sure this sleep is necessary given the healthchecks we have now
+        time.sleep(180)
+        self.docker.run("up -d core")
+        self.docker.run("ps")
 
         if self.use_hl7_reader:
             self.docker.run(
