@@ -159,6 +159,9 @@ class ValidationRunner:
         # the waveform *reader* is brought up, which will be reading from an HL7 dump file
         # and therefore doesn't require the waveform-generator.
         if self.use_waveform:
+            # While de-orphaning remains unimplemented, must wait for ADT data to
+            # be present before adding waveform-data. (See issue #36)
+            self._wait_for_queue_to_empty()
             self.docker.run(
                 "up --exit-code-from waveform-reader waveform-reader",
                 output_filename=f"{self.log_file_prefix}_waveform-reader.txt",
