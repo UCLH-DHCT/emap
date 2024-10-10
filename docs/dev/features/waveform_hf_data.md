@@ -51,6 +51,17 @@ Waveform Reader:
       Not currently supported: hostnames or IP ranges.
   - `waveform.hl7.test_dump_file` If specified, read messages from this file and then exit - intended for validation
 
+## Container housekeeping (setup script)
+The waveform processing feature is enabled or disabled in the global configuration file. I've added
+a "features" section for this, and taken the opportunity to also add the `fakeuds` container to make that easier
+to turn on and off.
+
+Because the waveform feature flag will include/exclude the relevant docker compose files from
+the docker commands it generates, you can continue to
+run a simple `emap docker up -d` to bring up a production instance of emap without the waveform containers coming up.
+Feature flag implementation is different here than for, say, SDEs because that's a feature within the core
+processor, whereas disabling waveform data requires an entire container to be disabled.
+
 ## Design details
 
 ### Emap DB design
